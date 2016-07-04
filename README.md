@@ -1,6 +1,4 @@
-# AndroidChromium
-
-###Chromium源码环境分离AndroidUI层，并构建gradle工程
+##Chromium源码环境分离AndroidUI层，并构建gradle工程
 
 **目的：**
 
