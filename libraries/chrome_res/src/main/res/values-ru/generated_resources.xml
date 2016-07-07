@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Обновить разрешения"</string>
+<string name="login_dialog_title">"Необходима авторизация"</string>
+<string name="login_dialog_username_field">"Имя пользователя:"</string>
+<string name="login_dialog_password_field">"Пароль:"</string>
+<string name="login_dialog_ok_button_label">"Вход"</string>
+<string name="http_post_warning">"На странице, которую вы ищете, использовалась введенная вами информация. При возврате на эту страницу может потребоваться повторить выполненные ранее действия. Продолжить?"</string>
+<string name="http_post_warning_resend">"Далее"</string>
+<string name="sad_tab_title">"Опаньки..."</string>
+<string name="sad_tab_message">"При загрузке этой страницы возникли неполадки."</string>
+<string name="sad_tab_reload_label">"Перезагрузить"</string>
+<string name="options_homepage_title">"Главная страница"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Хранить данные карты на этом устройстве"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Если флажок установлен, Chrome будет хранить на этом устройстве данные карты для быстрого заполнения форм."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Chrome будет хранить на этом устройстве данные карты для быстрого заполнения форм."</string>
+<string name="autofill_card_unmask_confirm_button">"Подтвердить"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Проверка карты..."</string>
+<string name="autofill_card_unmask_verification_success">"Карта проверена"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Добавить карту?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Удалить данные"</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Ажурирај дозволе"</string>
+<string name="login_dialog_title">"Потребна је потврда идентитета"</string>
+<string name="login_dialog_username_field">"Име корисника:"</string>
+<string name="login_dialog_password_field">"Лозинка:"</string>
+<string name="login_dialog_ok_button_label">"Пријављивање"</string>
+<string name="http_post_warning">"Страница коју тражите користила је информације које сте унели. Повратак на ту страницу може да проузрокује потребну понављања радњи које сте извршили. Желите ли да наставите?"</string>
+<string name="http_post_warning_resend">"Настави"</string>
+<string name="sad_tab_title">"О, не!"</string>
+<string name="sad_tab_message">"Дошло је до грешке при приказивању ове веб-странице."</string>
+<string name="sad_tab_reload_label">"Учитај поново"</string>
+<string name="options_homepage_title">"Почетна страница"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Задржи копију ове картице на овом уређају"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ако означите ову опцију, Chrome ће складиштити копију картице на овом уређају ради бржег попуњавања образаца."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ако је ова опција омогућена, Chrome ће складиштити копију картице на овом уређају ради бржег попуњавања образаца."</string>
+<string name="autofill_card_unmask_confirm_button">"Верификуј"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Верификовање картице"</string>
+<string name="autofill_card_unmask_verification_success">"Картица је верификована"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Нова картица?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Обриши копију"</string>
+</resources>

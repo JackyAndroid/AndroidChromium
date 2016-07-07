@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Sasisha ruhusa"</string>
+<string name="login_dialog_title">"Uthibitishaji Unahitajika"</string>
+<string name="login_dialog_username_field">"Jina la mtumiaji:"</string>
+<string name="login_dialog_password_field">"Nenosiri:"</string>
+<string name="login_dialog_ok_button_label">"Ingia"</string>
+<string name="http_post_warning">"Ukurasa unaotafuta ulitumia maelezo uliyoyaingiza. Kurudi kwenye ukurasa huo huenda kukasababisha tendo lolote ulilofanya lirudiwe. Je, ungependa kuendelea?"</string>
+<string name="http_post_warning_resend">"Endelea"</string>
+<string name="sad_tab_title">"Lo!"</string>
+<string name="sad_tab_message">"Hitilafu ilitokea wakati wa kuonyesha ukurasa huu wa wavuti."</string>
+<string name="sad_tab_reload_label">"Pakia upya"</string>
+<string name="options_homepage_title">"Ukurasa wa Kwanza"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Weka nakala ya kadi hii kwenye kifaa hiki"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ikiteuliwa, Chrome itahifadhi nakala ya kadi yako kwenye kifaa hiki kwa ajili ya kujaza fomu haraka."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ikiwashwa, Chrome itahifadhi nakala ya kadi yako kwenye kifaa hiki kwa ajili ya kujaza fomu haraka zaidi."</string>
+<string name="autofill_card_unmask_confirm_button">"Thibitisha"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Inathibitisha kadi"</string>
+<string name="autofill_card_unmask_verification_success">"Kadi yako imethibitishwa"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Je, ni kadi mpya?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Futa nakala"</string>
+</resources>

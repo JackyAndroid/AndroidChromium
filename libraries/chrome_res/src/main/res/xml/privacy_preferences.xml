@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="navigation_error"
+        android:title="@string/navigation_error_title"
+        android:summary="@string/navigation_error_summary"
+        android:defaultValue="true" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="search_suggestions"
+        android:title="@string/search_suggestions_title"
+        android:summary="@string/search_suggestions_summary"
+        android:defaultValue="true" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="safe_browsing_extended_reporting"
+        android:title="@string/safe_browsing_extended_reporting_title"
+        android:summary="@string/safe_browsing_extended_reporting_summary" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="safe_browsing"
+        android:title="@string/safe_browsing_title"
+        android:summary="@string/safe_browsing_summary" />
+
+    <!-- Only one of these network prediction preferences will be shown, depending on whether
+         the device has cellular support. -->
+    <org.chromium.chrome.browser.preferences.privacy.NetworkPredictionPreference
+        android:key="network_predictions"
+        android:title="@string/network_predictions_title"
+        android:entries="@array/bandwidth_entries"
+        android:entryValues="@array/bandwidth_entry_values"
+        android:defaultValue="@string/network_prediction_wifi_only_value" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="network_predictions_no_cellular"
+        android:title="@string/network_predictions_title"
+        android:summary="@string/network_predictions_summary"
+        android:defaultValue="true" />
+
+    <!-- Only one of these "Usage and crash reports" preferences will be shown, depending on whether
+         the device has cellular support. -->
+    <org.chromium.chrome.browser.preferences.privacy.CrashDumpUploadPreference
+        android:key="crash_dump_upload"
+        android:title="@string/crash_dump_upload_title"
+        android:entries="@array/crash_upload_entries"
+        android:entryValues="@array/crash_upload_values"
+        android:defaultValue="@string/crash_dump_never_upload_value" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="crash_dump_upload_no_cellular"
+        android:title="@string/crash_dump_upload_title"
+        android:defaultValue="false" />
+    <Preference
+        android:key="usage_and_crash_reports"
+        android:title="@string/usage_and_crash_reports_title"
+        android:fragment="org.chromium.chrome.browser.preferences.privacy.UsageAndCrashReportsPreferenceFragment" />
+
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.privacy.DoNotTrackPreference"
+        android:key="do_not_track"
+        android:title="@string/do_not_track_title" />
+    <Preference
+        android:key="contextual_search"
+        android:title="@string/contextual_search_title"
+        android:fragment="org.chromium.chrome.browser.preferences.privacy.ContextualSearchPreferenceFragment" />
+    <org.chromium.chrome.browser.preferences.ButtonPreference
+        android:key="clear_browsing_data"
+        android:title="@string/clear_browsing_data_title" />
+</PreferenceScreen>

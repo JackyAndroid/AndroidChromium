@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- Layout for button that permits user to clear the local copy of a card. -->
+<org.chromium.ui.widget.ButtonCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/preference_click_target"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:minHeight="40dp"
+    android:textColor="#fff"
+    android:text="@string/autofill_clear_local_copy_button"
+    chrome:buttonColor="@color/pref_accent_color" />

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Atnaujinti leidimus"</string>
+<string name="login_dialog_title">"Reikalingas tapatybės nustatymas"</string>
+<string name="login_dialog_username_field">"Naudotojo vardas:"</string>
+<string name="login_dialog_password_field">"Slaptažodis:"</string>
+<string name="login_dialog_ok_button_label">"Prisijungti"</string>
+<string name="http_post_warning">"Jūsų ieškomas puslapis ieškojo informacijos, kurią įvedėte. Grįžus į tą puslapį bet kokie jūsų atliekami veiksmai gali būti kartojami. Ar norite tęsti?"</string>
+<string name="http_post_warning_resend">"Tęsti"</string>
+<string name="sad_tab_title">"Oi!"</string>
+<string name="sad_tab_message">"Rodant šį tinklalapį įvyko nenumatyta klaida."</string>
+<string name="sad_tab_reload_label">"Įkelti iš naujo"</string>
+<string name="options_homepage_title">"Pagrindinis puslapis"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Išsaugoti kortelės kopiją įrenginyje"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Jei pažymėta, „Chrome“ išsaugos kortelės kopiją įrenginyje, kad galėtumėte greičiau užpildyti formas."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Jei šis nustatymas įgalintas, „Chrome“ saugos kortelės kopiją šiame įrenginyje, kad būtų galima greičiau užpildyti formas."</string>
+<string name="autofill_card_unmask_confirm_button">"Patvirtinti"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Patvirtinama kortelė"</string>
+<string name="autofill_card_unmask_verification_success">"Kortelė patvirtinta"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nauja kortelė?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Išvalyti kopiją"</string>
+</resources>

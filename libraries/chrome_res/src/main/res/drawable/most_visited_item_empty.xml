@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- A blank most visited item, for display on the new tab page. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/ntp_most_visited_bg" />
+            <corners android:radius="@dimen/most_visited_bg_corner_radius" />
+        </shape>
+    </item>
+
+    <item>
+        <inset
+            android:insetTop="4dp"
+            android:insetRight="4dp"
+            android:insetBottom="4dp"
+            android:insetLeft="4dp">
+            <shape android:shape="rectangle">
+                <solid android:color="#fff" />
+            </shape>
+        </inset>
+    </item>
+
+</layer-list>

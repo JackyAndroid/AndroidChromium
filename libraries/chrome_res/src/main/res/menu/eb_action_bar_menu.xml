@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto" >
+
+    <group android:id="@+id/normal_menu_group" >
+        <item
+            android:id="@+id/edit_menu_id"
+            android:icon="@drawable/eb_edit_normal"
+            android:title="@string/enhanced_bookmark_action_bar_edit_folder"
+            android:visible="false"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/search_menu_id"
+            android:icon="@drawable/ic_search"
+            android:title="@string/enhanced_bookmark_action_bar_search"
+            android:visible="false"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/close_menu_id"
+            android:icon="@drawable/btn_close"
+            android:title="@string/enhanced_bookmark_action_bar_close"
+            chrome:showAsAction="ifRoom"/>
+    </group>
+    <group
+        android:id="@+id/selection_mode_menu_group"
+        android:visible="false" >
+        <item
+            android:id="@+id/selection_mode_edit_menu_id"
+            android:icon="@drawable/eb_edit_active"
+            android:title="@string/edit_bookmark"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/selection_mode_move_menu_id"
+            android:icon="@drawable/eb_move_active"
+            android:title="@string/enhanced_bookmark_action_bar_move"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/selection_mode_delete_menu_id"
+            android:icon="@drawable/eb_delete_white"
+            android:title="@string/enhanced_bookmark_action_bar_delete"
+            chrome:showAsAction="ifRoom"/>
+    </group>
+
+</menu>

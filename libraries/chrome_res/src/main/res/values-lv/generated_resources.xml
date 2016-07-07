@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Atjaunināt atļaujas"</string>
+<string name="login_dialog_title">"Nepieciešama autentiskuma noteikšana"</string>
+<string name="login_dialog_username_field">"Lietotājvārds:"</string>
+<string name="login_dialog_password_field">"Parole:"</string>
+<string name="login_dialog_ok_button_label">"Pieteikšanās"</string>
+<string name="http_post_warning">"Lapa, ko meklējāt, izmantoja jūsu ievadīto informāciju. Atgriešanās lapā var radīt jebkuras jūsu darbības atkārtojumu. Vai vēlaties turpināt?"</string>
+<string name="http_post_warning_resend">"Turpināt"</string>
+<string name="sad_tab_title">"Cilnes avārija."</string>
+<string name="sad_tab_message">"Šīs tīmekļa lapas rādīšanas laikā radās kļūda."</string>
+<string name="sad_tab_reload_label">"Pārlādēt"</string>
+<string name="options_homepage_title">"Sākumlapa"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Saglabāt šīs kartes kopiju šajā ierīcē"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ja šī izvēles rūtiņa ir atzīmēta, pārlūks Chrome saglabās jūsu kartes kopiju šajā ierīcē, lai nodrošinātu ātrāku veidlapu aizpildi."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Iespējojot šo opciju, Chrome saglabās jūsu kartes informāciju šajā ierīcē, lai jūs varētu ātrāk aizpildīt veidlapas."</string>
+<string name="autofill_card_unmask_confirm_button">"Verificēt"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Notiek kartes verificēšana"</string>
+<string name="autofill_card_unmask_verification_success">"Jūsu karte ir verificēta."</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Vai jums ir jauna karte?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Dzēst kopiju"</string>
+</resources>

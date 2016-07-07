@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<resources>
+    <declare-styleable name="TintedImage">
+        <attr name="tint" format="reference|color" />
+    </declare-styleable>
+
+    <declare-styleable name="HyperlinkPreference">
+        <!-- The URL to load when the preference is clicked -->
+        <attr name="url" format="string" />
+        <!-- True if the hyperlink should look like an <a> element. Default is false. -->
+        <attr name="imitateWebLink" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="LearnMorePreference">
+        <!-- The context that should be sent to HelpAndFeedback activity. -->
+        <attr name="helpContext" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="ChromeSwitchPreference">
+        <!-- Prevents the summary text from being styled like title text in the
+             case that the title is empty. -->
+        <attr name="dontUseSummaryAsTitle" format="boolean" />
+        <!-- Draws a horizontal divider line at the bottom of the preference. -->
+        <attr name="drawDivider" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="FloatLabelLayout">
+        <attr name="floatLabelTextAppearance" format="reference" />
+        <attr name="floatLabelPaddingLeft" format="reference|dimension" />
+        <attr name="floatLabelPaddingRight" format="reference|dimension" />
+        <attr name="floatLabelPaddingTop" format="reference|dimension" />
+        <attr name="floatLabelPaddingBottom" format="reference|dimension" />
+        <!-- The hint to display in the floating label -->
+        <attr name="floatLabelHint" format="reference|string" />
+    </declare-styleable>
+
+    <declare-styleable name="EmptyAlertEditText">
+        <attr name="alertMessage" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="PaddedFrameLayout">
+        <attr name="maxChildWidth" format="dimension" />
+        <attr name="maxChildHeight" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="BoundedView">
+        <attr name="maxWidth" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="ClipDrawableProgressBar">
+        <attr name="progressBarColor" format="reference|color" />
+        <attr name="backgroundColor" format="reference|color" />
+    </declare-styleable>
+
+</resources>

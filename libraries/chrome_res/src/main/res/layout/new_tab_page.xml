@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<org.chromium.chrome.browser.ntp.NewTabPageView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/tab_strip_height" >
+
+    <org.chromium.chrome.browser.ntp.NewTabScrollView
+        android:id="@+id/ntp_scrollview"
+        android:background="@color/ntp_bg"
+        android:fillViewport="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="48dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:contentDescription="@string/accessibility_new_tab_page" >
+
+        <org.chromium.chrome.browser.ntp.NewTabPageLayout
+            android:id="@+id/ntp_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="@dimen/toolbar_height_no_shadow"
+            android:visibility="gone"
+            chrome:maxWidth="692dp" >
+
+            <!-- Spacer. Note: this must have layout_weight="1" and the other spacers must have
+                 layout_weight="0". The NewTabPageLayout will redistribute the extra space between
+                 them. -->
+            <View
+                android:id="@+id/ntp_top_spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="invisible" />
+
+            <!-- Search provider logo -->
+            <org.chromium.chrome.browser.ntp.LogoView
+                android:id="@+id/search_provider_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/ntp_logo_height"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="26dp"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/google_logo" />
+
+            <!-- Search box -->
+            <LinearLayout
+                android:id="@+id/search_box"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_ntp_search_box"
+                android:orientation="horizontal" >
+                <EditText
+                    android:id="@+id/search_box_text"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:ellipsize="end"
+                    android:focusableInTouchMode="false"
+                    android:gravity="center_vertical"
+                    android:inputType="text"
+                    android:singleLine="true"
+                    android:textSize="@dimen/location_bar_url_text_size" />
+                <org.chromium.chrome.browser.widget.TintedImageView
+                    android:id="@+id/voice_search_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="@string/accessibility_toolbar_btn_mic"
+                    android:src="@drawable/btn_mic" />
+            </LinearLayout>
+
+            <!-- Spacer -->
+            <View
+                android:id="@+id/ntp_middle_spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="0"
+                android:visibility="invisible" />
+
+            <!-- Document mode opt out promo -->
+            <ViewStub
+                android:id="@+id/opt_out_promo_stub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inflatedId="@+id/opt_out_promo"
+                android:layout="@layout/opt_out_promo" />
+
+            <!-- Most visited items.
+                 TODO(newt): inline the most visited items layout, instead of using a ViewStub,
+                 once the layout is no longer controlled by a finch experiment. -->
+            <ViewStub
+                android:id="@+id/most_visited_layout_stub"
+                android:inflatedId="@+id/most_visited_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:layout_gravity="center_horizontal"
+                android:paddingTop="16dp" />
+
+            <!-- Most visited items placeholder -->
+            <ViewStub
+                android:id="@+id/most_visited_placeholder_stub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inflatedId="@+id/most_visited_placeholder"
+                android:layout="@layout/most_visited_placeholder" />
+
+            <!-- Spacer -->
+            <View
+                android:id="@+id/ntp_bottom_spacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="0"
+                android:visibility="invisible" />
+
+            <View
+                android:id="@+id/no_search_logo_spacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
+            <View
+                android:id="@+id/ntp_scroll_spacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+        </org.chromium.chrome.browser.ntp.NewTabPageLayout>
+    </org.chromium.chrome.browser.ntp.NewTabScrollView>
+
+    <!-- Bookmarks and Recent tabs buttons -->
+    <org.chromium.chrome.browser.ntp.NewTabPageToolbar
+        android:id="@+id/ntp_toolbar"
+        android:background="#fff"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal" >
+        <!-- Each button is a FrameLayout. Why? The TextView contains both text and a compound
+             drawable icon. If the TextView is half the screen width, the icon will be at the left
+             edge of the TextView even while the text is centered. To center the icon along with the
+             text, we need to set the TextView's width to wrap_content; but since the button needs
+             to be half the screen width, we wrap the TextView in a FrameLayout, whose width can
+             expand as needed. -->
+        <FrameLayout
+            android:id="@+id/bookmarks_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/listChoiceBackgroundIndicator"
+            android:contentDescription="@string/accessibility_ntp_toolbar_btn_bookmarks"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/ntp_bookmarks"
+                android:textSize="12sp"
+                android:textColor="#5a5a5a" />
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/recent_tabs_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/listChoiceBackgroundIndicator"
+            android:contentDescription="@string/accessibility_ntp_toolbar_btn_recent_tabs"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/recent_tabs"
+                android:textSize="12sp"
+                android:textColor="#5a5a5a" />
+        </FrameLayout>
+    </org.chromium.chrome.browser.ntp.NewTabPageToolbar>
+</org.chromium.chrome.browser.ntp.NewTabPageView>

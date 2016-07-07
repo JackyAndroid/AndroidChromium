@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<org.chromium.chrome.browser.enhancedbookmarks.EnhancedBookmarkContentView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/eb_content_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <org.chromium.chrome.browser.enhancedbookmarks.EnhancedBookmarkRecyclerView
+        android:id="@+id/eb_items_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/eb_action_bar"
+        android:background="@android:color/white"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay" />
+
+    <TextView
+        android:id="@+id/eb_empty_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:drawablePadding="3dp"
+        android:drawableTop="@drawable/eb_logo_large"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textColor="#5B5B5B"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+    <org.chromium.chrome.browser.widget.LoadingView
+        android:id="@+id/eb_initial_loading_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <org.chromium.chrome.browser.enhancedbookmarks.EnhancedBookmarkActionBar
+        android:id="@id/eb_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="@color/enhanced_bookmark_appbar_background" >
+
+        <org.chromium.chrome.browser.widget.NumberRollView
+            android:id="@+id/selection_mode_number"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:visibility="gone" >
+
+            <TextView
+                android:id="@+id/up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/down"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="20sp" />
+        </org.chromium.chrome.browser.widget.NumberRollView>
+    </org.chromium.chrome.browser.enhancedbookmarks.EnhancedBookmarkActionBar>
+
+    <org.chromium.chrome.browser.widget.FadingShadowView
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@id/eb_action_bar" />
+</org.chromium.chrome.browser.enhancedbookmarks.EnhancedBookmarkContentView>

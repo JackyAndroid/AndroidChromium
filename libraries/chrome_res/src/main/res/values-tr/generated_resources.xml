@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"İzinleri güncelle"</string>
+<string name="login_dialog_title">"Kimlik Doğrulaması Gerekiyor"</string>
+<string name="login_dialog_username_field">"Kullanıcı Adı:"</string>
+<string name="login_dialog_password_field">"Şifre:"</string>
+<string name="login_dialog_ok_button_label">"Giriş Yap"</string>
+<string name="http_post_warning">"Aradığınız sayfa, girdiğiniz bilgileri kullandı. O sayfaya dönmeniz, gerçekleştirdiğiniz işlemlerin tekrarlanmasına yol açabilir. Devam etmek istiyor musunuz?"</string>
+<string name="http_post_warning_resend">"Devam Et"</string>
+<string name="sad_tab_title">"Hata!"</string>
+<string name="sad_tab_message">"Bu web sayfasını görüntülerken bir hata oluştu."</string>
+<string name="sad_tab_reload_label">"Yeniden Yükle"</string>
+<string name="options_homepage_title">"Ana sayfa"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Bu kartın bir kopyasını bu cihazda tut"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"İşaretlenirse Chrome, formları daha hızlı doldurma amacıyla kartınızın bir kopyasını bu cihazda depolar."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Bu seçenek etkinleştirildiğinde Chrome, formları daha hızlı doldurmak için kartınızın bir kopyasını bu cihazda saklar."</string>
+<string name="autofill_card_unmask_confirm_button">"Doğrula"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Kart doğrulanıyor"</string>
+<string name="autofill_card_unmask_verification_success">"Kartınız doğrulandı"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Yeni bir kart mı?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Kopyayı temizle"</string>
+</resources>

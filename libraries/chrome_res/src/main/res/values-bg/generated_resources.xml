@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Актуализиране на разрешенията"</string>
+<string name="login_dialog_title">"Изисква се удостоверяване на самоличността"</string>
+<string name="login_dialog_username_field">"Потребителско име:"</string>
+<string name="login_dialog_password_field">"Парола:"</string>
+<string name="login_dialog_ok_button_label">"Вход"</string>
+<string name="http_post_warning">"Страницата, която търсите, използва въведената от вас информация. Ако се върнете на тази страница, действията, които вече сте изпълнили, може да бъдат повторени. Искате ли да продължите?"</string>
+<string name="http_post_warning_resend">"Напред"</string>
+<string name="sad_tab_title">"Ужас!"</string>
+<string name="sad_tab_message">"Възникна проблем при показването на тази уеб страница."</string>
+<string name="sad_tab_reload_label">"Повторно зареждане"</string>
+<string name="options_homepage_title">"Начална страница"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Съхраняване на копие на картата на това устройство"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ако поставите отметка, Chrome ще съхранява копие на картата ви на това устройство с цел по-бързо попълване на формуляри."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ако настройката е активирана, копие на картата ви ще се съхранява в Chrome на това устройство с цел по-бързо попълване на формуляри."</string>
+<string name="autofill_card_unmask_confirm_button">"Потвърждаване"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Картата се потвърждава"</string>
+<string name="autofill_card_unmask_verification_success">"Картата ви е потвърдена"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Нова карта?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Изчистване на копието"</string>
+</resources>

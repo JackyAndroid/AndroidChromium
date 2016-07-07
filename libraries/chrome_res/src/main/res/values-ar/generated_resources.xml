@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"تحديث الأذونات"</string>
+<string name="login_dialog_title">"يجب إدخال اسم المستخدم وكلمة المرور"</string>
+<string name="login_dialog_username_field">"اسم المستخدم:"</string>
+<string name="login_dialog_password_field">"كلمة المرور:"</string>
+<string name="login_dialog_ok_button_label">"تسجيل الدخول"</string>
+<string name="http_post_warning">"استخدمت الصفحة التي تبحث عنها المعلومات التي أدخلتها وقد يؤدّي الرجوع إليها  إلى تكرار  جميع الإجراءات السابقة. هل تريد المتابعة؟"</string>
+<string name="http_post_warning_resend">"المتابعة"</string>
+<string name="sad_tab_title">"عذرًا!"</string>
+<string name="sad_tab_message">"حدث خطأ في شيء ما أثناء عرض صفحة الويب هذه."</string>
+<string name="sad_tab_reload_label">"إعادة تحميل"</string>
+<string name="options_homepage_title">"الصفحة الرئيسية"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"الاحتفاظ بنسخة من هذه البطاقة على هذا الجهاز"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"‏إذا تم وضع علامة على هذا الخيار، سيخزّن Chrome نسخة من هذه البطاقة على هذا الجهاز لتعبئة النماذج بشكل أسرع."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"‏إذا تم التمكين، سيخزن Chrome نسخة من بطاقتك على هذا الجهاز لملء النموذج بشكل أسرع."</string>
+<string name="autofill_card_unmask_confirm_button">"تحقق"</string>
+<string name="autofill_card_unmask_verification_in_progress">"جارٍ التحقق من البطاقة"</string>
+<string name="autofill_card_unmask_verification_success">"تم التحقق من صلاحية بطاقتك"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"بطاقة جديدة؟"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"محو النسخة"</string>
+</resources>

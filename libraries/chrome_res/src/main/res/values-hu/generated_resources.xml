@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Engedélyek frissítése"</string>
+<string name="login_dialog_title">"Hitelesítés szükséges"</string>
+<string name="login_dialog_username_field">"Felhasználónév:"</string>
+<string name="login_dialog_password_field">"Jelszó:"</string>
+<string name="login_dialog_ok_button_label">"Bejelentkezés"</string>
+<string name="http_post_warning">"A keresett oldal a megadott információt használta. Ha visszatér arra az oldalra, akkor lehet, hogy az egyszer már megtett mozdulatok ismétlésre kerülnek. Mégis továbblép?"</string>
+<string name="http_post_warning_resend">"Folytatás"</string>
+<string name="sad_tab_title">"A manóba!"</string>
+<string name="sad_tab_message">"Valami nem sikerült a weboldal megjelenítése során."</string>
+<string name="sad_tab_reload_label">"Újratöltés"</string>
+<string name="options_homepage_title">"Kezdőoldal"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"A kártya másolatának megőrzése az eszközön"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ha be van jelölve, a Chrome ezen az eszközön tárolja a kártya egy példányát az űrlapok gyorsabb kitöltéséhez."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ha engedélyezi, a Chrome megőrzi a kártya másolatát ezen az eszközön a gyorsabb űrlapkitöltés érdekében."</string>
+<string name="autofill_card_unmask_confirm_button">"Ellenőrzés"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Kártya ellenőrzése"</string>
+<string name="autofill_card_unmask_verification_success">"Kártyáját ellenőriztük"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Új kártya?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Példány törlése"</string>
+</resources>

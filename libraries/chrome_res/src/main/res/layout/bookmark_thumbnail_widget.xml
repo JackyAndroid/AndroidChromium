@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <GridView
+        android:id="@+id/bookmarks_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_bookmarks_widget_holo"
+        android:columnWidth="@dimen/widget_column_width"
+        android:drawSelectorOnTop="true"
+        android:horizontalSpacing="@dimen/widget_horizontal_spacing"
+        android:listSelector="@drawable/bookmark_widget_thumb_selector"
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="@dimen/widget_vertical_spacing" />
+
+    <ImageButton
+        android:id="@+id/app_shortcut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="4dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/bookmark_widget_thumb_selector"
+        android:padding="4dp"
+        android:src="@mipmap/app_icon"
+        android:contentDescription="@string/accessibility_bookmark_widget_thumb_launch_chrome" />
+
+</RelativeLayout>

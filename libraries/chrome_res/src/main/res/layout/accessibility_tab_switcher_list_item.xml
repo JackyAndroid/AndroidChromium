@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+
+<org.chromium.chrome.browser.widget.accessibility.AccessibilityTabModelListItem
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/list_item_frame"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/accessibility_tab_height">
+
+    <LinearLayout
+        android:id="@+id/tab_contents"
+        android:orientation="horizontal"
+        android:background="@color/accessibility_tab_switcher_list_item"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/tab_favicon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:minWidth="40dp"
+            android:minHeight="40dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:src="@drawable/globe_favicon"
+            android:scaleType="fitCenter"
+            android:gravity="center_vertical"
+            android:contentDescription="@null" />
+        <TextView
+            android:id="@+id/tab_title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:gravity="center_vertical"
+            android:padding="4dp"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+        <org.chromium.chrome.browser.widget.TintedImageButton
+            android:id="@+id/close_btn"
+            android:scaleType="centerInside"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:minWidth="48dp"
+            android:padding="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/accessibility_tabstrip_btn_close_tab"
+            android:src="@drawable/btn_close"
+            chrome:tint="@color/light_mode_tint"
+            android:gravity="end|center_vertical" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/undo_contents"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
+
+        <Button
+            android:id="@+id/undo_button"
+            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="48dp"
+            android:textAlignment="viewStart"
+            android:text="@string/accessibility_tab_switcher_undo_tab_closed"
+            android:contentDescription="@string/accessibility_tab_switcher_undo_tab_closed"
+            android:textColor="@color/accessibility_close_undo_text"
+            android:textSize="18sp"
+            android:background="?attr/selectableItemBackground" />
+    </LinearLayout>
+
+</org.chromium.chrome.browser.widget.accessibility.AccessibilityTabModelListItem>

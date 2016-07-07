@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Modifier les autorisations"</string>
+<string name="login_dialog_title">"Authentification requise"</string>
+<string name="login_dialog_username_field">"Nom d\'utilisateur :"</string>
+<string name="login_dialog_password_field">"Mot de passe :"</string>
+<string name="login_dialog_ok_button_label">"Se connecter"</string>
+<string name="http_post_warning">"La page que vous recherchez a utilisé des informations que vous avez envoyées. Si vous revenez sur cette page, chaque action précédemment effectuée sera répétée. Souhaitez-vous continuer ?"</string>
+<string name="http_post_warning_resend">"Continuer"</string>
+<string name="sad_tab_title">"Aie aie aie"</string>
+<string name="sad_tab_message">"Une erreur s\'est produite lors de l\'affichage de la page Web."</string>
+<string name="sad_tab_reload_label">"Actualiser"</string>
+<string name="options_homepage_title">"Page d\'accueil"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Conserver une copie de cette carte sur cet appareil"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Si cette case est cochée, une copie de votre carte est stockée sur cet appareil pour compléter les formulaires plus rapidement."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Si cette option est activée, Chrome enregistre une copie de votre carte sur cet appareil pour vous permettre de remplir plus rapidement les formulaires."</string>
+<string name="autofill_card_unmask_confirm_button">"Valider"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Validation de la carte…"</string>
+<string name="autofill_card_unmask_verification_success">"Votre carte a bien été validée."</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nouvelle carte ?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Effacer la copie"</string>
+</resources>

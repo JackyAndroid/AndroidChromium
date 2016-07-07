@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/list_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <ImageView
+        android:id="@+id/thumb"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/widget_thumbnail_height"
+        android:background="@drawable/border_thumb_bookmarks_widget_holo"
+        android:cropToPadding="true"
+        android:scaleType="fitEnd"
+        android:src="@drawable/thumbnail_bookmarks_widget_no_bookmark_holo"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/thumb"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginStart="2dp"
+        android:background="@drawable/overlay_url_bookmark_widget_holo" >
+
+        <ImageView
+            android:id="@+id/favicon"
+            android:layout_width="@dimen/widget_favicon_size"
+            android:layout_height="@dimen/widget_favicon_size"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/globe_incognito_favicon"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@android:color/black"
+            android:textSize="12sp"
+            android:typeface="sans" />
+    </LinearLayout>
+
+</RelativeLayout>

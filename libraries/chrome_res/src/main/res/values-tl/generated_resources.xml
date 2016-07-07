@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"I-update ang mga pahintulot"</string>
+<string name="login_dialog_title">"Kinakailangan na Pagpapatunay"</string>
+<string name="login_dialog_username_field">"User Name:"</string>
+<string name="login_dialog_password_field">"Password:"</string>
+<string name="login_dialog_ok_button_label">"Mag-log In"</string>
+<string name="http_post_warning">"Ang pahina na hinahanap mo para sa paggamit ng impormasyon na ipinasok mo. Ang pagbalik sa pahinang iyon maaaring magsanhi ng anumang aksyon na akalo mo ay naulit. Nais mo bang ipagpatuloy?"</string>
+<string name="http_post_warning_resend">"Magpatuloy"</string>
+<string name="sad_tab_title">"Ay, Naku!"</string>
+<string name="sad_tab_message">"Nagkaroon ng problema habang ipinapakita ang webpage na ito."</string>
+<string name="sad_tab_reload_label">"I-reload"</string>
+<string name="options_homepage_title">"Home page"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Magtago ng kopya ng card na ito sa device na ito"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Kung lalagyan ng check, mag-iimbak ang Chrome ng kopya ng iyong card sa device na ito para sa mas mabilis na pagsagot sa form."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Kung naka-enable, mag-iimbak ang Chrome ng kopya ng iyong card sa device na ito para sa mas mabilis na pagsagot sa form."</string>
+<string name="autofill_card_unmask_confirm_button">"I-verify"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Vine-verify ang card"</string>
+<string name="autofill_card_unmask_verification_success">"Na-verify ang iyong card"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Bagong card?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"I-clear ang kopya"</string>
+</resources>

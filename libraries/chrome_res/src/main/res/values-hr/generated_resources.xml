@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Ažuriraj dopuštenja"</string>
+<string name="login_dialog_title">"Potrebna autentikacija"</string>
+<string name="login_dialog_username_field">"Ime korisnika:"</string>
+<string name="login_dialog_password_field">"Zaporka:"</string>
+<string name="login_dialog_ok_button_label">"Prijavi se"</string>
+<string name="http_post_warning">"Stranica koju ste tražili koristila je podatke koje ste unijeli. Vraćanje na tu stranicu može dovesti do ponavljanja poduzete radnje. Želite li nastaviti?"</string>
+<string name="http_post_warning_resend">"Nastavi"</string>
+<string name="sad_tab_title">"O, ne!"</string>
+<string name="sad_tab_message">"Nešto nije u redu s prikazivanjem ove web-stranice."</string>
+<string name="sad_tab_reload_label">"Ponovno učitaj"</string>
+<string name="options_homepage_title">"Početna stranica"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Zadrži kopiju te kartice na uređaju"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ako je označeno, Chrome će pohraniti kopiju vaše kartice na uređaj radi bržeg popunjavanja obrazaca."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ako je to omogućeno, Chrome će pohraniti kopiju vaše kartice na ovom uređaju radi bržeg ispunjavanja obrazaca."</string>
+<string name="autofill_card_unmask_confirm_button">"Potvrdi"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Potvrđivanje kartice"</string>
+<string name="autofill_card_unmask_verification_success">"Kartica je potvrđena"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nova kartica?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Izbriši kopiju"</string>
+</resources>

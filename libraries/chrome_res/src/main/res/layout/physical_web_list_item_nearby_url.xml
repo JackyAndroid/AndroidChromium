@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="18dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/nearby_urls_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="6dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@null">
+    </ImageView>
+    <TextView
+        android:id="@+id/nearby_urls_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@id/nearby_urls_icon"
+        android:layout_alignParentStart="true"
+        android:textSize="20sp"
+        android:textColor="@color/nearby_urls_header_color"
+        android:singleLine="true"
+        android:ellipsize="end">
+    </TextView>
+    <TextView
+        android:id="@+id/nearby_urls_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/nearby_urls_title"
+        android:layout_toStartOf="@id/nearby_urls_icon"
+        android:layout_alignParentStart="true"
+        android:textSize="14sp"
+        android:textColor="@color/nearby_urls_url_color"
+        android:singleLine="true"
+        android:ellipsize="end">
+    </TextView>
+    <TextView
+        android:id="@+id/nearby_urls_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/nearby_urls_url"
+        android:layout_alignParentStart="true"
+        android:textSize="14sp"
+        android:textColor="@color/nearby_urls_description_color"
+        android:lines="2"
+        android:ellipsize="end"
+        android:lineSpacingExtra="1.5dp">
+    </TextView>
+</RelativeLayout>

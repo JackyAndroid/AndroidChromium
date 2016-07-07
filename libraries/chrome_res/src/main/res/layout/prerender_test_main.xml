@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!--suppress HardcodedText -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="30dp"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Url to prerender and load"
+        android:layout_marginTop="30dp"
+        android:layout_gravity="start|center_vertical"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textUri"
+        android:id="@+id/url_to_load"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Preload url"
+        android:id="@+id/preload_button"
+        android:layout_margin="20dp"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Load url"
+        android:id="@+id/load_button"
+        android:layout_margin="20dp"/>
+</LinearLayout>

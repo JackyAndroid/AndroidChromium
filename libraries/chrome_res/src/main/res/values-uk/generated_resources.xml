@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Оновити дозволи"</string>
+<string name="login_dialog_title">"Потрібна автентифікація"</string>
+<string name="login_dialog_username_field">"Ім’я користувача:"</string>
+<string name="login_dialog_password_field">"Пароль:"</string>
+<string name="login_dialog_ok_button_label">"Вхід"</string>
+<string name="http_post_warning">"Сторінка, яку ви шукаєте, використовувала інформацію, введену вами. Повернення до такої сторінки може призвести до повторення ваших попередніх дій. Ви дійсно бажаєте продовжити?"</string>
+<string name="http_post_warning_resend">"Продовжити"</string>
+<string name="sad_tab_title">"От халепа!"</string>
+<string name="sad_tab_message">"Під час показу цієї сторінки сталася помилка."</string>
+<string name="sad_tab_reload_label">"Перезавантажити"</string>
+<string name="options_homepage_title">"Домашня сторінка"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Зберігати копію даних цієї картки на цьому пристрої"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Якщо вибрати цю опцію, Chrome зберігатиме копію даних вашої картки на цьому пристрої для швидшого заповнення форм."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Коли цю функцію ввімкнено, Chrome зберігає копію даних вашої картки на пристрої, щоб ви могли швидше заповнювати форми."</string>
+<string name="autofill_card_unmask_confirm_button">"Підтвердити"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Підтвердження картки"</string>
+<string name="autofill_card_unmask_verification_success">"Картку підтверджено"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Нова картка?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Видалити копію"</string>
+</resources>

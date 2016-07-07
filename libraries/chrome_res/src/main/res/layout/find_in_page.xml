@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    style="@android:style/Theme.Holo.Light">
+    <view
+        class="org.chromium.chrome.browser.widget.findinpage.FindToolbar$FindQuery"
+        android:id="@+id/find_query"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:background="@null"
+        android:hint="@string/hint_find_in_page"
+        android:imeOptions="actionSearch|flagNoExtractUi"
+        android:singleLine="true"
+        android:textSize="16sp"
+        android:textColor="@color/find_in_page_query_color" />
+    <TextView
+        android:id="@+id/find_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="16dp"
+        android:background="@null"
+        android:singleLine="true"
+        android:textSize="12sp"
+        android:textColor="@color/find_in_page_results_status_color" />
+    <View
+        android:id="@+id/find_separator"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="#000000"
+        android:alpha="0.1" />
+    <org.chromium.chrome.browser.widget.TintedImageButton
+        android:id="@+id/find_prev_button"
+        style="@style/ToolbarButton"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_collapse"
+        android:contentDescription="@string/accessibility_find_toolbar_btn_prev" />
+    <org.chromium.chrome.browser.widget.TintedImageButton
+        android:id="@+id/find_next_button"
+        style="@style/ToolbarButton"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_expand"
+        android:contentDescription="@string/accessibility_find_toolbar_btn_next" />
+    <org.chromium.chrome.browser.widget.TintedImageButton
+        android:id="@+id/close_find_button"
+        style="@style/ToolbarButton"
+        android:layout_height="match_parent"
+        android:src="@drawable/btn_close"
+        android:contentDescription="@string/close" />
+</LinearLayout>

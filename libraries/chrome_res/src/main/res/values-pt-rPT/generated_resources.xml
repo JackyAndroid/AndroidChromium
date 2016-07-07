@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Atualizar autorizações"</string>
+<string name="login_dialog_title">"Autenticação necessária"</string>
+<string name="login_dialog_username_field">"Nome do utilizador:"</string>
+<string name="login_dialog_password_field">"Palavra-passe:"</string>
+<string name="login_dialog_ok_button_label">"Iniciar sessão"</string>
+<string name="http_post_warning">"A página que procura utilizou informações introduzidas por si. Regressar a essa página poderá originar a repetição de qualquer acção que tenha efetuado. Pretende continuar?"</string>
+<string name="http_post_warning_resend">"Continuar"</string>
+<string name="sad_tab_title">"Ah, bolas!!"</string>
+<string name="sad_tab_message">"Ocorreu um erro ao apresentar esta página Web."</string>
+<string name="sad_tab_reload_label">"Recarregar"</string>
+<string name="options_homepage_title">"Página inicial"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Guardar uma cópia deste cartão neste dispositivo"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Se marcada, o Chrome armazena uma cópia do seu cartão neste dispositivo para preencher formulários mais rapidamente."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Quando esta opção está ativada, o Chrome armazena uma cópia do seu cartão neste dispositivo para preencher formulários mais rapidamente."</string>
+<string name="autofill_card_unmask_confirm_button">"Verificar"</string>
+<string name="autofill_card_unmask_verification_in_progress">"A validar o cartão"</string>
+<string name="autofill_card_unmask_verification_success">"Cartão validado"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Tem um cartão novo?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Limpar cópia"</string>
+</resources>

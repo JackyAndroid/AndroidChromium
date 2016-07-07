@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Uppdatera behörigheter"</string>
+<string name="login_dialog_title">"Verifiering krävs"</string>
+<string name="login_dialog_username_field">"Användarnamn:"</string>
+<string name="login_dialog_password_field">"Lösenord:"</string>
+<string name="login_dialog_ok_button_label">"Logga in"</string>
+<string name="http_post_warning">"Önskad sida använder information som du har angett. Om du återgår till sidan kan eventuella åtgärder på sidan upprepas. Vill du fortsätta?"</string>
+<string name="http_post_warning_resend">"Fortsätt"</string>
+<string name="sad_tab_title">"Oj, ett fel har uppstått!"</string>
+<string name="sad_tab_message">"Ett fel uppstod när webbsidan skulle visas."</string>
+<string name="sad_tab_reload_label">"Hämta igen"</string>
+<string name="options_homepage_title">"Startsida"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Spara en kopia av kortet på enheten"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Om alternativet är markerat sparas en kopia av kortet på enheten så att det går snabbare att fylla i formulär."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Om alternativet är aktiverat sparar Chrome en kopia av kortet på enheten så att det går snabbare att fylla i formulär."</string>
+<string name="autofill_card_unmask_confirm_button">"Verifiera"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Verifierar kortet"</string>
+<string name="autofill_card_unmask_verification_success">"Ditt kort har verifierats"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Har du ett nytt kort?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Ta bort kopia"</string>
+</resources>

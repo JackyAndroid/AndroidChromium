@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Aktualizovat oprávnění"</string>
+<string name="login_dialog_title">"Vyžaduje se ověření"</string>
+<string name="login_dialog_username_field">"Jméno uživatele:"</string>
+<string name="login_dialog_password_field">"Heslo:"</string>
+<string name="login_dialog_ok_button_label">"Přihlásit se"</string>
+<string name="http_post_warning">"Stránka, kterou hledáte, používala vámi zadané informace. Návrat na tuto stránku by mohl způsobit, že akce, kterou jste provedli, bude opakována. Přejete si pokračovat?"</string>
+<string name="http_post_warning_resend">"Pokračovat"</string>
+<string name="sad_tab_title">"Aj, chyba!"</string>
+<string name="sad_tab_message">"Při zobrazování této webové stránky došlo k chybě."</string>
+<string name="sad_tab_reload_label">"Načíst znovu"</string>
+<string name="options_homepage_title">"Domovská stránka"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Uchovat kopii této karty v tomto zařízení"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Pokud je tato možnost zaškrtnuta, Chrome v tomto zařízení bude za účelem rychlejšího vyplňování formulářů uchovávat kopii vaší karty."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Pokud je tato možnost aktivována, Chrome do zařízení uloží kopii karty za účelem rychlejšího vyplňování formulářů."</string>
+<string name="autofill_card_unmask_confirm_button">"Ověřit"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Ověřování karty"</string>
+<string name="autofill_card_unmask_verification_success">"Vaše karta je ověřena"</string>
+<string name="autofill_card_unmask_expiration_date_separator">" / "</string>
+<string name="autofill_card_unmask_new_card_link">"Nová karta?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Vymazat kopii"</string>
+</resources>

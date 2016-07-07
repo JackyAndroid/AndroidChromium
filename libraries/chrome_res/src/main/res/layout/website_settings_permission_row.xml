@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/website_settings_permission_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="12dp" >
+
+    <ImageView
+        android:id="@+id/website_settings_permission_icon"
+        android:layout_width="@dimen/website_settings_popup_permission_icon_size"
+        android:layout_height="@dimen/website_settings_popup_permission_icon_size"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/website_settings_permission_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/website_settings_permission_icon"
+        android:textColor="@color/website_settings_popup_text"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/website_settings_permission_unavailable_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/website_settings_permission_status"
+        android:layout_toEndOf="@id/website_settings_permission_icon"
+        android:lineSpacingExtra="6dp"
+        android:textColor="@color/website_settings_popup_text_link"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</RelativeLayout>

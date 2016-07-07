@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"อัปเดตสิทธิ์"</string>
+<string name="login_dialog_title">"ต้องมีการตรวจสอบความถูกต้อง"</string>
+<string name="login_dialog_username_field">"ชื่อผู้ใช้:"</string>
+<string name="login_dialog_password_field">"รหัสผ่าน:"</string>
+<string name="login_dialog_ok_button_label">"เข้าสู่ระบบ"</string>
+<string name="http_post_warning">"หน้าที่คุณกำลังมองหาใช้ข้อมูลที่คุณได้ป้อนไว้แล้ว การกลับไปสู่หน้านั้นอาจทำให้คุณต้องทำซ้ำการดำเนินการใดๆ ที่คุณทำแล้ว คุณต้องการดำเนินการต่อหรือไม่"</string>
+<string name="http_post_warning_resend">"ดำเนินการต่อ"</string>
+<string name="sad_tab_title">"แย่จัง!"</string>
+<string name="sad_tab_message">"มีสิ่งผิดปกติเกิดขึ้นในขณะที่แสดงหน้าเว็บนี้"</string>
+<string name="sad_tab_reload_label">"โหลดใหม่"</string>
+<string name="options_homepage_title">"หน้าแรก"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"เก็บสำเนาบัตรนี้ไว้บนอุปกรณ์นี้"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"หากเลือก Chrome จะจัดเก็บสำเนาของบัตรบนอุปกรณ์นี้เพื่อการกรอกข้อมูลแบบฟอร์มอย่างรวดเร็ว"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"หากเปิดใช้ Chrome จะเก็บสำเนาการ์ดของคุณในอุปกรณ์นี้เพื่อให้การกรอกฟอร์มทำได้เร็วขึ้น"</string>
+<string name="autofill_card_unmask_confirm_button">"ยืนยัน"</string>
+<string name="autofill_card_unmask_verification_in_progress">"กำลังยืนยันบัตร"</string>
+<string name="autofill_card_unmask_verification_success">"ยืนยันบัตรของคุณแล้ว"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"บัตรใหม่ใช่ไหม"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"ล้างสำเนา"</string>
+</resources>

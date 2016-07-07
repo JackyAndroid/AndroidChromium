@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Update permissions"</string>
+<string name="login_dialog_title">"Authentication Required"</string>
+<string name="login_dialog_username_field">"User Name:"</string>
+<string name="login_dialog_password_field">"Password:"</string>
+<string name="login_dialog_ok_button_label">"Log In"</string>
+<string name="http_post_warning">"The page that you\'re looking for used information that you entered. Returning to that page might cause any action that you took to be repeated. Do you want to continue?"</string>
+<string name="http_post_warning_resend">"Continue"</string>
+<string name="sad_tab_title">"Aw, Snap!"</string>
+<string name="sad_tab_message">"Something went wrong while displaying this web page."</string>
+<string name="sad_tab_reload_label">"Reload"</string>
+<string name="options_homepage_title">"Homepage"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Keep a copy of this card on this device"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"If ticked, Chrome will store a copy of your card on this device for faster form filling."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"If enabled, Chrome will store a copy of your card on this device for faster form filling."</string>
+<string name="autofill_card_unmask_confirm_button">"Verify"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Verifying card"</string>
+<string name="autofill_card_unmask_verification_success">"Your card is verified"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"New card?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Clear copy"</string>
+</resources>

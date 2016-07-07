@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<org.chromium.chrome.browser.preferences.datareduction.DataReductionPromoView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:background="#c000" >
+
+    <ScrollView
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_gravity="center"
+        android:fillViewport="true">
+
+        <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:background="#FFFF" >
+
+            <org.chromium.chrome.browser.widget.TintedImageButton
+                android:id="@+id/close_button"
+                android:layout_height="56dp"
+                android:layout_width="56dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:contentDescription="@string/close"
+                android:src="@drawable/btn_close" />
+
+            <LinearLayout
+                android:id="@+id/data_reduction_promo_content"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_below="@+id/close_button"
+                android:layout_marginTop="8dp"
+                android:paddingEnd="24dp"
+                android:paddingStart="24dp" >
+
+                <ImageView
+                    android:id="@+id/data_reduction_illustration"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@null"
+                    android:src="@drawable/data_reduction_illustration" />
+                    
+                <LinearLayout
+                    android:id="@+id/text_wrapper"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/data_reduction_promo_title"
+                        android:textColor="@color/default_text_color"
+                        android:textSize="@dimen/data_reduction_promo_title_text_size" />
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_marginBottom="30dp"
+                        android:lineSpacingMultiplier="1.3"
+                        android:text="@string/data_reduction_promo_summary"
+                        android:textColor="#646464"
+                        android:textSize="@dimen/data_reduction_promo_normal_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_below="@id/data_reduction_promo_content"
+                android:layout_gravity="bottom"
+                android:orientation="horizontal"
+                android:clipToPadding="false"
+                android:padding="16dp"
+                android:gravity="end" >
+
+                <Button
+                    android:id="@+id/no_thanks_button"
+                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:minHeight="40dp"
+                    android:text="@string/no_thanks"
+                    android:textColor="@color/light_normal_color"
+                    android:textSize="@dimen/data_reduction_promo_button_text_size"
+                    style="@style/ButtonCompatBorderless" />
+
+                <org.chromium.ui.widget.ButtonCompat
+                    android:id="@+id/enable_button"
+                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:elevation="0dp"
+                    android:minHeight="40dp"
+                    android:text="@string/data_reduction_enable_button"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/data_reduction_promo_button_text_size"
+                   chrome:buttonColor="@color/light_active_color" />
+            </LinearLayout>
+        </RelativeLayout>
+    </ScrollView>
+</org.chromium.chrome.browser.preferences.datareduction.DataReductionPromoView>

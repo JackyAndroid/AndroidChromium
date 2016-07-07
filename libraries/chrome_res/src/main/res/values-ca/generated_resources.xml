@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Actualitza els permisos"</string>
+<string name="login_dialog_title">"Es necessita autenticació"</string>
+<string name="login_dialog_username_field">"Nom d\'usuari:"</string>
+<string name="login_dialog_password_field">"Contrasenya:"</string>
+<string name="login_dialog_ok_button_label">"Accedeix"</string>
+<string name="http_post_warning">"La pàgina que busques utilitzava informació que vas introduir. Tornar a aquesta pàgina podria provocar una repetició de qualsevol acció realitzada. Vols continuar?"</string>
+<string name="http_post_warning_resend">"Continua"</string>
+<string name="sad_tab_title">"Oh, no!"</string>
+<string name="sad_tab_message">"S\'ha produït un error en mostrar aquesta pàgina web."</string>
+<string name="sad_tab_reload_label">"Torna a carregar"</string>
+<string name="options_homepage_title">"Pàgina d\'inici"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Desa una còpia d\'aquesta targeta al dispositiu"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Si s\'activa aquesta casella, Chrome emmagatzema una còpia d\'aquesta targeta al dispositiu per agilitzar l\'emplenament de formularis."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Si s\'activa, Chrome emmagatzemarà una còpia de la targeta en aquest dispositiu per agilitzar l\'emplenament de formularis."</string>
+<string name="autofill_card_unmask_confirm_button">"Verifica"</string>
+<string name="autofill_card_unmask_verification_in_progress">"S\'està verificant la targeta"</string>
+<string name="autofill_card_unmask_verification_success">"La targeta s\'ha verificat"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"És una targeta nova?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Esborra la còpia"</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Cập nhật quyền"</string>
+<string name="login_dialog_title">"Yêu cầu Xác thực"</string>
+<string name="login_dialog_username_field">"Tên Người dùng:"</string>
+<string name="login_dialog_password_field">"Mật khẩu:"</string>
+<string name="login_dialog_ok_button_label">"Đăng nhập"</string>
+<string name="http_post_warning">"Trang mà bạn đang tìm sử dụng thông tin bạn đã nhập vào. Việc quay lại trang đó có thể lặp lại bất kỳ tác vụ nào bạn đã thực hiện. Bạn có muốn tiếp tục không?"</string>
+<string name="http_post_warning_resend">"Tiếp tục"</string>
+<string name="sad_tab_title">"Ôi, hỏng! "</string>
+<string name="sad_tab_message">"Đã xảy ra lỗi khi hiển thị trang web này."</string>
+<string name="sad_tab_reload_label">"Tải lại"</string>
+<string name="options_homepage_title">"Trang chủ"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Giữ bản sao thẻ này trên thiết bị này"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Nếu được chọn, Chrome sẽ lưu trữ bản sao thẻ của bạn trên thiết bị này để điền biểu mẫu nhanh hơn."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Nếu được bật, Chrome sẽ lưu trữ bản sao thẻ của bạn trên thiết bị này để điền vào biểu mẫu nhanh hơn."</string>
+<string name="autofill_card_unmask_confirm_button">"Xác minh"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Đang xác minh thẻ"</string>
+<string name="autofill_card_unmask_verification_success">"Thẻ của bạn đã được xác minh"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Thẻ mới?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Xóa bản sao"</string>
+</resources>

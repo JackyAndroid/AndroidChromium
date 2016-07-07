@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+        <item android:id="@+id/icon_row_menu_id"
+            android:title="@null"
+            android:orderInCategory="0" >
+            <menu>
+              <item android:id="@+id/forward_menu_id"
+                android:title="@string/accessibility_menu_forward"
+                android:icon="@drawable/btn_forward"/>
+              <item android:id="@+id/info_menu_id"
+                android:title="@string/accessibility_menu_info"
+                android:icon="@drawable/btn_info" />
+              <item android:id="@+id/reload_menu_id"
+                android:title="@string/accessibility_btn_refresh"
+                android:icon="@drawable/btn_reload_stop"/>
+            </menu>
+        </item>
+        <item android:id="@+id/find_in_page_id"
+            android:title="@string/menu_find_in_page"
+            android:orderInCategory="2" />
+        <!-- Title is intentionally left blank in xml and will be set in java. -->
+        <item android:id="@+id/open_in_chrome_id"
+            android:title=""
+            android:orderInCategory="2" />
+</menu>

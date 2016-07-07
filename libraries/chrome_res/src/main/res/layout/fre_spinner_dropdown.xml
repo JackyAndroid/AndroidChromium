@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="?android:attr/spinnerDropDownItemStyle"
+    android:singleLine="true"
+    android:ellipsize="end"
+    android:maxWidth="216dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textColor="@color/fre_text_color"
+    android:textSize="@dimen/fre_normal_text_size"
+    android:padding="12dp" />

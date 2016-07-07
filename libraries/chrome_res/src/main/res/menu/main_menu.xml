@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- These menu items are common to tablet and phone. -->
+    <group android:id="@+id/PAGE_MENU"
+        android:visible="false">
+        <item android:id="@+id/icon_row_menu_id"
+            android:title="@null">
+            <menu>
+              <item android:id="@+id/forward_menu_id"
+                android:title="@string/accessibility_menu_forward"
+                android:icon="@drawable/btn_forward"/>
+              <item android:id="@+id/bookmark_this_page_id"
+                android:title="@string/accessibility_menu_bookmark"
+                android:icon="@drawable/btn_star"/>
+              <item android:id="@+id/info_menu_id"
+                android:title="@string/accessibility_menu_info"
+                android:icon="@drawable/btn_info" />
+              <item android:id="@+id/reload_menu_id"
+                android:title="@string/accessibility_btn_refresh"
+                android:icon="@drawable/btn_reload_stop"/>
+            </menu>
+        </item>
+        <item android:id="@+id/new_tab_menu_id"
+            android:title="@string/menu_new_tab" />
+        <item android:id="@+id/new_incognito_tab_menu_id"
+            android:title="@string/menu_new_incognito_tab" />
+        <item android:id="@+id/all_bookmarks_menu_id"
+            android:title="@string/menu_bookmarks" />
+        <item android:id="@+id/recent_tabs_menu_id"
+            android:title="@string/menu_recent_tabs" />
+        <item android:id="@+id/open_history_menu_id"
+            android:title="@string/menu_history" />
+        <item android:id="@+id/share_row_menu_id"
+            android:title="@null">
+          <menu>
+              <item android:id="@+id/share_menu_id"
+                android:title="@string/menu_share_page"/>
+              <item android:id="@+id/direct_share_menu_id"
+                android:title="@null" />
+          </menu>
+        </item>
+        <item android:id="@+id/print_id"
+            android:title="@string/menu_print" />
+        <item android:id="@+id/find_in_page_id"
+            android:title="@string/menu_find_in_page" />
+        <item android:id="@+id/add_to_homescreen_id"
+            android:title="@string/menu_add_to_homescreen" />
+        <item android:id="@+id/request_desktop_site_id"
+            android:title="@string/menu_request_desktop_site"
+            android:checkable="true"
+            android:icon="?android:attr/listChoiceIndicatorMultiple" />
+        <item android:id="@+id/reader_mode_prefs_id"
+            android:title="@string/menu_reader_mode_prefs"
+            android:icon="@drawable/reader_mode_prefs_icon" />
+        <item android:id="@+id/preferences_id"
+            android:title="@string/menu_preferences" />
+        <item android:id="@+id/help_id"
+            android:title="@string/menu_help" />
+    </group>
+
+    <!-- Items shown only in the tab switcher -->
+    <group android:id="@+id/OVERVIEW_MODE_MENU"
+        android:visible="false">
+         <item android:id="@id/new_tab_menu_id"
+             android:title="@string/menu_new_tab" />
+         <item android:id="@id/new_incognito_tab_menu_id"
+             android:title="@string/menu_new_incognito_tab" />
+         <item android:id="@+id/close_all_tabs_menu_id"
+             android:title="@string/menu_close_all_tabs" />
+         <item android:id="@+id/close_all_incognito_tabs_menu_id"
+             android:title="@string/menu_close_all_incognito_tabs" />
+         <item android:id="@id/preferences_id"
+             android:title="@string/menu_preferences" />
+    </group>
+
+    <!-- Items shown only when the tablet has no visible tabs -->
+    <group android:id="@+id/TABLET_EMPTY_MODE_MENU"
+        android:visible="false">
+        <item android:id="@id/new_tab_menu_id"
+            android:title="@string/menu_new_tab" />
+        <item android:id="@id/new_incognito_tab_menu_id"
+            android:title="@string/menu_new_incognito_tab" />
+        <item android:id="@id/preferences_id"
+            android:title="@string/menu_preferences" />
+    </group>
+</menu>
+

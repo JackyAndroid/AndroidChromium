@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- Reader Mode view. -->
+<org.chromium.chrome.browser.dom_distiller.ReaderModeButtonView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/reader_mode_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_vertical"
+    android:background="@drawable/reader_mode_bar_background"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:gravity="center_vertical|start"
+    android:orientation="vertical"
+    >
+
+    <!-- Lint flags this as a false positive overlap. -->
+    <!--suppress RelativeOverlap -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/main_icon"
+            android:src="@drawable/infobar_mobile_friendly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@null"
+            />
+        <TextView
+            android:id="@+id/main_text"
+            android:text="@string/reader_view_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toEndOf="@id/main_icon"
+            android:layout_toStartOf="@+id/main_close"
+            android:layout_centerVertical="true"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:fontFamily="sans-serif"
+            android:textColor="#333333"
+            android:textSize="@dimen/reader_mode_text_size"
+            />
+        <ImageView
+            android:id="@+id/main_close"
+            android:src="@drawable/btn_close"
+            android:background="?attr/selectableItemBackground"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/close"
+            />
+    </RelativeLayout>
+</org.chromium.chrome.browser.dom_distiller.ReaderModeButtonView>

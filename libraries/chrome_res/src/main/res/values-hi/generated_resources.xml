@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"अनुमतियां अपडेट करें"</string>
+<string name="login_dialog_title">"प्रमाणीकरण आवश्यक"</string>
+<string name="login_dialog_username_field">"उपयोगकर्ता नाम:"</string>
+<string name="login_dialog_password_field">"पासवर्ड:"</string>
+<string name="login_dialog_ok_button_label">"प्रवेश करें"</string>
+<string name="http_post_warning">"आपके द्वारा खोजे जा रहे पृष्ठ ने आपके द्वारा प्रविष्ट की गई जानकारी का उपयोग किया है. उस पृष्ठ पर वापस जाने से आपके द्वारा की गई किसी क्रिया को दोहराने की आवश्यकता हो सकती है. क्या आप जारी रखना चाहते हैं?"</string>
+<string name="http_post_warning_resend">"जारी रखें"</string>
+<string name="sad_tab_title">"हे भगवान!"</string>
+<string name="sad_tab_message">"यह वेबपृष्ठ प्रदर्शित करते समय कोई समस्या हुई."</string>
+<string name="sad_tab_reload_label">"पुन: लोड करें"</string>
+<string name="options_homepage_title">"मुख्यपृष्ठ"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"इस डिवाइस पर इस कार्ड की प्रतिलिपि रखें"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"चेक किए होने पर, अधिक तेज़ फ़ॉर्म भरने के लिए Chrome इस डिवाइस पर आपके कार्ड की प्रतिलिपि संग्रहीत कर लेगा."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"यदि सक्षम किया हुआ हो, तो Chrome फ़ॉर्म को तेज़ी से भरने के लिए इस डिवाइस पर आपके कार्ड की एक प्रति संग्रहीत करेगा."</string>
+<string name="autofill_card_unmask_confirm_button">"सत्यापित करें"</string>
+<string name="autofill_card_unmask_verification_in_progress">"कार्ड सत्‍यापित हो रहा है"</string>
+<string name="autofill_card_unmask_verification_success">"आपका कार्ड सत्‍यापित हो गया है"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"नया कार्ड?"</string>
+<string name="autofill_from_google_account">"Google पेमेंट्स"</string>
+<string name="autofill_clear_local_copy_button">"स्‍पष्‍ट प्रतिलिपि"</string>
+</resources>

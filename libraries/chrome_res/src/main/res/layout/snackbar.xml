@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/snackbar_min_height"
+    android:orientation="horizontal" >
+
+    <org.chromium.chrome.browser.snackbar.TemplatePreservingTextView
+        android:id="@+id/snackbar_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="14dp"
+        android:layout_weight="1"
+        android:textAlignment="viewStart"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/snackbar_button"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/snackbar_min_height"
+        android:layout_gravity="center_vertical"
+        android:paddingEnd="24dp"
+        android:paddingStart="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:textAllCaps="true"
+        android:textColor="@color/snackbar_button_color"
+        android:textSize="14sp"
+        style="@style/ButtonCompatBorderless" />
+
+</LinearLayout>

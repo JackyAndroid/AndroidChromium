@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Aktualizuj uprawnienia"</string>
+<string name="login_dialog_title">"Wymagane uwierzytelnienie"</string>
+<string name="login_dialog_username_field">"Nazwa użytkownika:"</string>
+<string name="login_dialog_password_field">"Hasło:"</string>
+<string name="login_dialog_ok_button_label">"Zaloguj się"</string>
+<string name="http_post_warning">"Strona, na której wyszukiwane są wprowadzone przez Ciebie informacje. Powrót do tej strony może spowodować konieczność powtórzenia wykonanych czynności. Czy chcesz kontynuować?"</string>
+<string name="http_post_warning_resend">"Kontynuuj"</string>
+<string name="sad_tab_title">"Niedobrze!"</string>
+<string name="sad_tab_message">"Podczas wyświetlania strony wystąpił błąd."</string>
+<string name="sad_tab_reload_label">"Odśwież"</string>
+<string name="options_homepage_title">"Strona startowa"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Zachowaj kopię tej karty na urządzeniu"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Po zaznaczeniu tej opcji Chrome będzie zapisywać kopię danych karty na tym urządzeniu, by szybciej wypełniać formularze."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Jeśli włączysz tę opcję, Chrome zapisze kopię Twojej karty na tym urządzeniu, by umożliwić Ci szybsze wypełnianie formularzy."</string>
+<string name="autofill_card_unmask_confirm_button">"Zweryfikuj"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Weryfikuję kartę"</string>
+<string name="autofill_card_unmask_verification_success">"Karta została zweryfikowana"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nowa karta?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Usuń kopię"</string>
+</resources>

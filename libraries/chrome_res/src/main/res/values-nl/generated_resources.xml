@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Rechten updaten"</string>
+<string name="login_dialog_title">"Verificatie vereist"</string>
+<string name="login_dialog_username_field">"Gebruikersnaam:"</string>
+<string name="login_dialog_password_field">"Wachtwoord:"</string>
+<string name="login_dialog_ok_button_label">"Inloggen"</string>
+<string name="http_post_warning">"De pagina die je zoekt, heeft informatie gebruikt die je hebt opgegeven Als je terugkeert naar deze pagina, worden acties die je hebt uitgevoerd, mogelijk herhaald. Wil je doorgaan?"</string>
+<string name="http_post_warning_resend">"Doorgaan"</string>
+<string name="sad_tab_title">"Helaas."</string>
+<string name="sad_tab_message">"Er is iets misgegaan met het weergeven van deze webpagina."</string>
+<string name="sad_tab_reload_label">"Opnieuw laden"</string>
+<string name="options_homepage_title">"Startpagina"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Een exemplaar van deze kaart op dit apparaat bewaren"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Als deze optie is aangevinkt, bewaart Chrome een exemplaar van je kaart op dit apparaat om formulieren sneller te kunnen invullen."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Indien ingeschakeld, slaat Chrome een kopie van je kaart op dit apparaat op zodat formulieren sneller kunnen worden ingevuld."</string>
+<string name="autofill_card_unmask_confirm_button">"Controleren"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Kaart verifiëren"</string>
+<string name="autofill_card_unmask_verification_success">"Je kaart is geverifieerd"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nieuwe kaart?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Kopie wissen"</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"권한 업데이트"</string>
+<string name="login_dialog_title">"인증 필요"</string>
+<string name="login_dialog_username_field">"사용자 이름:"</string>
+<string name="login_dialog_password_field">"비밀번호:"</string>
+<string name="login_dialog_ok_button_label">"로그인"</string>
+<string name="http_post_warning">"찾고 있는 페이지에서 사용자가 입력한 정보를 사용했습니다. 해당 페이지로 돌아가면 기존 작업을 반복할 수 있습니다. 계속하시겠습니까?"</string>
+<string name="http_post_warning_resend">"계속"</string>
+<string name="sad_tab_title">"앗, 이런!"</string>
+<string name="sad_tab_message">"이 웹페이지를 표시하는 도중 문제가 발생했습니다."</string>
+<string name="sad_tab_reload_label">"새로고침"</string>
+<string name="options_homepage_title">"홈페이지"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"카드 사본을 이 기기에 저장"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"선택하면 Chrome에서 양식을 더 빠르게 입력할 수 있도록 이 기기에 카드 사본을 저장합니다."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"선택하면 Chrome에서 양식을 더 빠르게 작성할 수 있도록 이 기기에 카드 사본을 저장합니다."</string>
+<string name="autofill_card_unmask_confirm_button">"확인"</string>
+<string name="autofill_card_unmask_verification_in_progress">"카드 확인 중"</string>
+<string name="autofill_card_unmask_verification_success">"카드가 인증되었습니다."</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"새 카드인가요?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"사본 지우기"</string>
+</resources>

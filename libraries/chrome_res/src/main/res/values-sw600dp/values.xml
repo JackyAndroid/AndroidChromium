@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2011 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Full Screen Constants -->
+    <!-- These constants were chosen empirically for their visually pleasant behavior.
+         Contact tedchoc@chromium.org or dtrainor@chromium.org for questions about
+         changing these values. -->
+    <item name="top_controls_show_threshold" format="float" type="dimen">0.27</item>
+    <item name="top_controls_hide_threshold" format="float" type="dimen">0.17</item>
+
+    <!-- The number of thumbnails that the thumbnail cache can hold. -->
+    <integer name="default_thumbnail_cache_size">3</integer>
+    <!-- The number of approximation thumbnails that the approximation cache can hold. -->
+    <integer name="default_approximation_thumbnail_cache_size">32</integer>
+    <!-- The maximum size of the write queue in the thumbnail cache. -->
+    <integer name="default_write_queue_size">3</integer>
+    <!-- The maximum size of the compression queue in the thumbnail cache. -->
+    <integer name="default_compression_queue_size">3</integer>
+
+    <!-- Compositor Tab Title Text -->
+    <bool name="compositor_tab_title_fake_bold_text">false</bool>
+
+    <!-- The maximum indent depth of folders when selecting bookmarks. -->
+    <integer name="select_bookmark_folder_max_depth_indent">10</integer>
+</resources>

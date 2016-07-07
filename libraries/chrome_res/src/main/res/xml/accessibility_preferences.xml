@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <org.chromium.chrome.browser.preferences.TextScalePreference
+        android:key="text_scale"
+        android:title="@string/font_size"
+        android:selectable="false" />
+
+    <org.chromium.chrome.browser.preferences.SeekBarLinkedCheckBoxPreference
+        android:key="force_enable_zoom"
+        android:summary="@string/force_enable_zoom_summary"
+        android:title="@string/force_enable_zoom_title" />
+
+</PreferenceScreen>

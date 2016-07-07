@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Actualizar permisos"</string>
+<string name="login_dialog_title">"Se requiere autenticación"</string>
+<string name="login_dialog_username_field">"Nombre de usuario:"</string>
+<string name="login_dialog_password_field">"Contraseña:"</string>
+<string name="login_dialog_ok_button_label">"Iniciar sesión"</string>
+<string name="http_post_warning">"La página que buscas ha utilizado la información que has especificado. Volver a la página podría provocar la repetición de alguna acción. ¿Quieres continuar?"</string>
+<string name="http_post_warning_resend">"Continuar"</string>
+<string name="sad_tab_title">"¡Oh, no!"</string>
+<string name="sad_tab_message">"Se ha producido un error al mostrar esta página web."</string>
+<string name="sad_tab_reload_label">"Cargar de nuevo"</string>
+<string name="options_homepage_title">"Página de inicio"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Guardar una copia de la tarjeta en este dispositivo"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Si se selecciona, Chrome almacenará una copia de tu tarjeta en este dispositivo para completar formularios más rápidamente."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Si se habilita esta opción, Chrome guardará una copia de tu tarjeta en este dispositivo para rellenar la información más rápido."</string>
+<string name="autofill_card_unmask_confirm_button">"Verificar"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Verificando tarjeta"</string>
+<string name="autofill_card_unmask_verification_success">"Tu tarjeta se ha verificado"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"¿Nueva tarjeta?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Borrar copia"</string>
+</resources>

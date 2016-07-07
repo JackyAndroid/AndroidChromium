@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginBottom="-4dp"
+        android:background="@drawable/eb_title_bar_shadow" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical" >
+
+            <org.chromium.chrome.browser.widget.FloatLabelLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp" >
+                <org.chromium.chrome.browser.widget.EmptyAlertEditText
+                    android:id="@+id/title_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/bookmark_name"
+                    android:imeOptions="flagNoExtractUi"
+                    android:inputType="textCapSentences|textAutoCorrect"
+                    android:singleLine="true"
+                    chrome:alertMessage="@string/bookmark_missing_title" />
+            </org.chromium.chrome.browser.widget.FloatLabelLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
+                android:text="@string/bookmark_folder"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/folder_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textColor="@color/dark_mode_tint" />
+
+            <org.chromium.chrome.browser.widget.FloatLabelLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" >
+
+                <org.chromium.chrome.browser.widget.EmptyAlertEditText
+                    android:id="@+id/url_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/bookmark_url"
+                    android:imeOptions="flagNoExtractUi"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    chrome:alertMessage="@string/bookmark_missing_url" />
+            </org.chromium.chrome.browser.widget.FloatLabelLayout>
+
+            <LinearLayout
+                android:id="@+id/offline_page_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="28dp"
+                android:visibility="gone" >
+
+                <TextView
+                    android:id="@+id/offline_page_info_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="3dp"
+                    android:text="@string/bookmark_offline_page_none"
+                    android:textAlignment="viewStart"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/dark_mode_tint"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/offline_page_save_remove_button"
+                    style="@style/ButtonCompatBorderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:textAllCaps="true"
+                    android:textColor="@color/light_active_color"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

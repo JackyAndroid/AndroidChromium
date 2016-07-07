@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"更新權限"</string>
+<string name="login_dialog_title">"需要驗證"</string>
+<string name="login_dialog_username_field">"使用者名稱："</string>
+<string name="login_dialog_password_field">"密碼："</string>
+<string name="login_dialog_ok_button_label">"登入"</string>
+<string name="http_post_warning">"您尋找的網頁使用了您輸入的資料。返回該頁會重複您剛才的行動。您確定要繼續嗎？"</string>
+<string name="http_post_warning_resend">"繼續"</string>
+<string name="sad_tab_title">"糟糕！"</string>
+<string name="sad_tab_message">"顯示這個網頁時發生錯誤。"</string>
+<string name="sad_tab_reload_label">"重新載入"</string>
+<string name="options_homepage_title">"首頁"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"在這個裝置上保留這張信用卡的複本"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"勾選後，Chrome 會在這個裝置上儲存您的信用卡複本，以便更快填寫資訊。"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"啟用後，Chrome 會將您的信用卡複本儲存在這個裝置上，以加快表單填寫速度。"</string>
+<string name="autofill_card_unmask_confirm_button">"確認"</string>
+<string name="autofill_card_unmask_verification_in_progress">"正在驗證信用卡"</string>
+<string name="autofill_card_unmask_verification_success">"已成功驗證您的信用卡"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"新信用卡？"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"清除複本"</string>
+</resources>

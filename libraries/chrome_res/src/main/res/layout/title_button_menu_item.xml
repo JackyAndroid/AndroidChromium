@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeightSmall">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:layout_weight="1"
+        android:background="?attr/listChoiceBackgroundIndicator"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="9dp"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceLargePopupMenu" />
+
+    <org.chromium.chrome.browser.widget.TintedImageButton
+        android:id="@+id/button"
+        android:layout_width="56dp"
+        android:layout_height="match_parent"
+        android:background="?attr/listChoiceBackgroundIndicator"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:scaleType="fitCenter"
+        chrome:tint="@null" />
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Oppdater tillatelser"</string>
+<string name="login_dialog_title">"Godkjenning kreves"</string>
+<string name="login_dialog_username_field">"Brukernavn:"</string>
+<string name="login_dialog_password_field">"Passord:"</string>
+<string name="login_dialog_ok_button_label">"Logg på"</string>
+<string name="http_post_warning">"Siden du ser etter, brukte informasjon som du anga. Hvis du går tilbake til denne siden, kan det føre til at handlinger som er utført, blir gjentatt. Vil du fortsette?"</string>
+<string name="http_post_warning_resend">"Fortsett"</string>
+<string name="sad_tab_title">"Æsj!"</string>
+<string name="sad_tab_message">"Noe gikk galt under åpningen av denne nettsiden."</string>
+<string name="sad_tab_reload_label">"Last inn på nytt"</string>
+<string name="options_homepage_title">"Startside"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Lagre en kopi av dette kortet på denne enheten"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Hvis det er merket av for dette alternativet, lagrer Chrome en kopi av kortet ditt på denne enheten, slik at det går raskere å fylle ut skjemaer."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Hvis du slår på dette alternativet, lagrer Chrome en kopi av kortet ditt på denne enheten, slik at det blir raskere å fylle ut skjemaer i fremtiden."</string>
+<string name="autofill_card_unmask_confirm_button">"Bekreft"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Bekrefter kortet ..."</string>
+<string name="autofill_card_unmask_verification_success">"Kortet er bekreftet"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nytt kort?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Slett kopi"</string>
+</resources>

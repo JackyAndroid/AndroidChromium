@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<resources>
+    <!-- Menu Dimensions -->
+    <!-- Necessary to align the menu icon with the actual button. -->
+    <dimen name="menu_negative_software_vertical_offset">6dp</dimen>
+    
+    <!-- Tab title -->
+    <dimen name="tab_title_favicon_start_padding">0dp</dimen>
+    <dimen name="tab_title_favicon_end_padding">5dp</dimen>
+
+    <!-- Compositor Tab Title Dimensions -->
+    <dimen name="compositor_tab_title_bar_shadow_x_offset">0dp</dimen>
+    <dimen name="compositor_tab_title_bar_shadow_y_offset">0dp</dimen>
+    <dimen name="compositor_tab_title_bar_shadow_x_offset_incognito">0dp</dimen>
+    <dimen name="compositor_tab_title_bar_shadow_y_offset_incognito">0dp</dimen>
+    <!-- The size of the text for tab titles. -->
+    <dimen name="compositor_tab_title_text_size">14sp</dimen>
+
+    <!-- Data Saver -->
+    <dimen name="data_usage_chart_height">325dp</dimen>
+    <dimen name="data_reduction_promo_screen_width">382dp</dimen>
+    <dimen name="data_reduction_promo_illustration_margin_bottom">62dp</dimen>
+
+    <!-- Tab Strip Dimensions -->
+    <dimen name="tab_strip_height">40dp</dimen>
+
+    <!-- Full Screen Dimensions -->
+    <dimen name="control_container_height">96dp</dimen>
+    <dimen name="custom_tabs_control_container_height">64dp</dimen>
+
+    <!-- The combined height of the tab strip and toolbar. -->
+    <dimen name="tab_strip_and_toolbar_height">96dp</dimen>
+
+    <dimen name="location_bar_url_text_size">18sp</dimen>
+    <dimen name="location_bar_icon_width">40dp</dimen>
+
+    <!-- Bookmarks widget dimensions -->
+    <dimen name="widget_thumbnail_height">104dp</dimen>
+    <dimen name="widget_column_width">130dp</dimen>
+
+    <!-- NTP dimensions -->
+    <dimen name="most_visited_spacing">16dp</dimen>
+    <dimen name="ntp_logo_height">180dp</dimen>
+
+    <!-- Recent tabs page -->
+    <dimen name="recent_tabs_visible_separator_padding">28dp</dimen>
+
+    <!-- Omnibox suggestion list -->
+    <dimen name="omnibox_suggestion_list_padding_top">8dp</dimen>
+    <dimen name="omnibox_suggestion_list_padding_bottom">8dp</dimen>
+
+    <!-- Web app dimensions -->
+    <dimen name="webapp_splash_offset">48dp</dimen>
+    <dimen name="webapp_splash_large_title_margin_bottom">8dp</dimen>
+</resources>

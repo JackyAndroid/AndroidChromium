@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:focusableInTouchMode="true" >
+
+        <!-- EditText views in FloatLabelLayout require both hint and contentDescription to be set
+             to work correctly for accessibility because FloatLabelLayout sometimes clear hint. -->
+        <!--suppress ContentDescription -->
+        <LinearLayout
+            style="@style/PreferenceScreenLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <!-- Editable fields for the profile -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_marginStart="@dimen/pref_autofill_field_horizontal_padding"
+                android:layout_marginEnd="@dimen/pref_autofill_field_horizontal_padding"
+                android:paddingBottom="5dp" >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:textAppearance="@style/PreferenceFloatLabelTextAppearance"
+                    android:text="@string/autofill_profile_editor_country"
+                    android:paddingBottom="8dp" />
+                <Spinner
+                    android:id="@+id/countries"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content" />
+                <View style="@style/PreferenceSpinnerUnderlineView" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/autofill_profile_widget_root"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+            </LinearLayout>
+
+            <org.chromium.chrome.browser.widget.FloatLabelLayout
+                android:id="@+id/phone_number_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+                <EditText
+                    android:id="@+id/phone_number_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="flagNoExtractUi"
+                    android:inputType="phone"
+                    android:singleLine="true"
+                    android:hint="@string/autofill_profile_editor_phone_number" />
+            </org.chromium.chrome.browser.widget.FloatLabelLayout>
+
+            <org.chromium.chrome.browser.widget.FloatLabelLayout
+                android:id="@+id/email_address_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+                <EditText
+                    android:id="@+id/email_address_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="flagNoExtractUi"
+                    android:inputType="textEmailAddress"
+                    android:singleLine="true"
+                    android:hint="@string/autofill_profile_editor_email_address" />
+            </org.chromium.chrome.browser.widget.FloatLabelLayout>
+
+        </LinearLayout>
+
+        <Space style="@style/ButtonBarTopSpacer" />
+        <View style="@style/ButtonBarTopDivider" />
+
+        <LinearLayout style="@style/ButtonBar" >
+            <Button
+                android:id="@+id/autofill_profile_delete"
+                style="@style/ButtonBarButton"
+                android:text="@string/delete" />
+
+            <Button
+                android:id="@+id/autofill_profile_cancel"
+                style="@style/ButtonBarButton"
+                android:text="@string/cancel" />
+
+            <Button
+                android:id="@+id/autofill_profile_save"
+                style="@style/ButtonBarButton"
+                android:text="@string/save" />
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

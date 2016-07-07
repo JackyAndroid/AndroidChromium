@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/data_reduction_stats_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fadingEdge="horizontal"
+        android:text="@string/data_reduction_stats_title"
+        android:textAppearance="@style/PreferenceCategoryTextStyle" />
+
+    <include layout="@layout/data_usage_chart" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/data_reduction_start_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="@style/PreferenceSummary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/data_reduction_end_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/PreferenceSummary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/data_reduction_percent"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="0dp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="50sp" />
+
+        <FrameLayout
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:paddingEnd="6dp"
+            android:paddingStart="20dp" >
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="end"
+                android:orientation="vertical"
+                tools:ignore="UselessParent" >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:singleLine="true"
+                    android:text="@string/data_reduction_original_size_label"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:singleLine="true"
+                    android:text="@string/data_reduction_compressed_size_label"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="10dp" >
+
+            <TextView
+                android:id="@+id/data_reduction_original_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/data_reduction_compressed_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/data_reduction_proxy_unreachable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp"
+        android:drawableStart="@drawable/exclamation_triangle"
+        android:drawablePadding="6dp"
+        android:text="@string/data_reduction_proxy_unreachable_warn"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp" />
+
+</LinearLayout>

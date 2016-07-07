@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Päivitä käyttöoikeudet"</string>
+<string name="login_dialog_title">"Käyttöoikeustarkistus pakollinen"</string>
+<string name="login_dialog_username_field">"Käyttäjätunnus:"</string>
+<string name="login_dialog_password_field">"Salasana:"</string>
+<string name="login_dialog_ok_button_label">"Kirjaudu sisään"</string>
+<string name="http_post_warning">"Etsimäsi sivu käytti antamiasi tietoja. Sivulle palaaminen voi johtaa jokaisen tekemäsi toiminnon toistamiseen. Haluatko jatkaa?"</string>
+<string name="http_post_warning_resend">"Jatka"</string>
+<string name="sad_tab_title">"Voi räkä!"</string>
+<string name="sad_tab_message">"Jokin meni vikaan tätä verkkosivua näytettäessä."</string>
+<string name="sad_tab_reload_label">"Lataa uudelleen"</string>
+<string name="options_homepage_title">"Etusivu"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Säilytä tämän kortin kopio laitteella."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Jos tämä ruutu on valittu, Chrome tallentaa kortin kopion tälle laitteelle, jotta lomakkeiden täyttö nopeutuu."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Kun tämä vaihtoehto on käytössä, Chrome nopeuttaa lomakkeiden täyttämistä tallentamalla kortin tiedot tälle laittelle."</string>
+<string name="autofill_card_unmask_confirm_button">"Vahvista"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Korttia vahvistetaan."</string>
+<string name="autofill_card_unmask_verification_success">"Kortti vahvistettiin."</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Uusi kortti?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Poista kopio"</string>
+</resources>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/opt_out_promo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/tabs_moved_illustration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:adjustViewBounds="true"
+        android:background="#4FC3F7"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:text="@string/tabs_and_apps_opt_out_title"
+        android:textColor="@color/default_text_color" />
+
+    <org.chromium.ui.widget.TextViewWithClickableSpans
+        android:id="@+id/opt_out_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:bufferType="spannable"
+        android:textSize="14sp"
+        android:textColor="@color/opt_out_text_color"
+        android:lineSpacingMultiplier="1.4" />
+
+    <Button
+        style="@style/ButtonCompatBorderless"
+        android:id="@+id/got_it_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="32dp"
+        android:text="@string/tabs_and_apps_got_it_button"
+        android:textColor="@color/light_active_color" />
+</LinearLayout>

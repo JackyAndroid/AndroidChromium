@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<resources>
+    <!-- Connection info popup dimensions -->
+    <dimen name="connection_info_padding_wide">24dp</dimen>
+    <dimen name="connection_info_padding_thin">16dp</dimen>
+
+    <!-- Website Settings Popup Dimensions -->
+    <dimen name="website_settings_popup_padding_sides">16dp</dimen>
+    <dimen name="website_settings_popup_button_height">36dp</dimen>
+    <dimen name="website_settings_popup_button_padding_sides">8dp</dimen>
+    <dimen name="website_settings_popup_permission_icon_size">24dp</dimen>
+
+    <!-- Accessibility tab switcher -->
+    <dimen name="accessibility_tab_height">65dp</dimen>
+
+    <!-- TabSwitcher - The minimum distance from the edge to commit a side swap. -->
+    <dimen name="swipe_commit_distance">120dp</dimen>
+    <!-- TabSwitcher - Size of the shift applied to tabs when stacked. -->
+    <dimen name="stacked_tab_visible_size">4dp</dimen>
+    <!-- TabSwitcher - Buffer space above the stack. -->
+    <dimen name="stack_buffer_height">5dp</dimen>
+    <!-- TabSwitcher - Buffer space on the side of the stack. -->
+    <dimen name="stack_buffer_width">5dp</dimen>
+    <!-- TabSwitcher - Minimum spacing between tabs. -->
+    <dimen name="min_spacing">120dp</dimen>
+    <!-- TabSwitcher - Maximum over scroll. -->
+    <dimen name="over_scroll">75dp</dimen>
+    <!-- TabSwitcher - Minimum scrolling distance to even out all the tabs. -->
+    <dimen name="even_out_scrolling">400dp</dimen>
+    <!-- TabSwitcher - The space between tabs in the toolbar swiping transition. -->
+    <dimen name="toolbar_swipe_space_between_tabs">30dp</dimen>
+    <!-- TabSwitcher - The minimum distance from the edge to commit a toolbar side swap. -->
+    <dimen name="toolbar_swipe_commit_distance">90dp</dimen>
+    <!-- TabSwitcher - Maximum amount to slide the tabs down or right in over scroll. -->
+    <dimen name="over_scroll_slide">10dp</dimen>
+
+    <!-- TabSwitcher -->
+    <dimen name="tabswitcher_border_frame_padding_left">6dp</dimen>
+    <dimen name="tabswitcher_border_frame_padding_top">50dp</dimen>
+    <dimen name="tabswitcher_border_frame_transparent_top">3dp</dimen>
+    <dimen name="tabswitcher_border_frame_transparent_side">2dp</dimen>
+
+    <!-- Tab title -->
+    <dimen name="border_texture_title_fade">24dp</dimen>                    <!-- 40px hdpi -->
+    <dimen name="tab_title_favicon_start_padding">10dp</dimen>
+    <dimen name="tab_title_favicon_end_padding">7dp</dimen>
+
+    <!-- Custom Menu dimensions -->
+    <dimen name="menu_width">258dp</dimen>
+    <dimen name="menu_negative_software_vertical_offset">0dp</dimen>
+    <!-- The amount to fade the edges of the menu to indicate more content is available
+         via scrolling. -->
+    <dimen name="menu_vertical_fade_distance">15dp</dimen>
+
+    <!-- Menu button dragging related dimensions -->
+    <dimen name="auto_scroll_full_velocity">500dp</dimen>
+
+    <!-- Infobar dimensions -->
+    <!-- Text size of the infobar message. -->
+    <dimen name="infobar_text_size">16sp</dimen>
+    <!-- Minimum width of an infobar. -->
+    <dimen name="infobar_min_width">220dp</dimen>
+    <!-- Margin between items in an infobar. -->
+    <dimen name="infobar_margin">16dp</dimen>
+    <!-- Width and height of the infobar icon. -->
+    <dimen name="infobar_icon_size">36dp</dimen>
+
+    <!-- App banner dimensions -->
+    <dimen name="app_banner_icon_spacing">16dp</dimen>
+
+    <!-- Contextual search dimensions -->
+    <dimen name="contextual_search_bar_height">56dp</dimen>
+    <dimen name="contextual_search_text_size">18sp</dimen>
+    <dimen name="contextual_search_peek_promo_height">48dp</dimen>
+    <dimen name="contextual_search_peek_promo_padding">12dp</dimen>
+
+    <!-- Password generation popup dimensions -->
+    <dimen name="password_generation_divider_height">1dp</dimen>
+    <dimen name="password_generation_text_size">14sp</dimen>
+    <dimen name="password_generation_horizontal_margin">10dp</dimen>
+    <dimen name="password_generation_text_vertical_margin">12dp</dimen>
+
+    <!--  Preferences dimensions -->
+    <dimen name="pref_autofill_field_horizontal_padding">3dp</dimen>
+    <dimen name="pref_autofill_field_top_padding">10dp</dimen>
+
+    <!-- Minimum height/width for a touchable item -->
+    <dimen name="min_touch_target_size">48dp</dimen>
+
+    <!-- Data Saver -->
+    <dimen name="data_usage_chart_height">252dp</dimen>
+    <dimen name="data_reduction_promo_screen_width">330dp</dimen>
+    <dimen name="data_reduction_promo_screen_width_horizontal">500dp</dimen>
+    <dimen name="data_reduction_promo_title_text_size">20sp</dimen>
+    <dimen name="data_reduction_promo_normal_text_size">14sp</dimen>
+    <dimen name="data_reduction_promo_button_text_size">13sp</dimen>
+    <dimen name="data_reduction_promo_illustration_margin_bottom">30dp</dimen>
+
+    <!-- Text bubble dimensions -->
+    <!-- Tooltip min distance from the edge of the screen. -->
+    <dimen name="tooltip_min_edge_margin">3dp</dimen>
+    <!-- Tooltip margin above click target. -->
+    <dimen name="tooltip_top_margin">2dp</dimen>
+    <!-- Tooltip border width around the main content bubble. -->
+    <dimen name="tooltip_border_width">1dp</dimen>
+    <!-- Padding for tooltip content -->
+    <dimen name="tooltip_content_padding">5dp</dimen>
+    <!-- Tooltip x margin for text bubble -->
+    <dimen name="bubble_tip_margin">8dp</dimen>
+
+    <!-- Compositor Tab Title Dimensions -->
+    <dimen name="compositor_tab_title_bar_shadow_x_offset">0.6667dp</dimen>            <!-- 1px hdpi -->
+    <dimen name="compositor_tab_title_bar_shadow_y_offset">0.6667dp</dimen>            <!-- 1px hdpi -->
+    <dimen name="compositor_tab_title_bar_shadow_x_offset_incognito">-0.6667dp</dimen> <!-- -1px hdpi -->
+    <dimen name="compositor_tab_title_bar_shadow_y_offset_incognito">-0.6667dp</dimen> <!-- -1px hdpi -->
+    <!-- The size of the text for tab titles. -->
+    <dimen name="compositor_tab_title_text_size">13dp</dimen>
+    <!-- The size of the bounding box for favicons. -->
+    <dimen name="compositor_tab_title_favicon_size">16dp</dimen>
+    <!-- Slop value for allowing slight misses on the compositor button. -->
+    <dimen name="compositor_button_slop">10dp</dimen>
+
+    <!-- User Picture Dimensions -->
+    <dimen name="user_picture_size">40dp</dimen>
+    <dimen name="badged_user_picture_height">40dp</dimen>
+    <!-- The design spec is that the center of the badge should be 4dp from the right edge of the
+    user picture. This is equivalent to a badged_user_picture_width of 46dp assuming a badge_radius
+    of 10dp. -->
+    <dimen name="badged_user_picture_width">46dp</dimen>
+    <dimen name="badge_radius">10dp</dimen>
+    <dimen name="badge_border_size">1.3dp</dimen>
+
+    <!-- First Run Experience and Welcome Page dimensions -->
+    <dimen name="fre_button_padding">16dp</dimen>
+    <dimen name="fre_margin">24dp</dimen>
+    <dimen name="fre_title_text_size">24sp</dimen>
+    <dimen name="fre_button_text_size">14sp</dimen>
+    <dimen name="fre_normal_text_size">14sp</dimen>
+    <dimen name="fre_image_carousel_width">260dp</dimen>
+    <dimen name="fre_image_carousel_height">130dp</dimen>
+    <dimen name="fre_checkmark_size">38dp</dimen>
+    <dimen name="fre_tos_checkbox_padding">12dp</dimen>
+
+    <!-- Sign-in promo dimensions -->
+    <dimen name="sign_in_promo_padding_bottom">16dp</dimen>
+
+    <!-- Autofill card unmasking prompt dimensions -->
+    <dimen name="autofill_card_unmask_tooltip_horizontal_padding">16dp</dimen>
+    <dimen name="autofill_card_unmask_tooltip_vertical_padding">4dp</dimen>
+
+    <!-- Cast related constants -->
+    <dimen name="remote_notification_logo_max_width">@android:dimen/notification_large_icon_width</dimen>
+    <dimen name="remote_notification_logo_max_height">64dp</dimen>
+
+    <!-- Alert dialog -->
+    <dimen name="dialog_padding_top">@dimen/abc_dialog_padding_top_material</dimen>
+    <dimen name="dialog_padding_sides">@dimen/abc_dialog_padding_material</dimen>
+
+    <!-- Tab Strip Dimensions -->
+    <dimen name="tab_strip_height">0dp</dimen>
+
+    <!-- Full Screen Dimensions -->
+    <!-- Should match toolbar_height_no_shadow -->
+    <dimen name="control_container_height">56dp</dimen>
+    <dimen name="custom_tabs_control_container_height">56dp</dimen>
+    <dimen name="webapp_control_container_height">22dp</dimen>
+
+    <!-- The combined height of the tab strip and toolbar. -->
+    <dimen name="tab_strip_and_toolbar_height">56dp</dimen>
+
+    <!-- SelectBookmarkFolder - Default indent for bookmark folders in the selection dialog. -->
+    <dimen name="select_bookmark_folder_item_left">15dp</dimen>
+    <!-- SelectBookmarkFolder - Incremental indentation for nested bookmark folders in the
+         selection dialog. -->
+    <dimen name="select_bookmark_folder_item_inc_left">10dp</dimen>
+
+    <!-- Find in Page dimensions -->
+    <dimen name="find_result_bar_touch_width">68dp</dimen>
+    <dimen name="find_result_bar_draw_width">46dp</dimen>
+    <dimen name="find_result_bar_result_min_height">8px</dimen>
+    <dimen name="find_result_bar_active_min_height">16px</dimen>
+    <dimen name="find_result_bar_vertical_padding">8px</dimen>
+    <dimen name="find_result_bar_min_gap_between_stacks">3px</dimen>
+    <dimen name="find_result_bar_stacked_result_height">3px</dimen>
+    <dimen name="find_in_page_separator_width">1dp</dimen>
+    <dimen name="find_in_page_popup_width">375dp</dimen>
+    <dimen name="find_in_page_popup_height">60dp</dimen>
+    <dimen name="find_in_page_popup_margin_end">62dp</dimen>
+
+    <!-- Web app dimensions
+         There are three possible layouts for splash screens, which is chosen based on whether an
+         icon was auto-generated by Chrome and whether the icon is bigger than a threshold. -->
+    <dimen name="webapp_home_screen_icon_size">48dp</dimen>
+
+    <dimen name="webapp_splash_offset">32dp</dimen>
+    <dimen name="webapp_splash_image_size_ideal">128dp</dimen>
+    <dimen name="webapp_splash_image_size_threshold">80dp</dimen>
+    <dimen name="webapp_splash_image_size_minimum">48dp</dimen>
+
+    <dimen name="webapp_splash_small_image_size">80dp</dimen>
+    <dimen name="webapp_splash_small_title_margin_top">32dp</dimen>
+    <dimen name="webapp_splash_large_title_margin_bottom">16dp</dimen>
+
+    <!-- Toolbar dimensions -->
+    <dimen name="toolbar_tab_count_text_size_1_digit">12dp</dimen>
+    <dimen name="toolbar_tab_count_text_size_2_digit">10dp</dimen>
+    <dimen name="toolbar_height_no_shadow">56dp</dimen>
+
+    <dimen name="location_bar_margin_top">5dp</dimen>
+    <dimen name="location_bar_margin_bottom">5dp</dimen>
+
+    <dimen name="toolbar_edge_padding">8dp</dimen>
+    <dimen name="location_bar_url_text_size">17sp</dimen>
+    <dimen name="location_bar_incognito_badge_padding">7dp</dimen>
+    <dimen name="omnibox_suggestion_height">60dp</dimen>
+    <dimen name="omnibox_suggestion_answer_height">72dp</dimen>
+    <dimen name="omnibox_suggestion_list_padding_top">0dp</dimen>
+    <dimen name="omnibox_suggestion_list_padding_bottom">0dp</dimen>
+    <dimen name="location_bar_icon_width">36dp</dimen>
+    <dimen name="tablet_toolbar_end_padding">6dp</dimen>
+    <!-- Offset applied to the toolbar menu button in document mode to align with the menu
+         positioned inside the omnibox. -->
+    <dimen name="document_toolbar_menu_offset">5dp</dimen>
+
+    <!-- NTP dimensions -->
+    <dimen name="most_visited_spacing">16dp</dimen>
+    <dimen name="most_visited_tile_width">156dp</dimen>
+    <dimen name="most_visited_thumbnail_width">148dp</dimen>
+    <dimen name="most_visited_thumbnail_height">94dp</dimen>
+    <dimen name="most_visited_bg_corner_radius">2dp</dimen>
+    <!-- 250dp was chosen because it's smaller than the smallest dimension on the smallest device,
+         so we'll always have at least two columns of tiles (except in multiwindow with a narrow
+         window). -->
+    <dimen name="most_visited_two_column_min_width">250dp</dimen>
+    <!-- 450dp was chosen because it's greater than the width of the largest phone in portrait yet
+         less than the width of the smallest phone in landscape. So, we'll always have two columns
+         in portrait and three in landscape (except in atypical situations, like multiwindow). -->
+    <dimen name="most_visited_three_column_min_width">450dp</dimen>
+    <dimen name="icon_most_visited_layout_max_width">504dp</dimen>
+    <dimen name="icon_most_visited_layout_padding_top">16dp</dimen>
+    <dimen name="icon_most_visited_layout_no_logo_padding_top">28dp</dimen>
+    <dimen name="icon_most_visited_layout_bleed">8dp</dimen>
+    <dimen name="icon_most_visited_vertical_spacing">7dp</dimen>
+    <dimen name="icon_most_visited_min_horizontal_spacing">4dp</dimen>
+    <dimen name="icon_most_visited_max_horizontal_spacing">16dp</dimen>
+    <dimen name="icon_most_visited_tile_width">80dp</dimen>
+    <dimen name="icon_most_visited_icon_size">48dp</dimen>
+    <dimen name="ntp_logo_height">116dp</dimen>
+    <dimen name="ntp_list_item_padding">16dp</dimen>
+    <dimen name="ntp_list_item_min_height">48dp</dimen>
+    <dimen name="ntp_list_item_text_size">16sp</dimen>
+    <dimen name="ntp_list_item_favicon_container_size">24dp</dimen>
+    <dimen name="ntp_shadow_height">9dp</dimen>
+
+    <!-- Bookmarks page -->
+    <dimen name="bookmark_folder_min_height">48dp</dimen>
+    <dimen name="bookmark_folder_text_size">16sp</dimen>
+
+    <!-- Recent tabs page -->
+    <dimen name="recent_tabs_visible_separator_padding">8dp</dimen>
+    <dimen name="recent_tabs_promo_padding">16dp</dimen>
+
+    <!-- Snackbars -->
+    <dimen name="snackbar_min_height">48dp</dimen>
+    <dimen name="snackbar_tablet_width">450dp</dimen>
+    <dimen name="snackbar_tablet_margin">24dp</dimen>
+
+    <!-- Bookmarks widget dimensions -->
+    <dimen name="widget_thumbnail_height">94dp</dimen>
+    <dimen name="widget_horizontal_spacing">6dp</dimen>
+    <dimen name="widget_vertical_spacing">6dp</dimen>
+    <dimen name="widget_column_width">80dp</dimen>
+    <dimen name="widget_favicon_size">16dp</dimen>
+
+    <!-- Reader Mode dimensions -->
+    <dimen name="reader_mode_text_size">14sp</dimen>
+
+    <!-- Enhanced bookmarks dimensions -->
+    <dimen name="enhanced_bookmark_item_corner_radius">3dp</dimen>
+    <dimen name="enhanced_bookmark_item_icon_text_size">10dp</dimen>
+    <dimen name="enhanced_bookmark_item_icon_size">16dp</dimen>
+    <dimen name="enhanced_bookmark_item_min_icon_size">16px</dimen>
+    <dimen name="enhanced_bookmark_item_popup_width">140dp</dimen>
+    <dimen name="enhanced_bookmark_folder_item_left">16dp</dimen>
+    <dimen name="enhanced_bookmark_minimum_dialog_size_tablet">500dp</dimen>
+    <dimen name="enhanced_bookmark_drawer_drawable_padding">18dp</dimen>
+
+    <!-- Custom Tabs dimensions -->
+    <dimen name="custom_tabs_toolbar_maxWidth">60dp</dimen>
+    <dimen name="custom_tabs_toolbar_vertical_padding">16dp</dimen>
+    <dimen name="toolbar_icon_height">24dp</dimen>
+    <dimen name="min_toolbar_icon_side_padding">6dp</dimen>
+    <dimen name="custom_tabs_url_text_size">12sp</dimen>
+    <dimen name="custom_tabs_title_text_size">16sp</dimen>
+
+    <!-- Favicon dimensions -->
+    <dimen name="default_favicon_size">16dp</dimen>
+
+    <!-- Media UI dimensions -->
+    <!-- The media_session_icon_size is just big enough to make sure Android doesn't discard the
+         icon but otherwise, the icon is meant to be a flat color so it doesn't really matter. -->
+    <dimen name="media_session_icon_size">48dp</dimen>
+
+    <!-- Offline pages dimensions -->
+    <dimen name="offline_page_item_vertical_spacing">16dp</dimen>
+</resources>

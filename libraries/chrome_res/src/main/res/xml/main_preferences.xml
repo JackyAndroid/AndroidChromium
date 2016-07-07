@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <org.chromium.chrome.browser.preferences.SignInPreference
+        android:key="sign_in"
+        android:title="@string/sign_in_to_chrome" />
+
+    <PreferenceCategory
+        android:title="@string/prefs_section_basics"/>
+    <org.chromium.chrome.browser.preferences.SearchEnginePreference
+        android:key="search_engine"
+        android:title="@string/prefs_search_engine"/>
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.DocumentModePreference"
+        android:key="document_mode"
+        android:title="@string/tabs_and_apps_title" />
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:fragment="org.chromium.chrome.browser.preferences.autofill.AutofillPreferences"
+        android:key="autofill_settings"
+        android:title="@string/prefs_autofill" />
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:fragment="org.chromium.chrome.browser.preferences.password.SavePasswordsPreferences"
+        android:key="saved_passwords"
+        android:title="@string/prefs_saved_passwords" />
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.HomepagePreferences"
+        android:key="homepage"
+        android:title="@string/options_homepage_title" />
+
+    <PreferenceCategory
+        android:title="@string/prefs_section_advanced"/>
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.privacy.PrivacyPreferences"
+        android:key="privacy"
+        android:title="@string/prefs_privacy" />
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.AccessibilityPreferences"
+        android:key="accessibility"
+        android:title="@string/prefs_accessibility" />
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SiteSettingsPreferences"
+        android:key="content_settings"
+        android:title="@string/prefs_site_settings" />
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:fragment="org.chromium.chrome.browser.preferences.datareduction.DataReductionPreferences"
+        android:key="data_reduction"
+        android:title="@string/data_reduction_title" />
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.AboutChromePreferences"
+        android:key="about_chrome"
+        android:title="@string/prefs_about_chrome" />
+
+</PreferenceScreen>

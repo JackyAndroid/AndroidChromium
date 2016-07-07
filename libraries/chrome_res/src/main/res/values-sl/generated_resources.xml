@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Posodobi dovoljenja"</string>
+<string name="login_dialog_title">"Zahtevano je preverjanje pristnosti"</string>
+<string name="login_dialog_username_field">"Uporabniško ime:"</string>
+<string name="login_dialog_password_field">"Geslo:"</string>
+<string name="login_dialog_ok_button_label">"Prijava"</string>
+<string name="http_post_warning">"Stran, ki jo iščete, je uporabila informacije, ki ste jih vnesli. Z vrnitvijo na to stran se bodo morda ponovila vsa vaša dejanja, ki ste jih opravili. Ali želite nadaljevati?"</string>
+<string name="http_post_warning_resend">"Nadaljuj"</string>
+<string name="sad_tab_title">"Ti šment!"</string>
+<string name="sad_tab_message">"Med prikazom spletne strani je prišlo do napake."</string>
+<string name="sad_tab_reload_label">"Ponovno naloži"</string>
+<string name="options_homepage_title">"Domača stran"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Ohrani kopijo te kartice v tej napravi"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Če je izbrana ta možnost, bo shranil kopijo kartice v tej napravi za hitrejše izpolnjevanje obrazcev."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Če je to omogočeno, Chrome shrani kopijo kartice v tej napravi zaradi hitrejšega izpolnjevanja obrazcev."</string>
+<string name="autofill_card_unmask_confirm_button">"Preveri"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Preverjanje kartice"</string>
+<string name="autofill_card_unmask_verification_success">"Vaša kartica je preverjena"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nova kartica?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Počisti kopijo"</string>
+</resources>

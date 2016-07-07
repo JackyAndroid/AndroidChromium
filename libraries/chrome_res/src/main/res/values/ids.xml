@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+
+<resources>
+    <item name="background_drawable" type="id"/>
+    <item name="eb_page" type="id"/>
+    <item name="foreground_drawable" type="id"/>
+    <item name="fre_pager" type="id"/>
+    <item name="menu_item_enter_anim_id" type="id" />
+    <item name="permission_intent_override" type="id" />
+    <item name="permission_type" type="id"/>
+    <item name="refine_view_id" type="id"/>
+    <item name="tabswitcher_multiple_drawable" type="id"/>
+    <item name="tabswitcher_single_drawable" type="id"/>
+</resources>

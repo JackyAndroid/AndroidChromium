@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2014 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <alpha
+        android:fromAlpha="0"
+        android:toAlpha="1.0"
+        android:duration="@android:integer/config_mediumAnimTime"
+        android:interpolator="@android:anim/accelerate_interpolator"
+        />
+    <translate
+        android:fromYDelta="15"
+        android:toYDelta="0"
+        android:duration="@android:integer/config_mediumAnimTime" />
+</set>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Ενημέρωση αδειών"</string>
+<string name="login_dialog_title">"Απαιτείται έλεγχος ταυτότητας"</string>
+<string name="login_dialog_username_field">"Όνομα χρήστη:"</string>
+<string name="login_dialog_password_field">"Κωδικός πρόσβασης:"</string>
+<string name="login_dialog_ok_button_label">"Σύνδεση"</string>
+<string name="http_post_warning">"Στη σελίδα που αναζητάτε χρησιμοποποιήθηκαν πληροφορίες που καταχωρίσατε. Αν επιστρέψετε σε αυτή τη σελίδα ίσως επαναληφθούν ενέργειες που εκτελέσατε. Θέλετε να συνεχίσετε;"</string>
+<string name="http_post_warning_resend">"Συνέχεια"</string>
+<string name="sad_tab_title">"Όπα! Κάτι πήγε στραβά!"</string>
+<string name="sad_tab_message">"Παρουσιάστηκε πρόβλημα κατά την εμφάνιση αυτής της ιστοσελίδας."</string>
+<string name="sad_tab_reload_label">"Επαναφόρτωση"</string>
+<string name="options_homepage_title">"Αρχική σελίδα"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Διατήρηση αντιγράφου αυτής της κάρτας σε αυτήν τη συσκευή"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Εάν επιλεγεί, το Chrome θα αποθηκεύει ένα αντίγραφο της κάρτας σας σε αυτήν τη συσκευή για ταχύτερη συμπλήρωση φορμών."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Εάν ενεργοποιηθεί, το Chrome θα αποθηκεύσει ένα αντίγραφο της κάρτας σας σε αυτήν τη συσκευή για ταχύτερη συμπλήρωση φορμών."</string>
+<string name="autofill_card_unmask_confirm_button">"Επαλήθευση"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Επαλήθευση κάρτας"</string>
+<string name="autofill_card_unmask_verification_success">"Η κάρτα σας επαληθεύτηκε"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Νέα κάρτα;"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Διαγραφή αντιγράφου"</string>
+</resources>

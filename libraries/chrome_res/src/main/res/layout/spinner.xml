@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2014 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- A plain old Spinner.
+
+     Why is this needed? Because spinners must be inflated from a resource for the AppCompat theme
+     to work. Simply calling new Spinner() will result in a missing spinner arrow on pre-L devices.
+
+     See the FAQ on this page:
+     http://android-developers.blogspot.com/2014/10/appcompat-v21-material-design-for-pre.html -->
+<Spinner />

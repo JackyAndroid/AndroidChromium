@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orderingFromXml="false">
+
+    <PreferenceCategory
+        android:title="@string/account_management_title"
+        android:order="0" />
+    <org.chromium.chrome.browser.preferences.ChromeSwitchPreference
+        android:key="sign_out_switch"
+        android:summary="@string/sign_in_accounts_message"
+        android:order="1"
+        app:dontUseSummaryAsTitle="true" />
+    <org.chromium.chrome.browser.preferences.TextMessagePreference
+        android:key="sign_in_child_message"
+        android:title="@string/sign_in_accounts_message_child"
+        android:order="2" />
+
+    <!-- Google accounts will be inserted here, using order values starting at 100 -->
+
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:key="add_account"
+        android:icon="@drawable/plus"
+        android:order="1000" />
+
+    <PreferenceCategory
+        android:key="not_you"
+        android:order="1001" />
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:key="go_incognito"
+        android:title="@string/account_management_go_incognito_text"
+        android:icon="@drawable/account_management_incognito"
+        android:order="1002" />
+
+    <PreferenceCategory
+        android:key="parental_settings"
+        android:title="@string/account_management_parental_settings"
+        android:order="1003" />
+    <Preference
+        android:key="parent_accounts"
+        android:order="1004" />
+    <Preference
+        android:key="child_content"
+        android:title="@string/account_management_child_content_title"
+        android:order="1005" />
+    <Preference
+        android:key="child_safe_search"
+        android:title="@string/account_management_child_safe_search_title"
+        android:order="1006" />
+
+</PreferenceScreen>

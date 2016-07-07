@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2013 The Chromium Authors. All rights reserved.
+
+   Use of this source code is governed by a BSD-style license that can be
+   found in the LICENSE file.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="8dp"
+    android:background="#ffffff"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="12dp"
+        android:paddingEnd="@dimen/website_settings_popup_padding_sides"
+        android:paddingStart="@dimen/website_settings_popup_padding_sides" >
+
+        <view class="org.chromium.chrome.browser.WebsiteSettingsPopup$ElidedUrlTextView"
+            android:id="@+id/website_settings_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lineSpacingExtra="6dp"
+            android:paddingTop="16dp"
+            android:textAlignment="viewStart"
+            android:textColor="@color/url_emphasis_default_text"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/website_settings_connection_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="3dp"
+            android:paddingTop="8dp"
+            android:textColor="@color/website_settings_popup_text"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/website_settings_permissions_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/website_settings_popup_padding_sides"
+        android:paddingEnd="@dimen/website_settings_popup_padding_sides" >
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/website_settings_site_settings_button"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/website_settings_popup_button_height"
+        android:layout_gravity="end"
+        android:layout_marginEnd="@dimen/website_settings_popup_padding_sides"
+        android:layout_marginStart="@dimen/website_settings_popup_padding_sides"
+        android:layout_marginTop="8dp"
+        android:paddingEnd="@dimen/website_settings_popup_button_padding_sides"
+        android:paddingStart="@dimen/website_settings_popup_button_padding_sides"
+        android:text="@string/page_info_site_settings_button"
+        android:textColor="@color/light_active_color"
+        style="@style/ButtonCompatBorderless" />
+</LinearLayout>

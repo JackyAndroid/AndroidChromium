@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2015 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<!-- TODO(kkimlabs): Generalize and unify with eb_promo_header.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_pages_storage_space_title"
+        android:textColor="@color/default_text_color"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/storage_header_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/default_text_color"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="end"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/storage_header_button"
+            style="@style/ButtonCompatBorderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/offline_pages_free_up_space_title"
+            android:textAllCaps="true"
+            android:textColor="@color/light_active_color"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+</LinearLayout>

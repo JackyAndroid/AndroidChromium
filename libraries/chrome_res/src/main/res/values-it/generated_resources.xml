@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Aggiorna autorizzazioni"</string>
+<string name="login_dialog_title">"Autenticazione richiesta"</string>
+<string name="login_dialog_username_field">"Nome utente:"</string>
+<string name="login_dialog_password_field">"Password:"</string>
+<string name="login_dialog_ok_button_label">"Accedi"</string>
+<string name="http_post_warning">"La pagina a cui stai tentando di accedere utilizzava informazioni inserite da te. Tornando a quella pagina, è possibile che eventuali azioni che hai eseguito vengano ripetute. Continuare?"</string>
+<string name="http_post_warning_resend">"Continua"</string>
+<string name="sad_tab_title">"Uffa!"</string>
+<string name="sad_tab_message">"Si è verificato un problema durante la visualizzazione della pagina web."</string>
+<string name="sad_tab_reload_label">"Ricarica"</string>
+<string name="options_homepage_title">"Pagina iniziale"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Conserva una copia di questa carta sul dispositivo"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Se questa opzione viene selezionata, Chrome memorizza una copia della carta sul dispositivo per velocizzare la compilazione dei moduli."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Se questa opzione viene attivata, Chrome memorizza una copia della carta sul dispositivo per velocizzare la compilazione dei moduli."</string>
+<string name="autofill_card_unmask_confirm_button">"Verifica"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Verifica della carta in corso"</string>
+<string name="autofill_card_unmask_verification_success">"La carta è stata verificata"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nuova carta?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Cancella copia"</string>
+</resources>

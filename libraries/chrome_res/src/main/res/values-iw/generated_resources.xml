@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"עדכן הרשאות"</string>
+<string name="login_dialog_title">"נדרש אימות"</string>
+<string name="login_dialog_username_field">"שם משתמש:"</string>
+<string name="login_dialog_password_field">"סיסמה:"</string>
+<string name="login_dialog_ok_button_label">"היכנס"</string>
+<string name="http_post_warning">"הדף שאתה מחפש השתמש במידע שהזנת. החזרה לדף זה עלולה לגרום לכפילות בפעולות שביצעת. האם ברצונך להמשיך?"</string>
+<string name="http_post_warning_resend">"המשך"</string>
+<string name="sad_tab_title">"אוי, לא!"</string>
+<string name="sad_tab_message">"משהו השתבש בעת הצגת דף אינטרנט זה."</string>
+<string name="sad_tab_reload_label">"טען שוב"</string>
+<string name="options_homepage_title">"דף הבית"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"שמור עותק של הכרטיס הזה במכשיר הזה"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"‏אם האפשרות הזו מסומנת, Chrome ישמור עותק של הכרטיס במכשיר הזה כדי למלא טפסים במהירות רבה יותר."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"‏אם האפשרות הזו תופעל, Chrome יאחסן עותק של הכרטיס שלך במכשיר הזה למילוי מהיר יותר של טפסים."</string>
+<string name="autofill_card_unmask_confirm_button">"אימות"</string>
+<string name="autofill_card_unmask_verification_in_progress">"מאמת את הכרטיס"</string>
+<string name="autofill_card_unmask_verification_success">"הכרטיס אומת"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"כרטיס חדש?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"נקה את העותק"</string>
+</resources>

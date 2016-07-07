@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="start" >
+
+    <TextView
+        android:id="@+id/app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:singleLine="true"
+        android:textAlignment="viewStart"
+        android:textSize="18sp"
+        android:textColor="@color/default_text_color" />
+
+    <RatingBar
+        android:id="@+id/rating_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:progressDrawable="@drawable/rating_bar"
+        android:indeterminateDrawable="@drawable/rating_bar"
+        android:minHeight="16dp"
+        android:maxHeight="16dp"
+        android:isIndicator="true"
+        android:numStars="5"
+        android:stepSize="0.5" />
+
+    <TextView
+        android:id="@+id/web_app_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:singleLine="true"
+        android:textAlignment="viewStart"
+        android:textSize="14sp"
+        android:textColor="#646464" />
+
+</LinearLayout>

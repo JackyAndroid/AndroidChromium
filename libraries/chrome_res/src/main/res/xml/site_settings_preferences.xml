@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- The list below All Sites is ordered by privacy-sensitive items first. If
+     you are not sure where to add your item, add it above Storage. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- All sites -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="all_sites"
+        android:title="@string/all_sites"
+        android:icon="@drawable/settings_all_sites" />
+    <!-- Cookies -->
+    <Preference
+        android:key="cookies"
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences" />
+    <!-- Location -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="device_location" />
+    <!-- Camera -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="camera" />
+    <!-- Microphone -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="microphone" />
+    <!-- JavaScript -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="javascript" />
+    <!-- Popups -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="popups" />
+    <!-- Fullscreen -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="fullscreen" />
+    <!-- Notifications -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="notifications" />
+    <!-- Protected content -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="protected_content" />
+    <!-- Language -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.LanguagePreferences"
+        android:key="language"
+        android:title="@string/language"
+        android:icon="@drawable/settings_language" />
+    <!-- Storage -->
+    <!-- TODO(finnur): Move this over to the new Usage screen, once it exists. -->
+    <Preference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="use_storage"
+        android:title="@string/website_settings_storage"
+        android:icon="@drawable/settings_storage" />
+</PreferenceScreen>

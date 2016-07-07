@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Berechtigungen aktualisieren"</string>
+<string name="login_dialog_title">"Authentifizierung erforderlich"</string>
+<string name="login_dialog_username_field">"Nutzername:"</string>
+<string name="login_dialog_password_field">"Passwort:"</string>
+<string name="login_dialog_ok_button_label">"Anmelden"</string>
+<string name="http_post_warning">"Die gesuchte Seite hat die von Ihnen eingegebenen Informationen verwendet bzw. verarbeitet. Wenn Sie zu dieser Seite zurückgehen, wird möglicherweise eine bereits ausgeführte Aktion wiederholt. Möchten Sie fortfahren?"</string>
+<string name="http_post_warning_resend">"Weiter"</string>
+<string name="sad_tab_title">"Oh nein!"</string>
+<string name="sad_tab_message">"Fehler beim Anzeigen dieser Webseite."</string>
+<string name="sad_tab_reload_label">"Neu laden"</string>
+<string name="options_homepage_title">"Startseite"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Kopie dieser Karte auf diesem Gerät speichern"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Bei Aktivierung speichert Chrome eine Kopie Ihrer Karte auf diesem Gerät, damit Formulare schneller ausgefüllt werden können."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Wenn diese Funktion aktiviert ist, speichert Chrome eine Kopie Ihrer Karte auf diesem Gerät, um ein Ausfüllen von Formularen zu beschleunigen."</string>
+<string name="autofill_card_unmask_confirm_button">"Bestätigen"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Karte wird geprüft."</string>
+<string name="autofill_card_unmask_verification_success">"Ihre Karte wurde bestätigt."</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Neue Karte?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Kopie löschen"</string>
+</resources>

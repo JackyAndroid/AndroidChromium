@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="infobar_update_permissions_button_text">"Aktualizovať povolenia"</string>
+<string name="login_dialog_title">"Vyžaduje sa autentifikácia"</string>
+<string name="login_dialog_username_field">"Meno používateľa:"</string>
+<string name="login_dialog_password_field">"Heslo:"</string>
+<string name="login_dialog_ok_button_label">"Prihlásiť"</string>
+<string name="http_post_warning">"Vami hľadaná stránka použila informácie, ktoré ste zadali. Návrat na túto stránku môže spôsobiť zopakovanie akcie, ktorú ste vykonali. Chcete pokračovať?"</string>
+<string name="http_post_warning_resend">"Pokračovať"</string>
+<string name="sad_tab_title">"Aj, chyba!"</string>
+<string name="sad_tab_message">"Pri zobrazovaní tejto webovej stránky sa vyskytla chyba."</string>
+<string name="sad_tab_reload_label">"Obnoviť"</string>
+<string name="options_homepage_title">"Domovská stránka"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"Ponechať kópiu tejto karty na tomto zariadení"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"Ak je toto nastavenie začiarknuté, Chrome uloží kópiu karty na toto zariadenie, aby ste mohli vypĺňať formuláre rýchlejšie."</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip_ios">"Ak túto možnosť povolíte, Chrome bude uchovávať kópiu vašej karty na tomto zariadení na účely rýchlejšieho dopĺňania formulárov."</string>
+<string name="autofill_card_unmask_confirm_button">"Overiť"</string>
+<string name="autofill_card_unmask_verification_in_progress">"Karta sa overuje"</string>
+<string name="autofill_card_unmask_verification_success">"Vaša karta je overená"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"Nová karta?"</string>
+<string name="autofill_from_google_account">"Google Payments"</string>
+<string name="autofill_clear_local_copy_button">"Vymazať kópiu"</string>
+</resources>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- The location bar also know as URL bar -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@+id/incognito_badge"
+        style="@style/LocationBarButton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:scaleType="center"
+        android:src="@drawable/ic_omnibox_incognito_badge"
+        android:contentDescription="@null"
+        android:visibility="gone" />
+    <FrameLayout android:id="@+id/location_bar_icon"
+        android:layout_width="@dimen/location_bar_icon_width"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+        <ImageView android:id="@+id/navigation_button"
+            style="@style/LocationBarButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:scaleType="center"
+            android:contentDescription="@string/accessibility_toolbar_btn_site_info"/>
+        <ImageButton android:id="@+id/security_button"
+            style="@style/LocationBarButton"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:scaleType="center"
+            android:layout_gravity="center"
+            android:alpha="0"
+            android:visibility="invisible"
+            android:contentDescription="@string/accessibility_toolbar_btn_site_info" />
+    </FrameLayout>
+    <include
+        android:id="@+id/url_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:layout_marginStart="@dimen/location_bar_icon_width"
+        android:layout_gravity="center_vertical"
+        android:nextFocusForward="@+id/tab_switcher_button"
+        layout="@layout/url_container"
+        />
+    <FrameLayout android:id="@+id/url_action_container"
+        android:layout_width="@dimen/location_bar_icon_width"
+        android:layout_height="@dimen/toolbar_height_no_shadow"
+        android:layout_gravity="end|center_vertical"
+        android:visibility="gone">
+        <org.chromium.chrome.browser.widget.TintedImageButton
+            android:id="@+id/document_menu_button"
+            style="@style/LocationBarButton"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layoutDirection="locale"
+            android:src="@drawable/btn_menu"
+            android:contentDescription="@string/accessibility_toolbar_btn_menu" />
+        <org.chromium.chrome.browser.widget.TintedImageButton
+            android:id="@+id/delete_button"
+            style="@style/LocationBarButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="center"
+            android:src="@drawable/btn_delete_url"
+            android:visibility="invisible"
+            android:contentDescription="@string/accessibility_toolbar_btn_delete_url" />
+        <org.chromium.chrome.browser.widget.TintedImageButton
+            android:id="@+id/mic_button"
+            style="@style/LocationBarButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="center"
+            android:src="@drawable/btn_mic"
+            android:visibility="invisible"
+            android:contentDescription="@string/accessibility_toolbar_btn_mic" />
+    </FrameLayout>
+</merge>
