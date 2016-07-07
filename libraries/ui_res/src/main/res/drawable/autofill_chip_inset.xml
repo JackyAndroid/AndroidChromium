@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetBottom="@dimen/keyboard_accessory_padding"
+    android:insetLeft="@dimen/keyboard_accessory_half_padding"
+    android:insetRight="@dimen/keyboard_accessory_half_padding"
+    android:insetTop="@dimen/keyboard_accessory_padding">
+    <shape>
+        <solid android:color="#ECEFF1" />
+        <corners android:radius="2dp" />
+    </shape>
+</inset>

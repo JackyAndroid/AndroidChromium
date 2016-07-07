@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+<resources>
+    <!-- Buttons -->
+    <style name="ButtonCompat" parent="ButtonCompatBase">
+        <item name="android:background">@drawable/button_compat</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="ButtonCompatBorderless" parent="ButtonCompat">
+        <item name="android:background">@drawable/button_borderless_compat</item>
+    </style>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Copyright 2013 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+
+<resources>
+    <style name="DropdownPopupWindow" parent="@android:style/Widget.ListPopupWindow">
+        <item name="android:popupBackground">@drawable/dropdown_popup_background</item>
+    </style>
+
+    <!-- Buttons -->
+    <style name="ButtonCompatOverlay">
+        <item name="android:buttonStyle">@style/ButtonCompat</item>
+    </style>
+    <style name="ButtonCompatBorderlessOverlay">
+        <item name="android:buttonStyle">@style/ButtonCompatBorderless</item>
+    </style>
+    <style name="ButtonCompatBase">
+        <item name="android:minWidth">88dp</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:gravity">center_vertical|center_horizontal</item>
+    </style>
+    <style name="ButtonCompat" parent="ButtonCompatBase">
+        <item name="android:background">@drawable/button_compat_shape</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ButtonCompatBorderless" parent="ButtonCompat">
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+</resources>
