@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2013 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+
+<resources>
+    <style name="SelectPopupDialog">
+        <item name="select_dialog_singlechoice">@android:layout/select_dialog_singlechoice</item>
+        <item name="select_dialog_multichoice">@android:layout/select_dialog_multichoice</item>
+    </style>
+    <style name="SelectActionMenuShare">
+        <item name="android:icon">@drawable/ic_menu_share_holo_light</item>
+    </style>
+    <style name="SelectActionMenuWebSearch">
+        <item name="android:icon">@drawable/ic_search</item>
+    </style>
+</resources>

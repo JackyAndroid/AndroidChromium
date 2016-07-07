@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="actionbar_share">"Share"</string>
+<string name="actionbar_web_search">"Web search"</string>
+<string name="actionbar_textselection_title">"Text selection"</string>
+<string name="media_player_error_title">"Cannot play video"</string>
+<string name="media_player_error_text_invalid_progressive_playback">"Sorry, this video is not valid for streaming to this device."</string>
+<string name="media_player_error_text_unknown">"Sorry, this video cannot be played."</string>
+<string name="media_player_error_button">"OK"</string>
+<string name="media_player_loading_video">"Loading video"</string>
+<string name="profiler_started_toast">"Profiler started"</string>
+<string name="profiler_stopped_toast">"Profiler finished. Results are in %1$s."</string>
+<string name="profiler_no_storage_toast">"Can\'t start profiler because external storage is not ready"</string>
+<string name="profiler_error_toast">"Failed to start profiler"</string>
+</resources>
