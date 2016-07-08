@@ -16,8 +16,6 @@ import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.ThreadUtils;
@@ -25,7 +23,6 @@ import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.BookmarksBridge;
-import org.chromium.chrome.browser.BottomTabBtn;
 import org.chromium.chrome.browser.ChromeActivity;
 import org.chromium.chrome.browser.ChromeBrowserProviderClient;
 import org.chromium.chrome.browser.TabLoadStatus;
@@ -149,8 +146,6 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
     private HomepageStateListener mHomepageStateListener;
 
     private boolean mInitializedWithNative;
-
-    private BottomTabBtn bottomTabBtn;
 
     /**
      * Creates a ToolbarManager object.
@@ -504,8 +499,6 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
 
         mLoadProgressSimulator = new LoadProgressSimulator(mToolbar);
 
-        LinearLayout linearLayout = (LinearLayout) activity.findViewById(R.id.bottom_bar_layout);
-        bottomTabBtn = (BottomTabBtn) linearLayout.getChildAt(linearLayout.getChildCount() - 1);
     }
 
     /**
@@ -931,7 +924,6 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
         if (!mTabRestoreCompleted) return;
         int tabCount = mTabModelSelector.getCurrentModel().getCount();
         mToolbar.updateTabCountVisuals(tabCount);
-        bottomTabBtn.setTabCountTv(String.valueOf(tabCount));
     }
 
     /**
@@ -1067,24 +1059,6 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
     }
 
     private void updateBackPreBtnStatus(ChromeActivity activity, Tab tab) {
-        LinearLayout bottomBarLayout = (LinearLayout) activity.findViewById(R.id.bottom_bar_layout);
-        ImageView leftBtn = (ImageView) bottomBarLayout.getChildAt(0);
-        ImageView rightBtn = (ImageView) bottomBarLayout.getChildAt(1);
-        if (tab.canGoBack()) {
-            leftBtn.setClickable(true);
-            leftBtn.setImageResource(R.drawable.btn_m_left);
-        } else {
-            leftBtn.setClickable(false);
-            leftBtn.setImageResource(R.drawable.btn_m_left_disable);
-        }
-
-        if (tab.canGoForward()) {
-            rightBtn.setClickable(true);
-            rightBtn.setImageResource(R.drawable.btn_m_right);
-        } else {
-            rightBtn.setClickable(false);
-            rightBtn.setImageResource(R.drawable.btn_m_right_disable);
-        }
     }
 
     private static class LoadProgressSimulator {

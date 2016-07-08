@@ -21,7 +21,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.CommandLine;
@@ -445,9 +444,6 @@ public class ChromeTabbedActivity extends ChromeActivity implements OverviewMode
                     toggleOverview();
                 }
             };
-
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.bottom_bar_layout);
-            linearLayout.getChildAt(linearLayout.getChildCount() - 1).setOnClickListener(tabSwitcherClickHandler);
 
             OnClickListener newTabClickHandler = new OnClickListener() {
                 @Override

@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingBottom="40dp">
+        >
 
         <org.chromium.chrome.browser.compositor.CompositorViewHolder
             android:id="@+id/compositor_view_holder"
@@ -35,7 +35,7 @@
         android:layout_marginTop="@dimen/tab_strip_height"
         android:inflatedId="@+id/omnibox_results_container"
         android:layout="@layout/omnibox_results_container"
-        android:paddingBottom="40dp"/>
+        />
 
     <!-- Toolbar size area painted black to avoid the action bar showing the window background -->
     <View
@@ -56,7 +56,6 @@
         android:layout_height="match_parent"
         android:inflatedId="@+id/empty_container"
         android:layout="@layout/empty_background_view"
-        android:paddingBottom="40dp"
         />
     <!-- This empty view is used as the anchor for custom menu -->
     <View
@@ -65,12 +64,4 @@
         android:layout_height="0px"
         android:layout_gravity="bottom|start"
         />
-
-    <LinearLayout
-        android:id="@+id/bottom_bar_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#f8f8f8"
-        android:orientation="horizontal"/>
 </merge>

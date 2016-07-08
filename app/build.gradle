@@ -10,7 +10,7 @@ android {
     buildToolsVersion "23.0.1"
     enforceUniquePackageName false
     defaultConfig {
-        applicationId "com.mogoweb"
+        applicationId "org.chromium.chrome.browser"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 15

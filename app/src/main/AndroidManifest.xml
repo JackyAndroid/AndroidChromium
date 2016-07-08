@@ -13,7 +13,7 @@ by a child template that "extends" this file.
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.fumujidi.chromiumforandroid"
+    package="org.chromium.chrome.browser"
     tools:ignore="MissingVersion">
     <!-- android:versionCode and android:versionName is set through gyp. See build/common.gypi -->
 
