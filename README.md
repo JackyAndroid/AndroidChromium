@@ -1,4 +1,4 @@
-###欢迎在GitHub或者CSDN上关注我
+###Welcome to follow me on GitHub or CSDN
 
 GitHub: https://github.com/JackyAndroid
 
@@ -10,26 +10,26 @@ CSDN: http://blog.csdn.net/rain_butterfly
 
 #AndroidChromium
 
-###准备
+###Preparation
 
-参考[官方](https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md)及其他教程编译通过chromium源码，并能生成chrome.apk
+Refer to [official](https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md) and other tutorial compile chromium source code, and can generate chrome apk
 
-###目的
+###purpose
 
-使用AndroidStudio开发环境调试Chromium Android UI层。
+Using AndroidStudio debugging Chromium Android
 
-###构建思路
+###The build process
 
-1.	采用Android Studio作为开发环境，从Chromium for Android抽取chrome模块的源码，加入Android project。
-2.	native代码在chromium环境中build，作为so加入Android project
-3.	基础模块(base, content, net等)在chromium环境build为jar包，加入Android project
-4.	content, chrome, ui等模块的资源文件加入Android library project
+1.	Android Studio as a development environment, from Chromium for Android from chrome module source code, to join the Android project.
+2.	Native code in the chromium environment to build, as so file to join the Android project
+3.	Basic module (base, the content, net, etc.) in the chromium environment to build into a jar package, then add to the Android project
+4.	content, chrome, UI modules such as resource file to join an Android library project
 
-###资源文件为什么不能直接都添加到Android project呢？
+###Why can't a resource file are directly added to the Android project?
 
-因为命名空间的原因，比如content模块的资源的命名空间为org.chromium.content, chrome模块的资源的命名空间为		org.chromium.chrome，所以需要建立不同的Android library project, 指定不同的包名。
+Because namespace problems, such as the content of the module resources namespace is org.chromium.content,the chrome module namespace is org.chromium.chrome, so need to build different Android library project, specify different package name.
 
-###本项目和源码目录对应关系
+###Directory corresponding relation
 
 app/libs ----------- chromium/src/out/Release/lib.java
 
@@ -41,7 +41,7 @@ app/src/main/java ------------ chromium/src/chrome/android/java/src
 
 app/src/main/jniLibs ----------- chromium/src/out/Release/chrome_public_apk/libs
 
-app/src/main/res（app module 初始化资源）
+app/src/main/res（app module init res）
 
 libraries/androidmedia_res ----------- chromium/src/third_party/android_media/java/res
 
@@ -53,17 +53,17 @@ libraries/datausagechart_res --------- chromium/src/third_party/android_data_cha
 
 libraries/ui_res ---------- chromium/src/ui/android/java/res
 
-###建议&注意事项
+###Suggestions and considerations
 
-2.	pak和dat等文件需要加入到assets目录，而且不能压缩
-3.	aidl文件加入到main/aidl下，android studio会自动处理
-4. 目前构建的chromium版本是48.0.2554.0，内核为官方版本
-6. 因为某些java文件是通过C文件编译生成，只存在chromium/src/out  目录下。如果按以上对应关系升级版本缺失文件，请到out/目录下去搜索，根据命名空间添加相应文件。还有一些临时生成的xml资源文件也需要从out/目录下去拷贝到相应的资源模块。
-5. 如果使用的是AndroidStudio 2.0以上版本且开启instant run功能，建议关闭后再进行调试（instant run会修改首先启动的Application导致chrome provider context 引用错误导致crash）
+1.	Pak and dat files need to be added to the assets directory, and cannot be compressed
+2.	Aidl files added to the main/aidl
+3. The current build chromium version is 48.0.2554.0, the kernel is the official version
+4. Because some Java file is through the C compiler generated, there is only the chromium/SRC/out directory.If according to corresponding relation between the above updated version missing files, please go to the out/directory search, add corresponding files according to the namespace.There are some temporary generated XML resource file also need the out/directory on copy to the corresponding resource module.
+5. If you are using AndroidStudio above 2.0 version and open instant run function, suggested to debug after closing (instant run will modify on the Application of the result in chrome provider context reference error)
 
-###感谢
+###Thanks
 
-本项目灵感来自于365browser
+The project is inspiration from the 365 browser
 
 ###License
 
