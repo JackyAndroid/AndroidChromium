@@ -8,6 +8,17 @@ CSDN: http://blog.csdn.net/rain_butterfly
 
 #AndroidChromium
 
+###简介
+* 谷歌浏览器安卓版源码项目
+* 本项目是世界级的安卓架构
+* 理清本项目业务逻辑完全可以胜任国内一线公司工程师
+* 本项目会长期跟进并升级谷歌浏览器内核版本，欢迎star
+
+###效果图
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
+
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+
 ###准备
 
 参考[官方](https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md)及其他教程编译通过chromium源码，并能生成chrome.apk
