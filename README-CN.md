@@ -15,9 +15,9 @@ CSDN: http://blog.csdn.net/rain_butterfly
 * 本项目会长期跟进并升级谷歌浏览器内核版本，欢迎star
 
 ###效果图
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
 
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
 
 ###准备
 
