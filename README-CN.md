@@ -1,3 +1,11 @@
+###欢迎在GitHub或者CSDN上关注我
+
+GitHub: https://github.com/JackyAndroid
+
+CSDN: http://blog.csdn.net/rain_butterfly
+
+---
+
 #AndroidChromium
 
 ###准备
