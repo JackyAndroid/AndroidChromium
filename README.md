@@ -10,6 +10,17 @@ CSDN: http://blog.csdn.net/rain_butterfly
 
 #AndroidChromium
 
+###Brief Introduction
+* Google browser android version of the source program
+* This project is a world-class android architecture
+* Clarify the project business logic can completely fit for domestic company engineer
+* This project will follow up and update Google browser kernel version for a long time, welcome to the star
+
+###Screenshots
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
+
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+
 ###Preparation
 
 Refer to [official](https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md) and other tutorial compile chromium source code, and can generate chrome apk
