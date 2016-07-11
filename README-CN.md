@@ -7,6 +7,7 @@ CSDN: http://blog.csdn.net/rain_butterfly
 ---
 
 #AndroidChromium
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/app/src/main/res/mipmap-xhdpi/app_icon.png)
 
 ###简介
 * 谷歌浏览器安卓版源码项目
