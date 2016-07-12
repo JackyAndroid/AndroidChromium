@@ -17,10 +17,16 @@ CSDN: http://blog.csdn.net/rain_butterfly
 * Clarify the project business logic can completely fit for domestic company engineer
 * This project will follow up and update Google browser kernel version for a long time, welcome to the star
 
+###Notice
+If you are using AndroidStudio above 2.0 version and open instant run function, suggested to debug after closing (instant run will modify on the Application of the result in chrome provider context reference error)
+
 ###Screenshots
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
 
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+
+###The following to upgrade the chrome kernel explanation, not relevant personnel can be ignored
+---
 
 ###Preparation
 
@@ -65,13 +71,12 @@ libraries/datausagechart_res --------- chromium/src/third_party/android_data_cha
 
 libraries/ui_res ---------- chromium/src/ui/android/java/res
 
-###Suggestions and considerations
+###The kernel upgrade matters needing attention
 
 1.	Pak and dat files need to be added to the assets directory, and cannot be compressed
 2.	Aidl files added to the main/aidl
 3. The current build chromium version is 48.0.2554.0, the kernel is the official version
 4. Because some Java file is through the C compiler generated, there is only the chromium/SRC/out directory.If according to corresponding relation between the above updated version missing files, please go to the out/directory search, add corresponding files according to the namespace.There are some temporary generated XML resource file also need the out/directory on copy to the corresponding resource module.
-5. If you are using AndroidStudio above 2.0 version and open instant run function, suggested to debug after closing (instant run will modify on the Application of the result in chrome provider context reference error)
 
 ###Thanks
 
