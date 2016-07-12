@@ -42,6 +42,9 @@
         android:showAsAction="always|withText"
         style="@style/SelectActionMenuShare"
         />
+    <group
+        android:id="@+id/select_action_menu_text_processing_menus">
+    </group>
     <item
         android:id="@+id/select_action_menu_web_search"
         android:title="@string/actionbar_web_search"

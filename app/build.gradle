@@ -13,9 +13,8 @@ android {
         applicationId "org.chromium.chrome.browser"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 15
-        versionName "3.0.0"
-
+        versionCode 1
+        versionName "1.0"
         multiDexEnabled true
     }
     buildTypes {

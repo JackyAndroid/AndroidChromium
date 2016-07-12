@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 <string name="actionbar_share">"分享"</string>
 <string name="actionbar_web_search">"网页搜索"</string>
-<string name="actionbar_textselection_title">"Text selection"</string>
+<string name="actionbar_textselection_title">"选择文字"</string>
 <string name="media_player_error_title">"无法播放视频"</string>
 <string name="media_player_error_text_invalid_progressive_playback">"抱歉，此视频无法流式传输到该设备。"</string>
 <string name="media_player_error_text_unknown">"抱歉，此视频无法播放。"</string>
