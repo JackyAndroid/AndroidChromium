@@ -70,6 +70,11 @@ public class KeyboardShortcuts {
                     activity.onMenuOrKeyboardAction(R.id.show_menu, false);
                 }
                 return true;
+            case KeyEvent.KEYCODE_ESCAPE:
+                if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+                    if (activity.exitFullscreenIfShowing()) return true;
+                }
+                break;
             case KeyEvent.KEYCODE_TV:
             case KeyEvent.KEYCODE_GUIDE:
             case KeyEvent.KEYCODE_DVR:
@@ -111,6 +116,7 @@ public class KeyboardShortcuts {
         } else if (!event.isCtrlPressed() && !event.isAltPressed()
                 && keyCode != KeyEvent.KEYCODE_F3
                 && keyCode != KeyEvent.KEYCODE_F5
+                && keyCode != KeyEvent.KEYCODE_F10
                 && keyCode != KeyEvent.KEYCODE_FORWARD) {
             return false;
         }
@@ -122,6 +128,9 @@ public class KeyboardShortcuts {
         int keyCodeAndMeta = keyCode | metaState;
 
         switch (keyCodeAndMeta) {
+            case CTRL | SHIFT | KeyEvent.KEYCODE_T:
+                activity.onMenuOrKeyboardAction(R.id.open_recently_closed_tab, false);
+                return true;
             case CTRL | KeyEvent.KEYCODE_T:
                 activity.onMenuOrKeyboardAction(curModel.isIncognito()
                         ? R.id.new_incognito_tab_menu_id
@@ -133,7 +142,12 @@ public class KeyboardShortcuts {
             case CTRL | SHIFT | KeyEvent.KEYCODE_N:
                 activity.onMenuOrKeyboardAction(R.id.new_incognito_tab_menu_id, false);
                 return true;
+            // Alt+E represents a special character ´ (latin code: &#180) in Android.
+            // If an EditText or ContentView has focus, Alt+E will be swallowed by
+            // the default dispatchKeyEvent and cannot open the menu.
+            case ALT | KeyEvent.KEYCODE_E:
             case ALT | KeyEvent.KEYCODE_F:
+            case KeyEvent.KEYCODE_F10:
             case KeyEvent.KEYCODE_BUTTON_Y:
                 activity.onMenuOrKeyboardAction(R.id.show_menu, false);
                 return true;

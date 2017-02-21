@@ -8,42 +8,70 @@ import android.text.TextUtils;
 
 import org.chromium.base.VisibleForTesting;
 
+import java.util.List;
+
 /**
  * Container class with information about each omnibox suggestion item.
  */
 @VisibleForTesting
 public class OmniboxSuggestion {
 
+    /**
+     * Specifies the style of portions of the suggestion text.
+     * <p>
+     * ACMatchClassification (as defined in C++) further describes the fields and usage.
+     */
+    public static class MatchClassification {
+        /**
+         * The offset into the text where this classification begins.
+         */
+        public final int offset;
+
+        /**
+         * A bitfield that determines the style of this classification.
+         * @see MatchClassificationStyle
+         */
+        public final int style;
+
+        public MatchClassification(int offset, int style) {
+            this.offset = offset;
+            this.style = style;
+        }
+    }
+
     private final int mType;
     private final boolean mIsSearchType;
     private final String mDisplayText;
+    private final List<MatchClassification> mDisplayTextClassifications;
     private final String mDescription;
+    private final List<MatchClassification> mDescriptionClassifications;
     private final String mAnswerContents;
     private final String mAnswerType;
     private final SuggestionAnswer mAnswer;
     private final String mFillIntoEdit;
     private final String mUrl;
-    private final String mFormattedUrl;
     private final int mRelevance;
     private final int mTransition;
     private final boolean mIsStarred;
     private final boolean mIsDeletable;
 
     public OmniboxSuggestion(int nativeType, boolean isSearchType, int relevance, int transition,
-            String text, String description, String answerContents,
-            String answerType, String fillIntoEdit, String url,
-            String formattedUrl, boolean isStarred, boolean isDeletable) {
+            String displayText, List<MatchClassification> displayTextClassifications,
+            String description, List<MatchClassification> descriptionClassifications,
+            String answerContents, String answerType, String fillIntoEdit, String url,
+            boolean isStarred, boolean isDeletable) {
         mType = nativeType;
         mIsSearchType = isSearchType;
         mRelevance = relevance;
         mTransition = transition;
-        mDisplayText = text;
+        mDisplayText = displayText;
+        mDisplayTextClassifications = displayTextClassifications;
         mDescription = description;
+        mDescriptionClassifications = descriptionClassifications;
         mAnswerContents = answerContents;
         mAnswerType = answerType;
-        mFillIntoEdit = TextUtils.isEmpty(fillIntoEdit) ? text : fillIntoEdit;
+        mFillIntoEdit = TextUtils.isEmpty(fillIntoEdit) ? displayText : fillIntoEdit;
         mUrl = url;
-        mFormattedUrl = formattedUrl;
         mIsStarred = isStarred;
         mIsDeletable = isDeletable;
 
@@ -68,8 +96,16 @@ public class OmniboxSuggestion {
         return mDisplayText;
     }
 
+    public List<MatchClassification> getDisplayTextClassifications() {
+        return mDisplayTextClassifications;
+    }
+
     public String getDescription() {
         return mDescription;
+    }
+
+    public List<MatchClassification> getDescriptionClassifications() {
+        return mDescriptionClassifications;
     }
 
     public String getAnswerContents() {
@@ -94,10 +130,6 @@ public class OmniboxSuggestion {
 
     public String getUrl() {
         return mUrl;
-    }
-
-    public String getFormattedUrl() {
-        return mFormattedUrl;
     }
 
     /**

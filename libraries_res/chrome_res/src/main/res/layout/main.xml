@@ -3,39 +3,46 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
-
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
         <org.chromium.chrome.browser.compositor.CompositorViewHolder
             android:id="@+id/compositor_view_holder"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" >
+
+            <ViewStub
+                android:id="@+id/omnibox_results_container_stub"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/tab_strip_height"
+                android:inflatedId="@+id/omnibox_results_container"
+                android:layout="@layout/omnibox_results_container"
+                app:layout_behavior="org.chromium.chrome.browser.compositor.CompositorViewHolderBehavior" />
+
+        </org.chromium.chrome.browser.compositor.CompositorViewHolder>
 
         <HorizontalScrollView
             android:id="@+id/keyboard_accessory"
-            android:layout_width="match_parent"
             android:layout_height="@dimen/keyboard_accessory_height"
+            android:layout_width="match_parent"
             android:background="@drawable/keyboard_accessory_background"
             android:contentDescription="@string/autofill_keyboard_accessory_content_description"
             android:fillViewport="true"
             android:scrollbars="none"
-            android:visibility="gone"/>
-    </LinearLayout>
+            android:visibility="gone" />
 
-    <ViewStub
-        android:id="@+id/omnibox_results_container_stub"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/tab_strip_height"
-        android:inflatedId="@+id/omnibox_results_container"
-        android:layout="@layout/omnibox_results_container"
-        />
+        <ViewStub
+            android:id="@+id/bottombar_stub"
+            android:layout_width="match_parent"
+            android:layout_marginTop="-4dp"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
     <!-- Toolbar size area painted black to avoid the action bar showing the window background -->
     <View
@@ -43,20 +50,17 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height_no_shadow"
         android:background="#000000"
-        android:visibility="gone"/>
-
+        android:visibility="gone" />
     <ViewStub
         android:id="@+id/control_container_stub"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
+        android:layout_height="wrap_content" />
     <ViewStub
         android:id="@+id/empty_container_stub"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:inflatedId="@+id/empty_container"
-        android:layout="@layout/empty_background_view"
-        />
+        android:layout="@layout/empty_background_view_tablet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
     <!-- This empty view is used as the anchor for custom menu -->
     <View
         android:id="@+id/menu_anchor_stub"

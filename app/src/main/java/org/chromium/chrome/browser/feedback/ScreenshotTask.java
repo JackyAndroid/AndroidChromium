@@ -6,18 +6,22 @@ package org.chromium.chrome.browser.feedback;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.annotations.CalledByNative;
+import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.browser.ChromeActivity;
-import org.chromium.content.browser.ContentReadbackHandler;
-import org.chromium.content_public.browser.readback_types.ReadbackResponse;
 import org.chromium.ui.UiUtils;
+import org.chromium.ui.base.WindowAndroid;
 
 import javax.annotation.Nullable;
 
 /**
  * A utility class to take a feedback-formatted screenshot of an {@link Activity}.
  */
+@JNINamespace("chrome::android")
 public final class ScreenshotTask {
     /**
      * Maximum dimension for the screenshot to be sent to the feedback handler.  This size
@@ -32,9 +36,8 @@ public final class ScreenshotTask {
         /**
          * Called when collection of the bitmap has completed.
          * @param bitmap the bitmap or null.
-         * @param success whether the bitmap is valid.
          */
-        void onGotBitmap(@Nullable Bitmap bitmap, boolean success);
+        void onGotBitmap(@Nullable Bitmap bitmap);
     }
 
     /**
@@ -45,7 +48,10 @@ public final class ScreenshotTask {
      */
     public static void create(Activity activity, final ScreenshotTaskCallback callback) {
         if (activity instanceof ChromeActivity) {
-            createCompositorActivityScreenshot((ChromeActivity) activity, callback);
+            Rect rect = new Rect();
+            activity.getWindow().getDecorView().getRootView().getWindowVisibleDisplayFrame(rect);
+            createCompositorScreenshot(((ChromeActivity) activity).getWindowAndroid(), rect,
+                    callback);
             return;
         }
 
@@ -53,21 +59,33 @@ public final class ScreenshotTask {
         ThreadUtils.postOnUiThread(new Runnable() {
             @Override
             public void run() {
-                callback.onGotBitmap(bitmap, bitmap != null);
+                callback.onGotBitmap(bitmap);
             }
         });
     }
 
-    private static void createCompositorActivityScreenshot(ChromeActivity activity,
-            final ScreenshotTaskCallback callback) {
-        ContentReadbackHandler.GetBitmapCallback getBitmapCallback =
-                new ContentReadbackHandler.GetBitmapCallback() {
+    /**
+     * A callback passed to the native snapshot API which returns the result in PNG format.
+     */
+    private interface SnapshotResultCallback {
+        /**
+         * Called when collection of the bitmap has completed.
+         * @param pngBytes PNG-formatted bitmap in byte array if successful; otherwise null
+         */
+        void onCompleted(@Nullable byte[] pngBytes);
+    }
+
+    private static void createCompositorScreenshot(WindowAndroid windowAndroid,
+            Rect windowRect, final ScreenshotTaskCallback callback) {
+        SnapshotResultCallback resultCallback = new SnapshotResultCallback() {
             @Override
-            public void onFinishGetBitmap(Bitmap bitmap, int response) {
-                callback.onGotBitmap(bitmap, response == ReadbackResponse.SUCCESS);
+            public void onCompleted(byte[] pngBytes) {
+                callback.onGotBitmap(pngBytes != null
+                        ? BitmapFactory.decodeByteArray(pngBytes, 0, pngBytes.length) : null);
             }
         };
-        activity.startTakingCompositorActivityScreenshot(getBitmapCallback);
+        nativeGrabWindowSnapshotAsync(resultCallback, windowAndroid.getNativePointer(),
+                windowRect.width(), windowRect.height());
     }
 
     /**
@@ -94,6 +112,14 @@ public final class ScreenshotTask {
         return Bitmap.createScaledBitmap(bitmap, destWidth, destHeight, true);
     }
 
+    @CalledByNative
+    private static void notifySnapshotFinished(Object callback, byte[] pngBytes) {
+        ((SnapshotResultCallback) callback).onCompleted(pngBytes);
+    }
+
     // This is a utility class, so it should never be created.
     private ScreenshotTask() {}
+
+    private static native void nativeGrabWindowSnapshotAsync(SnapshotResultCallback callback,
+            long nativeWindowAndroid, int width, int height);
 }

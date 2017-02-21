@@ -23,9 +23,24 @@ public abstract class WebContentsFactory {
      * @return                A newly created {@link WebContents} object.
      */
     public static WebContents createWebContents(boolean incognito, boolean initiallyHidden) {
-        return nativeCreateWebContents(incognito, initiallyHidden);
+        return nativeCreateWebContents(incognito, initiallyHidden, false);
     }
 
-    private static native WebContents nativeCreateWebContents(boolean incognito,
-            boolean initiallyHidden);
+    /**
+     * A factory method to build a {@link WebContents} object.
+     *
+     * Also creates and initializes the renderer.
+     *
+     * @param incognito       Whether or not the {@link WebContents} should be built with an
+     *                        off-the-record profile or not.
+     * @param initiallyHidden Whether or not the {@link WebContents} should be initially hidden.
+     * @return                A newly created {@link WebContents} object.
+     */
+    public static WebContents createWebContentsWithWarmRenderer(
+            boolean incognito, boolean initiallyHidden) {
+        return nativeCreateWebContents(incognito, initiallyHidden, true);
+    }
+
+    private static native WebContents nativeCreateWebContents(
+            boolean incognito, boolean initiallyHidden, boolean initializeRenderer);
 }

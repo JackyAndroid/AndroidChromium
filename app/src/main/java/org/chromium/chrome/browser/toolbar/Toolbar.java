@@ -7,6 +7,8 @@ package org.chromium.chrome.browser.toolbar;
 import android.graphics.Rect;
 import android.view.View;
 
+import org.chromium.chrome.browser.compositor.layouts.LayoutUpdateHost;
+
 /**
  * An interface for outside packages to interact with ToolbarLayout. Other than for testing purposes
  * this interface should be used rather than {@link ToolbarLayout} and extending classes.
@@ -44,4 +46,43 @@ public interface Toolbar {
      * @return Whether a dirty check for invalidation makes sense at this time.
      */
     boolean isReadyForTextureCapture();
+
+    /**
+     * Sets whether or not the toolbar should force itself to draw for a texture capture regardless
+     * of other criteria used in isReadyForTextureCapture(). A texture capture will only be forced
+     * if the toolbar drawables tint is changing.
+     *
+     * @param forceTextureCapture Whether the toolbar should force itself to draw.
+     * @return True if a texture capture will be forced on the next draw.
+     */
+    boolean setForceTextureCapture(boolean forceTextureCapture);
+
+    /**
+     * Sets the {@link LayoutUpdateHost} for use in requesting an update when the toolbar texture
+     * needs to be recaptured.
+     * @param layoutUpdateHost The {@link LayoutUpdateHost} for requesting updates.
+     */
+    void setLayoutUpdateHost(LayoutUpdateHost layoutUpdateHost);
+
+    /**
+     * Show the update badge on the app menu button. Will have no effect if there is no app menu
+     * button for the current Activity.
+     */
+    void showAppMenuUpdateBadge();
+
+    /**
+     * Whether the update badge that is displayed on top of the app menu button is showing.
+     */
+    boolean isShowingAppMenuUpdateBadge();
+
+    /**
+     * Remove the update badge on the app menu button. Initially the badge is invisible so that it
+     * gets measured and the tab switcher animation looks correct when the badge is first shown. If
+     * the badge will never be shown or should no longer be shown, this method should be called to
+     * change the visibility to gone to avoid unnecessary layout work. The disappearance of the
+     * badge is optionally animated if it was previously visible.
+     *
+     * @param animate Whether the removal of the badge should be animated.
+     */
+    void removeAppMenuUpdateBadge(boolean animate);
 }

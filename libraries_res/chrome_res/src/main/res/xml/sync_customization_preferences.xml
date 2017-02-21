@@ -5,10 +5,18 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <org.chromium.chrome.browser.preferences.SyncErrorCardPreference
+        android:key="sync_error_card"
+        android:icon="@drawable/sync_error"
+        android:title="@string/sync_error_card_title"/>
+
     <org.chromium.chrome.browser.preferences.ChromeSwitchPreference
         android:key="sync_switch"
-        android:summaryOn="@string/text_on"
-        android:summaryOff="@string/text_off" />
+        android:title="@string/sign_in_sync"
+        android:summary="@string/sync_description" />
+
+    <org.chromium.chrome.browser.preferences.SyncedAccountPreference
+        android:key="synced_account" />
 
     <PreferenceCategory
         android:key="sync_data_types"
@@ -41,6 +49,10 @@
             android:persistent="false"
             android:key="sync_settings"
             android:title="@string/sync_settings"/>
+        <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+            android:persistent="false"
+            android:key="payments_integration"
+            android:title="@string/payments_integration"/>
     </PreferenceCategory>
     <Preference
         android:key="encryption"

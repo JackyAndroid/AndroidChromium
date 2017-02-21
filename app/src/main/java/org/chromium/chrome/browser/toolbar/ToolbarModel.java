@@ -48,21 +48,7 @@ public class ToolbarModel {
         return nativeGetText(mNativeToolbarModelAndroid);
     }
 
-    /** @return The chip text from the search URL. */
-    public String getCorpusChipText() {
-        if (mNativeToolbarModelAndroid == 0) return null;
-        return nativeGetCorpusChipText(mNativeToolbarModelAndroid);
-    }
-
-    /** @return Whether the URL is replaced by a search query. */
-    public boolean wouldReplaceURL() {
-        if (mNativeToolbarModelAndroid == 0) return false;
-        return nativeWouldReplaceURL(mNativeToolbarModelAndroid);
-    }
-
     private native long nativeInit(ToolbarModelDelegate delegate);
     private native void nativeDestroy(long nativeToolbarModelAndroid);
     private native String nativeGetText(long nativeToolbarModelAndroid);
-    private native String nativeGetCorpusChipText(long nativeToolbarModelAndroid);
-    private native boolean nativeWouldReplaceURL(long nativeToolbarModelAndroid);
 }

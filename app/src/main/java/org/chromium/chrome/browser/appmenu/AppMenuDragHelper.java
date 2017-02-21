@@ -121,7 +121,12 @@ class AppMenuDragHelper {
      * non-dragging mode.
      */
     void finishDragging() {
-        menuItemAction(0, 0, ITEM_ACTION_CLEAR_HIGHLIGHT_ALL);
+        // If the menu is being dismissed, we cannot access mAppMenu.getPopup().getListView()
+        // needed to by menuItemAction. Only clear highlighting if the menu is still showing.
+        // See crbug.com/589805.
+        if (mAppMenu.getPopup().isShowing()) {
+            menuItemAction(0, 0, ITEM_ACTION_CLEAR_HIGHLIGHT_ALL);
+        }
         mDragScrolling.cancel();
     }
 

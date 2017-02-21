@@ -20,14 +20,17 @@ class BitmapHttpRequest extends HttpRequest<Bitmap> {
     /**
      * Construct a bitmap HTTP request.
      * @param url The url to make this HTTP request to.
+     * @param userAgent The string to set as the User-Agent request header.
+     * @param acceptLanguage The string to set as the Accept-Language request header.
      * @param callback The callback run when the HTTP response is received.
      *     The callback can be called with a null bitmap if the image
      *     couldn't be decoded.
      * @throws MalformedURLException on invalid url
      */
-    public BitmapHttpRequest(String url, RequestCallback callback)
+    public BitmapHttpRequest(String url, String userAgent, String acceptLanguage,
+            RequestCallback callback)
             throws MalformedURLException {
-        super(url, callback);
+        super(url, userAgent, acceptLanguage, callback);
     }
 
     /**

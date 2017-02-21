@@ -60,6 +60,16 @@ public class TintedDrawable extends BitmapDrawable {
     }
 
     /**
+     * Factory method for creating a {@link TintedDrawable} with a resource id and specific tint.
+     */
+    public static TintedDrawable constructTintedDrawable(
+            Resources res, int drawableId, int tintColorId) {
+        TintedDrawable drawable = constructTintedDrawable(res,  drawableId);
+        drawable.setTint(ApiCompatibilityUtils.getColorStateList(res, tintColorId));
+        return drawable;
+    }
+
+    /**
      * Factory method for creating a {@link TintedDrawable} with a {@link Bitmap} icon.
      */
     public static TintedDrawable constructTintedDrawable(Resources res, Bitmap icon) {

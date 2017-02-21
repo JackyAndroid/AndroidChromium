@@ -18,18 +18,30 @@ import java.net.URL;
  * @param <T> The type representing the request payload.
  */
 abstract class HttpRequest<T> implements Runnable {
+    // HTTP request header field names
+    private static final String USER_AGENT_HEADER_NAME = "User-Agent";
+    private static final String ACCEPT_LANGUAGE_HEADER_NAME = "Accept-Language";
+
     private final URL mUrl;
+    private final String mUserAgent;
+    private final String mAcceptLanguage;
     private final HttpRequestCallback<T> mCallback;
 
     /**
      * Construct a Request object.
      * @param url The URL to make an HTTP request to.
+     * @param userAgent The string to set as the User-Agent request header.
+     * @param acceptLanguage The string to set as the Accept-Language request header.
      * @param callback The callback run when the HTTP response is received.
      *     The callback will be run on the main thread.
      * @throws MalformedURLException on invalid url
      */
-    public HttpRequest(String url, HttpRequestCallback<T> callback) throws MalformedURLException {
+    public HttpRequest(String url, String userAgent, String acceptLanguage,
+            HttpRequestCallback<T> callback)
+            throws MalformedURLException {
         mUrl = new URL(url);
+        mUserAgent = userAgent;
+        mAcceptLanguage = acceptLanguage;
         if (!mUrl.getProtocol().equals("http") && !mUrl.getProtocol().equals("https")) {
             throw new MalformedURLException("This is not a http or https URL: " + url);
         }
@@ -70,6 +82,8 @@ abstract class HttpRequest<T> implements Runnable {
         // Make the request
         try {
             urlConnection = (HttpURLConnection) mUrl.openConnection();
+            urlConnection.setRequestProperty(USER_AGENT_HEADER_NAME, mUserAgent);
+            urlConnection.setRequestProperty(ACCEPT_LANGUAGE_HEADER_NAME, mAcceptLanguage);
             writeToUrlConnection(urlConnection);
             responseCode = urlConnection.getResponseCode();
             inputStream = new BufferedInputStream(urlConnection.getInputStream());

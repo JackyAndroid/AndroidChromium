@@ -38,7 +38,7 @@ public final class ApplicationInitialization {
         resources.getValue(R.dimen.top_controls_show_threshold, threshold, true);
         commandLine.appendSwitchWithValue(
                 ContentSwitches.TOP_CONTROLS_SHOW_THRESHOLD, threshold.coerceToString().toString());
-        resources.getValue(R.dimen.top_controls_show_threshold, threshold, true);
+        resources.getValue(R.dimen.top_controls_hide_threshold, threshold, true);
         commandLine.appendSwitchWithValue(
                 ContentSwitches.TOP_CONTROLS_HIDE_THRESHOLD, threshold.coerceToString().toString());
     }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- Unlike regular cards, we use a material standard 8dp padding instead of the
+     bigger one related to the peeking behaviour. This card will only have
+     buttons, that have themselves some padding. We just stay within the
+     material specifications. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/ntp_card_single">
+
+
+    <!-- Using some standard metrics (minWidth, paddings) to override the
+         special ones used in ButtonCompatBorderless -->
+    <Button
+      android:id="@+id/action_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical|center_horizontal"
+      android:minWidth="0dp"
+      android:paddingEnd="16dp"
+      android:paddingStart="16dp"
+      android:text="@string/more"
+      android:textAllCaps="true"
+      android:textColor="@color/light_active_color"
+      style="@style/ButtonCompatBorderless" />
+</LinearLayout>

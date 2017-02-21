@@ -47,18 +47,17 @@ public class TemplateUrlService {
     public static class TemplateUrl {
         private final int mIndex;
         private final String mShortName;
-        private final String mKeyword;
+        private boolean mIsPrepopulated;
 
         @CalledByNative("TemplateUrl")
-        public static TemplateUrl create(
-                int id, String shortName, String keyword) {
-            return new TemplateUrl(id, shortName, keyword);
+        public static TemplateUrl create(int id, String shortName, boolean isPrepopulated) {
+            return new TemplateUrl(id, shortName, isPrepopulated);
         }
 
-        public TemplateUrl(int index, String shortName, String keyword) {
+        public TemplateUrl(int index, String shortName, boolean isPrepopulated) {
             mIndex = index;
             mShortName = shortName;
-            mKeyword = keyword;
+            mIsPrepopulated = isPrepopulated;
         }
 
         public int getIndex() {
@@ -69,16 +68,11 @@ public class TemplateUrlService {
             return mShortName;
         }
 
-        public String getKeyword() {
-            return mKeyword;
-        }
-
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
             result = prime * result + mIndex;
-            result = prime * result + ((mKeyword == null) ? 0 : mKeyword.hashCode());
             result = prime * result + ((mShortName == null) ? 0 : mShortName.hashCode());
             return result;
         }
@@ -88,8 +82,7 @@ public class TemplateUrlService {
             if (!(other instanceof TemplateUrl)) return false;
             TemplateUrl otherTemplateUrl = (TemplateUrl) other;
             return mIndex == otherTemplateUrl.mIndex
-                    && TextUtils.equals(mShortName, otherTemplateUrl.mShortName)
-                    && TextUtils.equals(mKeyword, otherTemplateUrl.mKeyword);
+                    && TextUtils.equals(mShortName, otherTemplateUrl.mShortName);
         }
     }
 
@@ -136,9 +129,8 @@ public class TemplateUrlService {
         int templateUrlCount = nativeGetTemplateUrlCount(mNativeTemplateUrlServiceAndroid);
         List<TemplateUrl> templateUrls = new ArrayList<TemplateUrl>(templateUrlCount);
         for (int i = 0; i < templateUrlCount; i++) {
-            TemplateUrl templateUrl = nativeGetPrepopulatedTemplateUrlAt(
-                    mNativeTemplateUrlServiceAndroid, i);
-            if (templateUrl != null) {
+            TemplateUrl templateUrl = nativeGetTemplateUrlAt(mNativeTemplateUrlServiceAndroid, i);
+            if (templateUrl != null && templateUrl.mIsPrepopulated) {
                 templateUrls.add(templateUrl);
             }
         }
@@ -184,8 +176,7 @@ public class TemplateUrlService {
         assert defaultSearchEngineIndex < nativeGetTemplateUrlCount(
                 mNativeTemplateUrlServiceAndroid);
 
-        return nativeGetPrepopulatedTemplateUrlAt(
-                mNativeTemplateUrlServiceAndroid, defaultSearchEngineIndex);
+        return nativeGetTemplateUrlAt(mNativeTemplateUrlServiceAndroid, defaultSearchEngineIndex);
     }
 
     public void setSearchEngine(int selectedIndex) {
@@ -290,14 +281,15 @@ public class TemplateUrlService {
      * @param query The search term to use as the main query in the returned search url.
      * @param alternateTerm The alternate search term to use as an alternate suggestion.
      * @param shouldPrefetch Whether the returned url should include a prefetch parameter.
+     * @param protocolVersion The version of the Contextual Search API protocol to use.
      * @return      A {@link String} that contains the url of the default search engine with
      *              {@code query} and {@code alternateTerm} inserted as parameters and contextual
      *              search and prefetch parameters conditionally set.
      */
-    public String getUrlForContextualSearchQuery(String query, String alternateTerm,
-            boolean shouldPrefetch) {
-        return nativeGetUrlForContextualSearchQuery(
-            mNativeTemplateUrlServiceAndroid, query, alternateTerm, shouldPrefetch);
+    public String getUrlForContextualSearchQuery(
+            String query, String alternateTerm, boolean shouldPrefetch, String protocolVersion) {
+        return nativeGetUrlForContextualSearchQuery(mNativeTemplateUrlServiceAndroid, query,
+                alternateTerm, shouldPrefetch, protocolVersion);
     }
 
     /**
@@ -313,8 +305,7 @@ public class TemplateUrlService {
     private native void nativeLoad(long nativeTemplateUrlServiceAndroid);
     private native boolean nativeIsLoaded(long nativeTemplateUrlServiceAndroid);
     private native int nativeGetTemplateUrlCount(long nativeTemplateUrlServiceAndroid);
-    private native TemplateUrl nativeGetPrepopulatedTemplateUrlAt(
-            long nativeTemplateUrlServiceAndroid, int i);
+    private native TemplateUrl nativeGetTemplateUrlAt(long nativeTemplateUrlServiceAndroid, int i);
     private native void nativeSetUserSelectedDefaultSearchProvider(
             long nativeTemplateUrlServiceAndroid, int selectedIndex);
     private native int nativeGetDefaultSearchProvider(long nativeTemplateUrlServiceAndroid);
@@ -328,7 +319,7 @@ public class TemplateUrlService {
     private native String nativeReplaceSearchTermsInUrl(long nativeTemplateUrlServiceAndroid,
             String query, String currentUrl);
     private native String nativeGetUrlForContextualSearchQuery(long nativeTemplateUrlServiceAndroid,
-            String query, String alternateTerm, boolean shouldPrefetch);
+            String query, String alternateTerm, boolean shouldPrefetch, String protocolVersion);
     private native String nativeGetSearchEngineUrlFromTemplateUrl(
             long nativeTemplateUrlServiceAndroid, int index);
 }

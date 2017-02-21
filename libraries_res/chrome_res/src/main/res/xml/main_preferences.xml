@@ -11,21 +11,16 @@
 
     <PreferenceCategory
         android:title="@string/prefs_section_basics"/>
-    <org.chromium.chrome.browser.preferences.SearchEnginePreference
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:fragment="org.chromium.chrome.browser.preferences.SearchEnginePreference"
         android:key="search_engine"
         android:title="@string/prefs_search_engine"/>
-    <Preference
-        android:fragment="org.chromium.chrome.browser.preferences.DocumentModePreference"
-        android:key="document_mode"
-        android:title="@string/tabs_and_apps_title" />
     <org.chromium.chrome.browser.preferences.ChromeBasePreference
         android:fragment="org.chromium.chrome.browser.preferences.autofill.AutofillPreferences"
         android:key="autofill_settings"
         android:title="@string/prefs_autofill" />
     <org.chromium.chrome.browser.preferences.ChromeBasePreference
-        android:fragment="org.chromium.chrome.browser.preferences.password.SavePasswordsPreferences"
-        android:key="saved_passwords"
-        android:title="@string/prefs_saved_passwords" />
+        android:key="saved_passwords"/>
     <Preference
         android:fragment="org.chromium.chrome.browser.preferences.HomepagePreferences"
         android:key="homepage"

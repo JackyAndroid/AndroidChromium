@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+
+    <org.chromium.chrome.browser.bookmarks.BookmarkDrawerListView
+        android:id="@+id/bookmark_drawer_list"
+        android:layout_width="256dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@android:color/white"
+        android:choiceMode="singleChoice"
+        android:divider="@null"
+        android:dividerHeight="0dp" />
+
+    <ViewSwitcher
+        android:id="@+id/bookmark_view_switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out" >
+
+        <include layout="@layout/bookmark_main_content" />
+
+        <include layout="@layout/bookmark_search" />
+    </ViewSwitcher>
+
+</LinearLayout>

@@ -9,6 +9,9 @@ import android.support.v7.media.MediaRouteSelector;
 
 import com.google.android.gms.cast.CastMediaControlIntent;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 /**
@@ -20,18 +23,48 @@ public class MediaSource {
     public static final String AUTOJOIN_ORIGIN_SCOPED = "origin_scoped";
     public static final String AUTOJOIN_PAGE_SCOPED = "page_scoped";
 
-    private static final String CAST_SOURCE_ID_HOST = "google.com";
-    private static final String CAST_SOURCE_ID_PATH = "/cast";
-
     private static final String CAST_SOURCE_ID_SEPARATOR = "/";
     private static final String CAST_SOURCE_ID_APPLICATION_ID = "__castAppId__";
     private static final String CAST_SOURCE_ID_CLIENT_ID = "__castClientId__";
     private static final String CAST_SOURCE_ID_AUTOJOIN_POLICY = "__castAutoJoinPolicy__";
+    private static final String CAST_APP_CAPABILITIES_PREFIX = "(";
+    private static final String CAST_APP_CAPABILITIES_SUFFIX = ")";
+    private static final String CAST_APP_CAPABILITIES_SEPARATOR = ",";
+    private static final String CAST_APP_CAPABILITIES[] = {
+        "video_out",
+        "audio_out",
+        "video_in",
+        "audio_in",
+        "multizone_group"
+    };
 
+    /**
+     * The original presentation URL that the {@link MediaSource} object was created from.
+     */
     private final String mSourceId;
+
+    /**
+     * The Cast application id, can be invalid in which case {@link CastMediaRouteProvider}
+     * will explicitly report no sinks available.
+     */
     private final String mApplicationId;
+
+    /**
+     * A numeric identifier for the Cast Web SDK, unique for the frame providing the
+     * presentation URL. Can be null.
+     */
     private final String mClientId;
+
+    /**
+     * Defines Cast-specific behavior for {@link CastMediaRouteProvider#joinRoute}. Defaults to
+     * {@link MediaSource#AUTOJOIN_TAB_AND_ORIGIN_SCOPED}.
+     */
     private final String mAutoJoinPolicy;
+
+    /**
+     * Defines the capabilities of the particular application id. Can be null.
+     */
+    private final String[] mCapabilities;
 
     /**
      * Initializes the media source from the source id.
@@ -43,8 +76,6 @@ public class MediaSource {
         assert sourceId != null;
 
         Uri sourceUri = Uri.parse(sourceId);
-        if (!CAST_SOURCE_ID_HOST.equals(sourceUri.getHost())) return null;
-        if (!CAST_SOURCE_ID_PATH.equals(sourceUri.getPath())) return null;
 
         String uriFragment = sourceUri.getFragment();
         if (uriFragment == null) return null;
@@ -54,21 +85,35 @@ public class MediaSource {
         String applicationId = extractParameter(parameters, CAST_SOURCE_ID_APPLICATION_ID);
         if (applicationId == null) return null;
 
+        String[] capabilities = null;
+        int capabilitiesIndex = applicationId.indexOf(CAST_APP_CAPABILITIES_PREFIX);
+        if (capabilitiesIndex != -1) {
+            capabilities = extractCapabilities(applicationId.substring(capabilitiesIndex));
+            if (capabilities == null) return null;
+
+            applicationId = applicationId.substring(0, capabilitiesIndex);
+        }
+
         String clientId = extractParameter(parameters, CAST_SOURCE_ID_CLIENT_ID);
         String autoJoinPolicy = extractParameter(parameters, CAST_SOURCE_ID_AUTOJOIN_POLICY);
 
-        return new MediaSource(sourceId, applicationId, clientId, autoJoinPolicy);
+        return new MediaSource(sourceId, applicationId, clientId, autoJoinPolicy, capabilities);
     }
 
     /**
      * Returns a new {@link MediaRouteSelector} to use for Cast device filtering for this
-     * particular media source.
-     * @return an initialized route selector.
+     * particular media source or null if the application id is invalid.
+     *
+     * @return an initialized route selector or null.
      */
     public MediaRouteSelector buildRouteSelector() {
-        return new MediaRouteSelector.Builder()
-                .addControlCategory(CastMediaControlIntent.categoryForCast(mApplicationId))
-                .build();
+        try {
+            return new MediaRouteSelector.Builder()
+                    .addControlCategory(CastMediaControlIntent.categoryForCast(mApplicationId))
+                    .build();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**
@@ -100,12 +145,24 @@ public class MediaSource {
         return mSourceId;
     }
 
+    /**
+     * @return application capabilities
+     */
+    public String[] getCapabilities() {
+        return mCapabilities == null ? null : Arrays.copyOf(mCapabilities, mCapabilities.length);
+    }
+
     private MediaSource(
-            String sourceId, String applicationId, String clientId, String autoJoinPolicy) {
+            String sourceId,
+            String applicationId,
+            String clientId,
+            String autoJoinPolicy,
+            String[] capabilities) {
         mSourceId = sourceId;
         mApplicationId = applicationId;
         mClientId = clientId;
         mAutoJoinPolicy = autoJoinPolicy == null ? AUTOJOIN_TAB_AND_ORIGIN_SCOPED : autoJoinPolicy;
+        mCapabilities = capabilities;
     }
 
     @Nullable
@@ -115,5 +172,29 @@ public class MediaSource {
             if (parameter.startsWith(keyPrefix)) return parameter.substring(keyPrefix.length());
         }
         return null;
+    }
+
+    @Nullable
+    private static String[] extractCapabilities(String capabilitiesParameter) {
+        if (capabilitiesParameter.length()
+                < CAST_APP_CAPABILITIES_PREFIX.length() + CAST_APP_CAPABILITIES_SUFFIX.length()) {
+            return null;
+        }
+
+        if (!capabilitiesParameter.startsWith(CAST_APP_CAPABILITIES_PREFIX)
+                || !capabilitiesParameter.endsWith(CAST_APP_CAPABILITIES_SUFFIX)) {
+            return null;
+        }
+
+        List<String> supportedCapabilities = Arrays.asList(CAST_APP_CAPABILITIES);
+
+        String capabilitiesList = capabilitiesParameter.substring(
+                CAST_APP_CAPABILITIES_PREFIX.length(),
+                capabilitiesParameter.length() - CAST_APP_CAPABILITIES_SUFFIX.length());
+        String[] capabilities = capabilitiesList.split(CAST_APP_CAPABILITIES_SEPARATOR);
+        for (String capability : capabilities) {
+            if (!supportedCapabilities.contains(capability)) return null;
+        }
+        return capabilities;
     }
 }

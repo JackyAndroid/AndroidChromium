@@ -59,9 +59,20 @@ public class DomDistillerTabUtils {
         return nativeIsDistillerHeuristicsEnabled();
     }
 
+    /**
+     * Check if the distiller is reporting every page as distillable.
+     *
+     * @return True if heuristic is ALWAYS_TRUE.
+     */
+    public static boolean isHeuristicAlwaysTrue() {
+        return nativeIsHeuristicAlwaysTrue();
+    }
+
+
     private static native void nativeDistillCurrentPageAndView(WebContents webContents);
     private static native void nativeDistillAndView(
             WebContents sourceWebContents, WebContents destinationWebContents);
     private static native String nativeGetFormattedUrlFromOriginalDistillerUrl(String url);
     private static native boolean nativeIsDistillerHeuristicsEnabled();
+    private static native boolean nativeIsHeuristicAlwaysTrue();
 }

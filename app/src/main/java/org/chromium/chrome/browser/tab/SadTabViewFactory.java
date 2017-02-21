@@ -6,7 +6,6 @@ package org.chromium.chrome.browser.tab;
 
 import android.content.Context;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -14,6 +13,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.chromium.chrome.R;
+import org.chromium.ui.text.NoUnderlineClickableSpan;
 import org.chromium.ui.text.SpanApplier;
 import org.chromium.ui.text.SpanApplier.SpanInfo;
 
@@ -56,17 +56,10 @@ public class SadTabViewFactory {
             Context context, final OnClickListener suggestionAction) {
         String helpMessage = context.getString(R.string.sad_tab_message)
                 + "\n\n" + context.getString(R.string.sad_tab_suggestions);
-        ClickableSpan span = new ClickableSpan() {
+        NoUnderlineClickableSpan span = new NoUnderlineClickableSpan() {
             @Override
             public void onClick(View view) {
                 suggestionAction.onClick(view);
-            }
-
-            // Disable underline on the link text.
-            @Override
-            public void updateDrawState(android.text.TextPaint textPaint) {
-                super.updateDrawState(textPaint);
-                textPaint.setUnderlineText(false);
             }
         };
         return SpanApplier.applySpans(helpMessage, new SpanInfo("<link>", "</link>", span));

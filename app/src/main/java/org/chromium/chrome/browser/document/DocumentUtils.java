@@ -10,6 +10,7 @@ import android.app.ActivityManager.AppTask;
 import android.app.ActivityManager.RecentTaskInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -17,9 +18,9 @@ import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.chrome.browser.tab.Tab;
-import org.chromium.chrome.browser.tabmodel.document.ActivityDelegate;
+import org.chromium.chrome.browser.tabmodel.document.DocumentTabModelImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,38 +33,6 @@ public class DocumentUtils {
     public static final String TAG = "DocumentUtilities";
 
     /**
-     * Finishes tasks other than the one with the given task ID that were started with the given
-     * tabId, leaving a unique task to own a Tab with that particular ID.
-     * @param tabId ID of the tab to remove duplicates for.
-     * @param canonicalTaskId ID of the task will be the only one left with the ID.
-     * @return Intent of one of the tasks that were finished.
-     */
-    public static Intent finishOtherTasksWithTabID(int tabId, int canonicalTaskId) {
-        if (tabId == Tab.INVALID_TAB_ID || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return null;
-        }
-
-        Context context = ApplicationStatus.getApplicationContext();
-
-        ActivityManager manager =
-                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.AppTask> tasksToFinish = new ArrayList<ActivityManager.AppTask>();
-        for (ActivityManager.AppTask task : manager.getAppTasks()) {
-            RecentTaskInfo taskInfo = getTaskInfoFromTask(task);
-            if (taskInfo == null) continue;
-            int taskId = taskInfo.id;
-
-            Intent baseIntent = taskInfo.baseIntent;
-            int otherTabId = ActivityDelegate.getTabIdFromIntent(baseIntent);
-
-            if (otherTabId == tabId && (taskId == -1 || taskId != canonicalTaskId)) {
-                tasksToFinish.add(task);
-            }
-        }
-        return finishAndRemoveTasks(tasksToFinish);
-    }
-
-    /**
      * Finishes tasks other than the one with the given ID that were started with the given data
      * in the Intent, removing those tasks from Recents and leaving a unique task with the data.
      * @param data Passed in as part of the Intent's data when starting the Activity.
@@ -74,7 +43,7 @@ public class DocumentUtils {
         if (data == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null;
 
         String dataString = data.toString();
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
 
         ActivityManager manager =
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -151,5 +120,20 @@ public class DocumentUtils {
             if (resolveInfo == null) return null;
             return resolveInfo.activityInfo.name;
         }
+    }
+
+    /**
+     * Returns the ID of the last shown Tab for the given DocumentTabModel type.
+     * @param context     Context to pull SharedPrefs from.
+     * @param isIncognito Whether to get the ID for the regular or Incognito TabModel.
+     * @return ID of the last shown Tab for the given TabModel type.
+     */
+    public static int getLastShownTabIdFromPrefs(Context context, boolean isIncognito) {
+        SharedPreferences prefs = context.getSharedPreferences(
+                DocumentTabModelImpl.PREF_PACKAGE, Context.MODE_PRIVATE);
+        String prefName = isIncognito
+                ? DocumentTabModelImpl.PREF_LAST_SHOWN_TAB_ID_INCOGNITO
+                : DocumentTabModelImpl.PREF_LAST_SHOWN_TAB_ID_REGULAR;
+        return prefs.getInt(prefName, Tab.INVALID_TAB_ID);
     }
 }

@@ -6,7 +6,7 @@ package org.chromium.chrome.browser.profiles;
 
 import android.content.Context;
 
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.browser.cookies.CookiesFetcher;
@@ -74,7 +74,7 @@ public class Profile {
         mNativeProfileAndroid = 0;
 
         if (mIsOffTheRecord) {
-            Context context = ApplicationStatus.getApplicationContext();
+            Context context = ContextUtils.getApplicationContext();
             CookiesFetcher.deleteCookiesIfNecessary(context);
         }
     }

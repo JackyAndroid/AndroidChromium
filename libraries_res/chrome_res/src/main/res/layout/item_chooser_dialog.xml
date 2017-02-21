@@ -5,6 +5,7 @@
  -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
@@ -67,12 +68,16 @@
         android:textSize="14sp" />
 
     <!-- Button row. -->
-    <Button
+    <org.chromium.ui.widget.ButtonCompat
         android:id="@+id/positive"
-        style="?android:attr/buttonBarButtonStyle"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_gravity="end"
-        android:paddingTop="12dp"
-        android:paddingEnd="16dp" />
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textAllCaps="true"
+        android:textColor="#fff"
+        chrome:buttonColor="@color/pref_accent_color" />
 </LinearLayout>

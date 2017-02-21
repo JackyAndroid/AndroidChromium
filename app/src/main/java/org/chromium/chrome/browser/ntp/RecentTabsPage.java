@@ -154,6 +154,11 @@ public class RecentTabsPage
     }
 
     @Override
+    public boolean needsToolbarShadow() {
+        return true;
+    }
+
+    @Override
     public View getView() {
         return mView;
     }
@@ -195,6 +200,11 @@ public class RecentTabsPage
         // another tab.
         mIsAttachedToWindow = true;
         updateForegroundState();
+
+        // Work around a bug on Samsung devices where the recent tabs page does not appear after
+        // toggling the Sync quick setting.  For some reason, the layout is being dropped on the
+        // flow and we need to force a root level layout to get the UI to appear.
+        view.getRootView().requestLayout();
     }
 
     @Override

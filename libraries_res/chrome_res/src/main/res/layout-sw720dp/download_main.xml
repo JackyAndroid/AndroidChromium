@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+
+    <LinearLayout
+        android:id="@+id/drawer_layout"
+        android:layout_width="256dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#ffffff"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/drawer_margin_large" >
+
+        <include layout="@layout/download_manager_ui_space_widget" />
+
+        <ListView
+            android:id="@+id/section_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@null"
+            android:dividerHeight="0dp" />
+    </LinearLayout>
+
+    <include layout="@layout/download_content" />
+
+</LinearLayout>

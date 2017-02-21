@@ -36,11 +36,12 @@ public class TabModelSelectorTabObserver extends EmptyTabObserver {
         mTabModelObserver = new EmptyTabModelObserver() {
             @Override
             public void didAddTab(Tab tab, TabLaunchType type) {
+                // This observer is automatically removed by tab when it is destroyed.
                 tab.addObserver(TabModelSelectorTabObserver.this);
             }
 
             @Override
-            public void didCloseTab(Tab tab) {
+            public void tabRemoved(Tab tab) {
                 tab.removeObserver(TabModelSelectorTabObserver.this);
             }
         };

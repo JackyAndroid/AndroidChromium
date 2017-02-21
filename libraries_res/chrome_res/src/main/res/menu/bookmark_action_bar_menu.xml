@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto" >
+
+    <group android:id="@+id/normal_menu_group" >
+        <item
+            android:id="@+id/edit_menu_id"
+            android:icon="@drawable/bookmark_edit_normal"
+            android:title="@string/bookmark_action_bar_edit_folder"
+            android:visible="false"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/search_menu_id"
+            android:icon="@drawable/ic_search"
+            android:title="@null"
+            android:visible="false"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/close_menu_id"
+            android:icon="@drawable/btn_close"
+            android:title="@string/bookmark_action_bar_close"
+            chrome:showAsAction="ifRoom"/>
+    </group>
+    <group
+        android:id="@+id/selection_mode_menu_group"
+        android:visible="false" >
+        <item
+            android:id="@+id/selection_mode_edit_menu_id"
+            android:icon="@drawable/bookmark_edit_active"
+            android:title="@null"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/selection_mode_move_menu_id"
+            android:icon="@drawable/bookmark_move_active"
+            android:title="@null"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/selection_mode_delete_menu_id"
+            android:icon="@drawable/ic_delete_white_24dp"
+            android:title="@null"
+            chrome:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/selection_open_in_new_tab_id"
+            android:title="@string/contextmenu_open_in_new_tab"
+            chrome:showAsAction="never"/>
+        <item
+            android:id="@+id/selection_open_in_incognito_tab_id"
+            android:title="@string/contextmenu_open_in_incognito_tab"
+            chrome:showAsAction="never"/>
+    </group>
+
+</menu>

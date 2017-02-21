@@ -10,14 +10,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.components.invalidation.PendingInvalidation;
-import org.chromium.sync.AndroidSyncSettings;
-import org.chromium.sync.signin.AccountManagerHelper;
+import org.chromium.components.signin.AccountManagerHelper;
+import org.chromium.components.sync.AndroidSyncSettings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +30,7 @@ import java.util.Set;
  * delayed until Chrome comes to the foreground again.
  */
 public class DelayedInvalidationsController {
-    private static final String TAG = "cr.invalidation";
+    private static final String TAG = "invalidation";
     private static final String DELAYED_ACCOUNT_NAME = "delayed_account";
     private static final String DELAYED_INVALIDATIONS = "delayed_invalidations";
 
@@ -51,7 +51,7 @@ public class DelayedInvalidationsController {
      * @return whether there were any invalidations pending to be notified.
      */
     public boolean notifyPendingInvalidations(final Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs = ContextUtils.getAppSharedPreferences();
         String accountName = prefs.getString(DELAYED_ACCOUNT_NAME, null);
         if (accountName == null) {
             Log.d(TAG, "No pending invalidations.");
@@ -89,9 +89,11 @@ public class DelayedInvalidationsController {
      */
     @VisibleForTesting
     void addPendingInvalidation(Context context, String account, PendingInvalidation invalidation) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs = ContextUtils.getAppSharedPreferences();
         String oldAccount = prefs.getString(DELAYED_ACCOUNT_NAME, null);
-        Set<String> invals = prefs.getStringSet(DELAYED_INVALIDATIONS, new HashSet<String>(1));
+        // Make sure to construct a new set so it can be modified safely. See crbug.com/568369.
+        Set<String> invals = new HashSet<String>(
+                prefs.getStringSet(DELAYED_INVALIDATIONS, new HashSet<String>(1)));
         assert invals.isEmpty() || oldAccount != null;
         if (oldAccount != null && !oldAccount.equals(account)) {
             invals.clear();
@@ -108,7 +110,7 @@ public class DelayedInvalidationsController {
     }
 
     private List<Bundle> popPendingInvalidations(final Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs = ContextUtils.getAppSharedPreferences();
         assert prefs.contains(DELAYED_ACCOUNT_NAME);
         Set<String> savedInvalidations = prefs.getStringSet(DELAYED_INVALIDATIONS, null);
         clearPendingInvalidations(context);
@@ -133,7 +135,7 @@ public class DelayedInvalidationsController {
     @VisibleForTesting
     public void clearPendingInvalidations(Context context) {
         SharedPreferences.Editor editor =
-                PreferenceManager.getDefaultSharedPreferences(context).edit();
+                ContextUtils.getAppSharedPreferences().edit();
         editor.putString(DELAYED_ACCOUNT_NAME, null);
         editor.putStringSet(DELAYED_INVALIDATIONS, null);
         editor.apply();

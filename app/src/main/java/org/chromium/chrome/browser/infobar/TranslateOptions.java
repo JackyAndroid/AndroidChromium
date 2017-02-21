@@ -4,16 +4,54 @@
 
 package org.chromium.chrome.browser.infobar;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import android.text.TextUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A class that keeps the state of the different translation options and
  * languages.
  */
 public class TranslateOptions {
+    /**
+     * A container for Language Code and it's translated representation
+     * For example for Spanish when viewed from a French locale, this will contain es, Espagnol
+     **/
+    public static class TranslateLanguagePair {
+        public final String mLanguageCode;
+        public final String mLanguageRepresentation;
+
+        public TranslateLanguagePair(String languageCode, String languageRepresentation) {
+            assert languageCode != null;
+            assert languageRepresentation != null;
+            mLanguageCode = languageCode;
+            mLanguageRepresentation = languageRepresentation;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof TranslateLanguagePair)) {
+                return false;
+            }
+            TranslateLanguagePair other = (TranslateLanguagePair) obj;
+            return this.mLanguageCode.equals(other.mLanguageCode)
+                    && this.mLanguageRepresentation.equals(other.mLanguageRepresentation);
+        }
+
+        @Override
+        public int hashCode() {
+            return (mLanguageCode + mLanguageRepresentation).hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "mLanguageCode:" + mLanguageCode + " - mlanguageRepresentation "
+                    + mLanguageRepresentation;
+        }
+    }
 
     // This would be an enum but they are not good for mobile.
     // The checkBoundaries method below needs to be updated if new options are added.
@@ -21,31 +59,32 @@ public class TranslateOptions {
     private static final int NEVER_DOMAIN = 1;
     private static final int ALWAYS_LANGUAGE = 2;
 
-    private final String[] mAllLanguages;
+    private String mSourceLanguageCode;
+    private String mTargetLanguageCode;
+
+    private final ArrayList<TranslateLanguagePair> mAllLanguages;
+
+    // language code to translated language name map
+    // Conceptually final
+    private Map<String, String> mCodeToRepresentation;
 
     // Will reflect the state before the object was ever modified
     private final boolean[] mOriginalOptions;
-    private final int mOriginalSourceLanguageIndex;
-    private final int mOriginalTargetLanguageIndex;
 
-    private final boolean[] mOptions;
-    private int mSourceLanguageIndex;
-    private int mTargetLanguageIndex;
+    private final String mOriginalSourceLanguageCode;
+    private final String mOriginalTargetLanguageCode;
     private final boolean mTriggeredFromMenu;
 
-    private TranslateOptions(int sourceLanguageCode, int targetLanguageCode, String[] allLanguages,
-            boolean neverLanguage, boolean neverDomain, boolean alwaysLanguage,
-            boolean triggeredFromMenu, boolean[] originalOptions) {
-        mAllLanguages = allLanguages;
-        mSourceLanguageIndex = sourceLanguageCode;
-        mTargetLanguageIndex = targetLanguageCode;
-        mTriggeredFromMenu = triggeredFromMenu;
+    private final boolean[] mOptions;
 
+    private TranslateOptions(String sourceLanguageCode, String targetLanguageCode,
+            ArrayList<TranslateLanguagePair> allLanguages, boolean neverLanguage,
+            boolean neverDomain, boolean alwaysLanguage, boolean triggeredFromMenu,
+            boolean[] originalOptions) {
         mOptions = new boolean[3];
         mOptions[NEVER_LANGUAGE] = neverLanguage;
         mOptions[NEVER_DOMAIN] = neverDomain;
         mOptions[ALWAYS_LANGUAGE] = alwaysLanguage;
-
 
         if (originalOptions == null) {
             mOriginalOptions = mOptions.clone();
@@ -53,12 +92,22 @@ public class TranslateOptions {
             mOriginalOptions = originalOptions.clone();
         }
 
-        mOriginalSourceLanguageIndex = mSourceLanguageIndex;
-        mOriginalTargetLanguageIndex = mTargetLanguageIndex;
+        mSourceLanguageCode = sourceLanguageCode;
+        mTargetLanguageCode = targetLanguageCode;
+        mOriginalSourceLanguageCode = mSourceLanguageCode;
+        mOriginalTargetLanguageCode = mTargetLanguageCode;
+        mTriggeredFromMenu = triggeredFromMenu;
+
+        mAllLanguages = allLanguages;
+        mCodeToRepresentation = new HashMap<String, String>();
+        for (TranslateLanguagePair language : allLanguages) {
+            mCodeToRepresentation.put(language.mLanguageCode, language.mLanguageRepresentation);
+        }
     }
 
-    public TranslateOptions(int sourceLanguageCode, int targetLanguageCode, String[] allLanguages,
-            boolean alwaysTranslate, boolean triggeredFromMenu) {
+    public TranslateOptions(String sourceLanguageCode, String targetLanguageCode,
+            ArrayList<TranslateLanguagePair> allLanguages, boolean alwaysTranslate,
+            boolean triggeredFromMenu) {
         this(sourceLanguageCode, targetLanguageCode, allLanguages, false, false, alwaysTranslate,
                 triggeredFromMenu, null);
     }
@@ -67,32 +116,31 @@ public class TranslateOptions {
      * Copy constructor
      */
     public TranslateOptions(TranslateOptions other) {
-        this(other.mSourceLanguageIndex, other.mTargetLanguageIndex, other.mAllLanguages,
+        this(other.mSourceLanguageCode, other.mTargetLanguageCode, other.mAllLanguages,
                 other.mOptions[NEVER_LANGUAGE], other.mOptions[NEVER_DOMAIN],
-                other.mOptions[ALWAYS_LANGUAGE], other.mTriggeredFromMenu,
-                other.mOriginalOptions);
+                other.mOptions[ALWAYS_LANGUAGE], other.mTriggeredFromMenu, other.mOriginalOptions);
     }
 
-    public String sourceLanguage() {
-        if (checkLanguageBoundaries(mSourceLanguageIndex)) {
-            return mAllLanguages[mSourceLanguageIndex];
+    public String sourceLanguageName() {
+        if (isValidLanguageCode(mSourceLanguageCode)) {
+            return mCodeToRepresentation.get(mSourceLanguageCode);
         }
         return "";
     }
 
-    public String targetLanguage() {
-        if (checkLanguageBoundaries(mTargetLanguageIndex)) {
-            return mAllLanguages[mTargetLanguageIndex];
+    public String targetLanguageName() {
+        if (isValidLanguageCode(mTargetLanguageCode)) {
+            return mCodeToRepresentation.get(mTargetLanguageCode);
         }
         return "";
     }
 
-    public int sourceLanguageIndex() {
-        return checkLanguageBoundaries(mSourceLanguageIndex) ? mSourceLanguageIndex : 0;
+    public String sourceLanguageCode() {
+        return mSourceLanguageCode;
     }
 
-    public int targetLanguageIndex() {
-        return checkLanguageBoundaries(mTargetLanguageIndex) ? mTargetLanguageIndex : 0;
+    public String targetLanguageCode() {
+        return mTargetLanguageCode;
     }
 
     public boolean triggeredFromMenu() {
@@ -100,16 +148,15 @@ public class TranslateOptions {
     }
 
     public boolean optionsChanged() {
-        return (mSourceLanguageIndex != mOriginalSourceLanguageIndex)
-                || (mTargetLanguageIndex != mOriginalTargetLanguageIndex)
+        return (!mSourceLanguageCode.equals(mOriginalSourceLanguageCode))
+                || (!mTargetLanguageCode.equals(mOriginalTargetLanguageCode))
                 || (mOptions[NEVER_LANGUAGE] != mOriginalOptions[NEVER_LANGUAGE])
                 || (mOptions[NEVER_DOMAIN] != mOriginalOptions[NEVER_DOMAIN])
                 || (mOptions[ALWAYS_LANGUAGE] != mOriginalOptions[ALWAYS_LANGUAGE]);
     }
 
-
-    public List<String> allLanguages() {
-        return Collections.unmodifiableList(Arrays.asList(mAllLanguages));
+    public List<TranslateLanguagePair> allLanguages() {
+        return mAllLanguages;
     }
 
     public boolean neverTranslateLanguageState() {
@@ -124,18 +171,18 @@ public class TranslateOptions {
         return mOptions[NEVER_DOMAIN];
     }
 
-    public boolean setSourceLanguage(int languageIndex) {
-        boolean canSet = canSetLanguage(languageIndex, mTargetLanguageIndex);
+    public boolean setSourceLanguage(String languageCode) {
+        boolean canSet = canSetLanguage(languageCode, mTargetLanguageCode);
         if (canSet) {
-            mSourceLanguageIndex = languageIndex;
+            mSourceLanguageCode = languageCode;
         }
         return canSet;
     }
 
-    public boolean setTargetLanguage(int languageIndex) {
-        boolean canSet = canSetLanguage(mSourceLanguageIndex, languageIndex);
+    public boolean setTargetLanguage(String languageCode) {
+        boolean canSet = canSetLanguage(mSourceLanguageCode, languageCode);
         if (canSet) {
-            mTargetLanguageIndex = languageIndex;
+            mTargetLanguageCode = languageCode;
         }
         return canSet;
     }
@@ -183,16 +230,13 @@ public class TranslateOptions {
         return true;
     }
 
-
-    private boolean checkLanguageBoundaries(int index) {
-        return index >= 0 && index < mAllLanguages.length;
+    private boolean isValidLanguageCode(String languageCode) {
+        return !TextUtils.isEmpty(languageCode) && mCodeToRepresentation.containsKey(languageCode);
     }
-
-    private boolean canSetLanguage(int sourceIndex, int targetIndex) {
-        if (sourceIndex == targetIndex) return false;
-        return checkLanguageBoundaries(sourceIndex) && checkLanguageBoundaries(targetIndex);
+    private boolean canSetLanguage(String sourceCode, String targetCode) {
+        return isValidLanguageCode(sourceCode) && isValidLanguageCode(targetCode)
+                && !sourceCode.equals(targetCode);
     }
-
 
     private static boolean checkElementBoundaries(int element) {
         return element >= NEVER_LANGUAGE && element <= ALWAYS_LANGUAGE;
@@ -201,9 +245,9 @@ public class TranslateOptions {
     @Override
     public String toString() {
         return new StringBuilder()
-                .append(sourceLanguage())
+                .append(sourceLanguageCode())
                 .append(" -> ")
-                .append(targetLanguage())
+                .append(targetLanguageCode())
                 .append(" - ")
                 .append("Never Language:")
                 .append(mOptions[NEVER_LANGUAGE])

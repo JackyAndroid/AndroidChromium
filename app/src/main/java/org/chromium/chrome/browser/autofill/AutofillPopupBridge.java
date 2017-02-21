@@ -9,16 +9,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
+import android.view.View;
 
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ResourceId;
+import org.chromium.components.autofill.AutofillDelegate;
+import org.chromium.components.autofill.AutofillPopup;
+import org.chromium.components.autofill.AutofillSuggestion;
 import org.chromium.ui.DropdownItem;
-import org.chromium.ui.autofill.AutofillDelegate;
-import org.chromium.ui.autofill.AutofillPopup;
-import org.chromium.ui.autofill.AutofillSuggestion;
-import org.chromium.ui.base.ViewAndroidDelegate;
 import org.chromium.ui.base.WindowAndroid;
 
 /**
@@ -31,8 +31,8 @@ public class AutofillPopupBridge implements AutofillDelegate, DialogInterface.On
     private AlertDialog mDeletionDialog;
     private final Context mContext;
 
-    public AutofillPopupBridge(long nativeAutofillPopupViewAndroid, WindowAndroid windowAndroid,
-            ViewAndroidDelegate containerViewDelegate) {
+    public AutofillPopupBridge(View anchorView, long nativeAutofillPopupViewAndroid,
+            WindowAndroid windowAndroid) {
         mNativeAutofillPopup = nativeAutofillPopupViewAndroid;
         Activity activity = windowAndroid.getActivity().get();
         if (activity == null) {
@@ -47,16 +47,16 @@ public class AutofillPopupBridge implements AutofillDelegate, DialogInterface.On
                 }
             });
         } else {
-            mAutofillPopup = new AutofillPopup(activity, containerViewDelegate, this);
+            mAutofillPopup = new AutofillPopup(activity, anchorView, this);
             mContext = activity;
         }
     }
 
     @CalledByNative
-    private static AutofillPopupBridge create(long nativeAutofillPopupViewAndroid,
-            WindowAndroid windowAndroid, ViewAndroidDelegate viewAndroidDelegate) {
-        return new AutofillPopupBridge(
-                nativeAutofillPopupViewAndroid, windowAndroid, viewAndroidDelegate);
+    private static AutofillPopupBridge create(View anchorView, long nativeAutofillPopupViewAndroid,
+            WindowAndroid windowAndroid) {
+        return new AutofillPopupBridge(anchorView, nativeAutofillPopupViewAndroid,
+                windowAndroid);
     }
 
     @Override
@@ -98,18 +98,6 @@ public class AutofillPopupBridge implements AutofillDelegate, DialogInterface.On
         if (mAutofillPopup != null) mAutofillPopup.filterAndShow(suggestions, isRtl);
     }
 
-    /**
-     * Sets the location and size of the Autofill popup anchor (input field).
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param width The width of the anchor.
-     * @param height The height of the anchor.
-     */
-    @CalledByNative
-    private void setAnchorRect(float x, float y, float width, float height) {
-        if (mAutofillPopup != null) mAutofillPopup.setAnchorRect(x, y, width, height);
-    }
-
     @CalledByNative
     private void confirmDeletion(String title, String body) {
         mDeletionDialog = new AlertDialog.Builder(mContext, R.style.AlertDialogTheme)
@@ -136,12 +124,15 @@ public class AutofillPopupBridge implements AutofillDelegate, DialogInterface.On
      * @param iconId The resource ID for the icon associated with the suggestion, or 0 for no icon.
      * @param suggestionId Identifier for the suggestion type.
      * @param deletable Whether this item is deletable.
+     * @param isLabelMultiline Whether the label should be should over multiple lines.
      */
     @CalledByNative
     private static void addToAutofillSuggestionArray(AutofillSuggestion[] array, int index,
-            String label, String sublabel, int iconId, int suggestionId, boolean deletable) {
+            String label, String sublabel, int iconId, int suggestionId, boolean deletable,
+            boolean isLabelMultiline) {
         int drawableId = iconId == 0 ? DropdownItem.NO_ICON : ResourceId.mapToDrawableId(iconId);
-        array[index] = new AutofillSuggestion(label, sublabel, drawableId, suggestionId, deletable);
+        array[index] = new AutofillSuggestion(
+                label, sublabel, drawableId, suggestionId, deletable, isLabelMultiline);
     }
 
     private native void nativeSuggestionSelected(long nativeAutofillPopupViewAndroid,

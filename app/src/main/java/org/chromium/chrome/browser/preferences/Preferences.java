@@ -20,7 +20,6 @@ import android.os.Process;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceFragment.OnPreferenceStartFragmentCallback;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +32,7 @@ import org.chromium.base.library_loader.ProcessInitException;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.help.HelpAndFeedback;
+import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
 import org.chromium.chrome.browser.profiles.Profile;
 
 /**
@@ -48,7 +48,6 @@ public class Preferences extends AppCompatActivity implements
 
     public static final String EXTRA_SHOW_FRAGMENT = "show_fragment";
     public static final String EXTRA_SHOW_FRAGMENT_ARGUMENTS = "show_fragment_args";
-    public static final String EXTRA_DISPLAY_HOME_AS_UP = "display_home_as_up";
 
     private static final String TAG = "Preferences";
 
@@ -71,7 +70,7 @@ public class Preferences extends AppCompatActivity implements
         // killed, or for tests. This should happen before super.onCreate() because it might
         // recreate a fragment, and a fragment might depend on the native library.
         try {
-            ((ChromeApplication) getApplication()).startBrowserProcessesAndLoadLibrariesSync(true);
+            ChromeBrowserInitializer.getInstance(this).handleSynchronousStartup();
         } catch (ProcessInitException e) {
             Log.e(TAG, "Failed to start browser process.", e);
             // This can only ever happen, if at all, when the activity is started from an Android
@@ -88,12 +87,8 @@ public class Preferences extends AppCompatActivity implements
 
         String initialFragment = getIntent().getStringExtra(EXTRA_SHOW_FRAGMENT);
         Bundle initialArguments = getIntent().getBundleExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS);
-        boolean displayHomeAsUp = getIntent().getBooleanExtra(EXTRA_DISPLAY_HOME_AS_UP, true);
 
-        if (displayHomeAsUp) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        // This must be called before the fragment transaction below.
-        workAroundPlatformBugs();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // If savedInstanceState is non-null, then the activity is being
         // recreated and super.onCreate() has already recreated the fragment.
@@ -105,7 +100,8 @@ public class Preferences extends AppCompatActivity implements
                     .commit();
         }
 
-        if (checkPermission(Manifest.permission.NFC, Process.myPid(), Process.myUid())
+        if (ApiCompatibilityUtils.checkPermission(
+                this, Manifest.permission.NFC, Process.myPid(), Process.myUid())
                 == PackageManager.PERMISSION_GRANTED) {
             // Disable Android Beam on JB and later devices.
             // In ICS it does nothing - i.e. we will send a Play Store link if NFC is used.
@@ -161,13 +157,17 @@ public class Preferences extends AppCompatActivity implements
 
         // Prevent the user from interacting with multiple instances of Preferences at the same time
         // (e.g. in multi-instance mode on a Samsung device), which would cause many fun bugs.
-        if (sResumedInstance != null && !mIsNewlyCreated) {
+        if (sResumedInstance != null && sResumedInstance.getTaskId() != getTaskId()
+                && !mIsNewlyCreated) {
             // This activity was unpaused or recreated while another instance of Preferences was
             // already showing. The existing instance takes precedence.
             finish();
         } else {
             // This activity was newly created and takes precedence over sResumedInstance.
-            if (sResumedInstance != null) sResumedInstance.finish();
+            if (sResumedInstance != null && sResumedInstance.getTaskId() != getTaskId()) {
+                sResumedInstance.finish();
+            }
+
             sResumedInstance = this;
             mIsNewlyCreated = false;
         }
@@ -176,8 +176,13 @@ public class Preferences extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        if (sResumedInstance == this) sResumedInstance = null;
         ChromeApplication.flushPersistentData();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (sResumedInstance == this) sResumedInstance = null;
     }
 
     /**
@@ -194,7 +199,7 @@ public class Preferences extends AppCompatActivity implements
         super.onCreateOptionsMenu(menu);
         // By default, every screen in Settings shows a "Help & feedback" menu item.
         MenuItem help = menu.add(
-                Menu.NONE, R.id.menu_id_help_general, Menu.CATEGORY_SECONDARY, R.string.menu_help);
+                Menu.NONE, R.id.menu_id_general_help, Menu.CATEGORY_SECONDARY, R.string.menu_help);
         help.setIcon(R.drawable.ic_help_and_feedback);
         return true;
     }
@@ -213,7 +218,7 @@ public class Preferences extends AppCompatActivity implements
         if (item.getItemId() == android.R.id.home) {
             finish();
             return true;
-        } else if (item.getItemId() == R.id.menu_id_help_general) {
+        } else if (item.getItemId() == R.id.menu_id_general_help) {
             HelpAndFeedback.getInstance(this).show(this, getString(R.string.help_context_settings),
                     Profile.getLastUsedProfile(), null);
             return true;
@@ -235,21 +240,5 @@ public class Preferences extends AppCompatActivity implements
             // Something terribly wrong has happened.
             throw new RuntimeException(ex);
         }
-    }
-
-    private void workAroundPlatformBugs() {
-        // Workaround for an Android bug where the fragment's view may not be attached to the view
-        // hierarchy. http://b/18525402
-        getSupportActionBar();
-
-        // Workaround for HTC One S bug which causes all the text in settings to turn white.
-        // This must be called after setContentView().
-        // https://code.google.com/p/android/issues/detail?id=78819
-        ViewCompat.postOnAnimation(getWindow().getDecorView(), new Runnable() {
-            @Override
-            public void run() {
-                setTheme(R.style.PreferencesTheme);
-            }
-        });
     }
 }

@@ -6,10 +6,13 @@ package org.chromium.chrome.browser.signin;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.R;
 
 /**
  * Triggers Android's account adding dialog.
@@ -40,7 +43,7 @@ public class AccountAdder {
         sInstance = adder;
     }
 
-    private static Intent createAddAccountIntent() {
+    private static Intent createAddGoogleAccountIntent() {
         Intent createAccountIntent = new Intent(Settings.ACTION_ADD_ACCOUNT);
         // NOTE: the documentation says Settings.EXTRA_AUTHORITIES should be used,
         // but it doesn't work.
@@ -49,13 +52,36 @@ public class AccountAdder {
         return createAccountIntent;
     }
 
+    private void onOpenAddGoogleAccountPageFailed(final Activity activity, final int result) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.AlertDialogTheme);
+        builder.setMessage(R.string.signin_open_add_google_account_page_failed);
+        builder.setPositiveButton(
+                R.string.signin_open_settings_accounts, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Open Accounts page in device's Settings app.
+                        Intent openSettingsAccounts = new Intent(Settings.ACTION_SYNC_SETTINGS);
+                        if (openSettingsAccounts.resolveActivity(activity.getPackageManager())
+                                != null) {
+                            activity.startActivityForResult(openSettingsAccounts, result);
+                        }
+                    }
+                });
+        builder.create().show();
+    }
+
     /**
      * Triggers Android's account adding dialog from a fragment.
      * @param fragment A fragment
      * @param result An intent result code
      */
     public void addAccount(Fragment fragment, int result) {
-        fragment.startActivityForResult(createAddAccountIntent(), result);
+        Intent addGoogleAccount = createAddGoogleAccountIntent();
+        if (addGoogleAccount.resolveActivity(fragment.getActivity().getPackageManager()) != null) {
+            fragment.startActivityForResult(addGoogleAccount, result);
+        } else {
+            onOpenAddGoogleAccountPageFailed(fragment.getActivity(), result);
+        }
     }
 
     /**
@@ -64,6 +90,11 @@ public class AccountAdder {
      * @param result An intent result code
      */
     public void addAccount(Activity activity, int result) {
-        activity.startActivityForResult(createAddAccountIntent(), result);
+        Intent addGoogleAccount = createAddGoogleAccountIntent();
+        if (addGoogleAccount.resolveActivity(activity.getPackageManager()) != null) {
+            activity.startActivityForResult(addGoogleAccount, result);
+        } else {
+            onOpenAddGoogleAccountPageFailed(activity, result);
+        }
     }
 }

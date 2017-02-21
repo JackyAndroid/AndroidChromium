@@ -10,10 +10,6 @@
         android:summaryOn="@string/text_on"
         android:summaryOff="@string/text_off" />
 
-    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
-        android:key="autofill_wallet"
-        android:title="@string/autofill_wallet_title" />
-
     <org.chromium.chrome.browser.preferences.PreferenceCategoryWithButton
        android:key="autofill_profiles"
        android:enabled="true"
@@ -26,7 +22,7 @@
        android:key="autofill_credit_cards"
        android:enabled="true"
        android:title="@string/autofill_credit_cards_title"
-       android:fragment="org.chromium.chrome.browser.preferences.autofill.AutofillCreditCardEditor"
+       android:fragment="org.chromium.chrome.browser.preferences.autofill.AutofillLocalCardEditor"
        android:contentDescription="@string/autofill_create_credit_card"
        />
 

@@ -11,11 +11,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Property;
 import android.widget.Button;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.widget.animation.AnimatorProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,22 +24,6 @@ import java.util.List;
  * Button for creating new tabs.
  */
 public class NewTabButton extends Button implements Drawable.Callback {
-
-    private static final Property<Drawable, Integer> DRAWABLE_ALPHA_PROPERTY =
-            new Property<Drawable, Integer>(Integer.class, "alpha") {
-        @Override
-        public Integer get(Drawable d) {
-            // getAlpha() is only exposed on drawable in API 19+, so we rely on animations
-            // always setting the starting and ending values instead of relying on this
-            // property.
-            return 0;
-        }
-
-        @Override
-        public void set(Drawable d, Integer alpha) {
-            d.setAlpha(alpha);
-        }
-    };
 
     private final Drawable mNormalDrawable;
     private final Drawable mIncognitoDrawable;
@@ -139,12 +123,12 @@ public class NewTabButton extends Button implements Drawable.Callback {
 
         List<Animator> animations = new ArrayList<Animator>();
         Animator animation = ObjectAnimator.ofInt(
-                fadeOutDrawable, DRAWABLE_ALPHA_PROPERTY, 255, 0);
+                fadeOutDrawable, AnimatorProperties.DRAWABLE_ALPHA_PROPERTY, 255, 0);
         animation.setDuration(100);
         animations.add(animation);
 
         animation = ObjectAnimator.ofInt(
-                fadeInDrawable, DRAWABLE_ALPHA_PROPERTY, 0, 255);
+                fadeInDrawable, AnimatorProperties.DRAWABLE_ALPHA_PROPERTY, 0, 255);
         animation.setStartDelay(150);
         animation.setDuration(100);
         animations.add(animation);

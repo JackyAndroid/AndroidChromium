@@ -5,22 +5,18 @@
 package org.chromium.chrome.browser.infobar;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.support.v4.view.ViewCompat;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RatingBar;
-import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.banners.AppData;
+import org.chromium.chrome.browser.widget.DualControlLayout;
 
 /**
  * Infobar informing the user about an app related to this page.
@@ -33,7 +29,8 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
 
     // Views composing the infobar.
     private Button mButton;
-    private ViewGroup mTitleView;
+    private InfoBarControlLayout mMessageLayout;
+    private View mTitleView;
     private View mIconView;
 
     private final String mAppTitle;
@@ -45,9 +42,12 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
     // Data for web app installs.
     private final String mAppUrl;
 
+    // Indicates whether the infobar is for installing a WebAPK.
+    private boolean mIsWebApk;
+
     // Banner for native apps.
     private AppBannerInfoBarAndroid(String appTitle, Bitmap iconBitmap, AppData data) {
-        super(null, 0, iconBitmap, appTitle, null, data.installButtonText(), null);
+        super(0, iconBitmap, appTitle, null, data.installButtonText(), null);
         mAppTitle = appTitle;
         mAppData = data;
         mAppUrl = null;
@@ -55,11 +55,13 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
     }
 
     // Banner for web apps.
-    private AppBannerInfoBarAndroid(String appTitle, Bitmap iconBitmap, String url) {
-        super(null, 0, iconBitmap, appTitle, null, getAddToHomescreenText(), null);
+    private AppBannerInfoBarAndroid(String appTitle, Bitmap iconBitmap, String url,
+            boolean isWebApk) {
+        super(0, iconBitmap, appTitle, null, getAddToHomescreenText(), null);
         mAppTitle = appTitle;
         mAppData = null;
         mAppUrl = url;
+        mIsWebApk = isWebApk;
         mInstallState = INSTALL_STATE_NOT_INSTALLED;
     }
 
@@ -69,60 +71,60 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
 
         mButton = layout.getPrimaryButton();
         mIconView = layout.getIcon();
+        layout.setIsUsingBigIcon();
+        layout.setMessage(mAppTitle);
 
-        Resources res = getContext().getResources();
-        int iconSize = res.getDimensionPixelSize(R.dimen.webapp_home_screen_icon_size);
-        int iconSpacing = res.getDimensionPixelSize(R.dimen.app_banner_icon_spacing);
-        layout.setIconSizeAndSpacing(iconSize, iconSize, iconSpacing);
-
-        mTitleView = (ViewGroup) LayoutInflater.from(getContext()).inflate(
-                R.layout.app_banner_title, null);
-        TextView appName = (TextView) mTitleView.findViewById(R.id.app_name);
-        RatingBar ratingView = (RatingBar) mTitleView.findViewById(R.id.rating_bar);
-        TextView webAppUrl = (TextView) mTitleView.findViewById(R.id.web_app_url);
-        appName.setText(mAppTitle);
-        layout.setMessageView(mTitleView);
+        mMessageLayout = layout.getMessageLayout();
+        mTitleView = layout.getMessageTextView();
 
         Context context = getContext();
         if (mAppData != null) {
             // Native app.
-            ImageView playLogo = new ImageView(layout.getContext());
-            playLogo.setImageResource(R.drawable.google_play);
-            layout.setCustomViewInButtonRow(playLogo);
-
-            ratingView.setRating(mAppData.rating());
             layout.getPrimaryButton().setButtonColor(ApiCompatibilityUtils.getColor(
-                    getContext().getResources(),
-                    R.color.app_banner_install_button_bg));
-            mTitleView.setContentDescription(context.getString(
+                    context.getResources(), R.color.app_banner_install_button_bg));
+            mMessageLayout.addRatingBar(mAppData.rating());
+            mMessageLayout.setContentDescription(context.getString(
                     R.string.app_banner_view_native_app_accessibility, mAppTitle,
                     mAppData.rating()));
-            mTitleView.removeView(webAppUrl);
             updateButton();
         } else {
             // Web app.
-            webAppUrl.setText(mAppUrl);
-            mTitleView.setContentDescription(context.getString(
+            mMessageLayout.addDescription(mAppUrl);
+            mMessageLayout.setContentDescription(context.getString(
                     R.string.app_banner_view_web_app_accessibility, mAppTitle,
                     mAppUrl));
-            mTitleView.removeView(ratingView);
-
         }
 
         // Hide uninteresting views from accessibility.
-        ViewCompat.setImportantForAccessibility(ratingView, View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         if (mIconView != null) {
             ViewCompat.setImportantForAccessibility(mIconView, View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         }
 
-        // Set up clicking on the controls to bring up the app details.
+        // Clicking on the controls brings up the app's details.  The OnClickListener has to be
+        // added to both the TextView and its parent because the TextView has special handling for
+        // links within the text.
+        mMessageLayout.setOnClickListener(this);
         mTitleView.setOnClickListener(this);
         if (mIconView != null) mIconView.setOnClickListener(this);
     }
 
     @Override
+    protected void setButtons(InfoBarLayout layout, String primaryText, String secondaryText) {
+        if (mAppData == null) {
+            // The banner for web apps uses standard buttons.
+            super.setButtons(layout, primaryText, secondaryText);
+        } else {
+            // The banner for native apps shows a Play logo in place of a secondary button.
+            assert secondaryText == null;
+            ImageView playLogo = new ImageView(layout.getContext());
+            playLogo.setImageResource(R.drawable.google_play);
+            layout.setBottomViews(primaryText, playLogo, DualControlLayout.ALIGN_APART);
+        }
+    }
+
+    @Override
     public void onButtonClicked(boolean isPrimaryButton) {
-        if (mInstallState == INSTALL_STATE_INSTALLING) {
+        if (isPrimaryButton && mInstallState == INSTALL_STATE_INSTALLING) {
             setControlsEnabled(true);
             updateButton();
             return;
@@ -138,20 +140,27 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
     }
 
     private void updateButton() {
-        assert mAppData != null;
+        if (mButton == null || (mAppData == null && !mIsWebApk)) return;
 
         String text;
         String accessibilityText = null;
         boolean enabled = true;
+        Context context = getContext();
         if (mInstallState == INSTALL_STATE_NOT_INSTALLED) {
+            if (mIsWebApk) {
+                // If the installation of the WebAPK fails, the banner will disappear and
+                // a failure toast will be shown.
+                return;
+            }
             text = mAppData.installButtonText();
-            accessibilityText = getContext().getString(
+            accessibilityText = context.getString(
                     R.string.app_banner_view_native_app_install_accessibility, text);
         } else if (mInstallState == INSTALL_STATE_INSTALLING) {
-            text = getContext().getString(R.string.app_banner_installing);
+            text = mIsWebApk ? context.getString(R.string.app_banner_installing_webapk)
+                    : context.getString(R.string.app_banner_installing);
             enabled = false;
         } else {
-            text = getContext().getString(R.string.app_banner_open);
+            text = context.getString(R.string.app_banner_open);
         }
 
         mButton.setText(text);
@@ -161,11 +170,11 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
 
     @Override
     public void onClick(View v) {
-        if (v == mTitleView || v == mIconView) onLinkClicked();
+        if (v == mMessageLayout || v == mTitleView || v == mIconView) onLinkClicked();
     }
 
     private static String getAddToHomescreenText() {
-        return ApplicationStatus.getApplicationContext().getString(R.string.menu_add_to_homescreen);
+        return ContextUtils.getApplicationContext().getString(R.string.menu_add_to_homescreen);
     }
 
     @CalledByNative
@@ -175,7 +184,8 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
     }
 
     @CalledByNative
-    private static InfoBar createWebAppInfoBar(String appTitle, Bitmap iconBitmap, String url) {
-        return new AppBannerInfoBarAndroid(appTitle, iconBitmap, url);
+    private static InfoBar createWebAppInfoBar(String appTitle, Bitmap iconBitmap, String url,
+            boolean isWebApk) {
+        return new AppBannerInfoBarAndroid(appTitle, iconBitmap, url, isWebApk);
     }
 }

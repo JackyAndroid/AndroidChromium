@@ -7,16 +7,11 @@
     <!-- Menu Dimensions -->
     <!-- Necessary to align the menu icon with the actual button. -->
     <dimen name="menu_negative_software_vertical_offset">6dp</dimen>
-    
+
     <!-- Tab title -->
     <dimen name="tab_title_favicon_start_padding">0dp</dimen>
     <dimen name="tab_title_favicon_end_padding">5dp</dimen>
 
-    <!-- Compositor Tab Title Dimensions -->
-    <dimen name="compositor_tab_title_bar_shadow_x_offset">0dp</dimen>
-    <dimen name="compositor_tab_title_bar_shadow_y_offset">0dp</dimen>
-    <dimen name="compositor_tab_title_bar_shadow_x_offset_incognito">0dp</dimen>
-    <dimen name="compositor_tab_title_bar_shadow_y_offset_incognito">0dp</dimen>
     <!-- The size of the text for tab titles. -->
     <dimen name="compositor_tab_title_text_size">14sp</dimen>
 
@@ -35,16 +30,11 @@
     <!-- The combined height of the tab strip and toolbar. -->
     <dimen name="tab_strip_and_toolbar_height">96dp</dimen>
 
-    <dimen name="location_bar_url_text_size">18sp</dimen>
     <dimen name="location_bar_icon_width">40dp</dimen>
 
-    <!-- Bookmarks widget dimensions -->
-    <dimen name="widget_thumbnail_height">104dp</dimen>
-    <dimen name="widget_column_width">130dp</dimen>
-
     <!-- NTP dimensions -->
-    <dimen name="most_visited_spacing">16dp</dimen>
     <dimen name="ntp_logo_height">180dp</dimen>
+    <dimen name="ntp_search_box_transition_length">60dp</dimen>
 
     <!-- Recent tabs page -->
     <dimen name="recent_tabs_visible_separator_padding">28dp</dimen>
@@ -56,4 +46,7 @@
     <!-- Web app dimensions -->
     <dimen name="webapp_splash_offset">48dp</dimen>
     <dimen name="webapp_splash_large_title_margin_bottom">8dp</dimen>
+
+    <!-- Payments UI -->
+    <dimen name="payments_ui_max_dialog_width">600dp</dimen>
 </resources>

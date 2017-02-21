@@ -15,7 +15,7 @@ import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 /**
  * A SceneLayer to render a static tab.
  */
-@JNINamespace("chrome::android")
+@JNINamespace("android")
 public class StaticTabSceneLayer extends SceneLayer {
     // NOTE: If you use SceneLayer's native pointer here, the JNI generator will try to
     // downcast using reinterpret_cast<>. We keep a separate pointer to avoid it.
@@ -58,16 +58,6 @@ public class StaticTabSceneLayer extends SceneLayer {
                 layoutTab.getBrightness());
     }
 
-    /**
-     * Set the given sceneLayer as content along with {@link StaticTabSceneLayer}'s own.
-     *
-     * @param sceneLayer
-     */
-    // TODO(pedrosimonetti): Remove this once contextual search is moved into an overlay.
-    public void setContentSceneLayer(SceneLayer sceneLayer) {
-        nativeSetContentSceneLayer(mNativePtr, sceneLayer);
-    }
-
     @Override
     protected void initializeNative() {
         if (mNativePtr == 0) {
@@ -89,6 +79,4 @@ public class StaticTabSceneLayer extends SceneLayer {
             boolean canUseLiveLayer, int backgroundColor, float x, float y, float width,
             float height, float contentOffsetY, float staticToViewBlend, float saturation,
             float brightness);
-    private native void nativeSetContentSceneLayer(
-            long nativeStaticTabSceneLayer, SceneLayer sceneLayer);
 }

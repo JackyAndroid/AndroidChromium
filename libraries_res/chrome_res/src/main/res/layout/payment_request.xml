@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- PaymentRequestUI dialog
+     Sits at the bottom of the screen like a Bottom Sheet.
+-->
+<org.chromium.chrome.browser.widget.BoundedLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:gravity="center"
+    chrome:maxWidth="@dimen/payments_ui_max_dialog_width"
+    android:background="@android:color/white" >
+
+    <include layout="@layout/payment_request_header" />
+    <include layout="@layout/payment_request_spinny" />
+
+    <org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView
+        android:id="@+id/option_container"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:visibility="gone" >
+
+        <LinearLayout
+            android:id="@+id/payment_container_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView>
+
+    <org.chromium.chrome.browser.widget.DualControlLayout
+        android:id="@+id/button_bar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:padding="@dimen/payments_section_large_spacing"
+        android:background="@android:color/white"
+        android:visibility="gone" />
+
+</org.chromium.chrome.browser.widget.BoundedLinearLayout>

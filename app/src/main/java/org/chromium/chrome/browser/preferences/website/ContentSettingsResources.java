@@ -4,42 +4,194 @@
 
 package org.chromium.chrome.browser.preferences.website;
 
+import android.annotation.SuppressLint;
+import android.content.res.Resources;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+
+import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.base.ThreadUtils;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ContentSettingsType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class with utility functions that get the appropriate string and icon resources for the
  * Android UI that allows managing content settings.
  */
+// The Linter suggests using SparseArray<ResourceItem> instead of a HashMap
+// because our key is an int but we're changing the key to a string soon so
+// suppress the lint warning for now.
+@SuppressLint("UseSparseArrays")
 public class ContentSettingsResources {
+    /**
+     * An inner class contains all the resources for a ContentSettingsType
+     */
+    private static class ResourceItem {
+        private final int mIcon;
+        private final int mTitle;
+        private final int mExplanation;
+        private final ContentSetting mDefaultEnabledValue;
+        private final ContentSetting mDefaultDisabledValue;
+        private final int mEnabledSummary;
+        private final int mDisabledSummary;
+
+        ResourceItem(int icon, int title, int explanation, ContentSetting defaultEnabledValue,
+                ContentSetting defaultDisabledValue, int enabledSummary, int disabledSummary) {
+            mIcon = icon;
+            mTitle = title;
+            mExplanation = explanation;
+            mDefaultEnabledValue = defaultEnabledValue;
+            mDefaultDisabledValue = defaultDisabledValue;
+            mEnabledSummary = enabledSummary;
+            mDisabledSummary = disabledSummary;
+        }
+
+        private int getIcon() {
+            return mIcon;
+        }
+
+        private int getTitle() {
+            return mTitle;
+        }
+
+        private int getExplanation() {
+            return mExplanation;
+        }
+
+        private ContentSetting getDefaultEnabledValue() {
+            return mDefaultEnabledValue;
+        }
+
+        private ContentSetting getDefaultDisabledValue() {
+            return mDefaultDisabledValue;
+        }
+
+        private int getEnabledSummary() {
+            return mEnabledSummary == 0 ? getCategorySummary(mDefaultEnabledValue)
+                                        : mEnabledSummary;
+        }
+
+        private int getDisabledSummary() {
+            return mDisabledSummary == 0 ? getCategorySummary(mDefaultDisabledValue)
+                                         : mDisabledSummary;
+        }
+    }
+
+    // TODO(lshang): use string for the index of HashMap after we change the type of
+    // ContentSettingsType from int to string.
+    private static Map<Integer, ResourceItem> sResourceInfo;
+
+    /**
+     * Initializes and returns the map. Only initializes it the first time it's needed.
+     */
+    private static Map<Integer, ResourceItem> getResourceInfo() {
+        ThreadUtils.assertOnUiThread();
+        if (sResourceInfo == null) {
+            Map<Integer, ResourceItem> localMap = new HashMap<Integer, ResourceItem>();
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_AUTOPLAY,
+                    new ResourceItem(R.drawable.settings_autoplay, R.string.autoplay_title,
+                                 R.string.autoplay_title, ContentSetting.ALLOW,
+                                 ContentSetting.BLOCK,
+                                 R.string.website_settings_category_autoplay_allowed, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_BACKGROUND_SYNC,
+                    new ResourceItem(R.drawable.permission_background_sync,
+                                 R.string.background_sync_permission_title,
+                                 R.string.background_sync_permission_title, ContentSetting.ALLOW,
+                                 ContentSetting.BLOCK,
+                                 R.string.website_settings_category_allowed_recommended, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES,
+                    new ResourceItem(R.drawable.permission_cookie, R.string.cookies_title,
+                                 R.string.cookies_title, ContentSetting.ALLOW, ContentSetting.BLOCK,
+                                 R.string.website_settings_category_cookie_allowed, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN,
+                    new ResourceItem(R.drawable.permission_fullscreen,
+                                 R.string.website_settings_fullscreen,
+                                 R.string.fullscreen_permission_title, ContentSetting.ALLOW,
+                                 ContentSetting.ASK,
+                                 R.string.website_settings_category_always_allowed, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION,
+                    new ResourceItem(R.drawable.permission_location,
+                                 R.string.website_settings_device_location,
+                                 R.string.geolocation_permission_title, ContentSetting.ASK,
+                                 ContentSetting.BLOCK,
+                                 R.string.website_settings_category_location_ask, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+                    new ResourceItem(R.drawable.permission_javascript,
+                                 R.string.javascript_permission_title,
+                                 R.string.javascript_permission_title, ContentSetting.ALLOW,
+                                 ContentSetting.BLOCK,
+                                 R.string.website_settings_category_javascript_allowed, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_KEYGEN,
+                    new ResourceItem(R.drawable.permission_keygen,
+                                 R.string.keygen_permission_title,
+                                 R.string.keygen_permission_title, ContentSetting.ALLOW,
+                                 ContentSetting.BLOCK,
+                                 0, R.string.website_settings_category_blocked_recommended));
+            localMap.put(
+                    ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
+                    new ResourceItem(R.drawable.permission_camera,
+                            R.string.website_settings_use_camera, R.string.camera_permission_title,
+                            ContentSetting.ASK, ContentSetting.BLOCK,
+                            R.string.website_settings_category_camera_ask, 0));
+            localMap.put(
+                    ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC,
+                    new ResourceItem(R.drawable.permission_mic, R.string.website_settings_use_mic,
+                            R.string.mic_permission_title, ContentSetting.ASK, ContentSetting.BLOCK,
+                            R.string.website_settings_category_mic_ask, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_MIDI_SYSEX,
+                    new ResourceItem(R.drawable.permission_midi, 0,
+                                 R.string.midi_sysex_permission_title, null, null, 0, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS,
+                    new ResourceItem(R.drawable.permission_push_notification,
+                                 R.string.push_notifications_permission_title,
+                                 R.string.push_notifications_permission_title, ContentSetting.ASK,
+                                 ContentSetting.BLOCK,
+                                 R.string.website_settings_category_notifications_ask, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS,
+                    new ResourceItem(R.drawable.permission_popups, R.string.popup_permission_title,
+                                 R.string.popup_permission_title, ContentSetting.ALLOW,
+                                 ContentSetting.BLOCK, 0,
+                                 R.string.website_settings_category_popups_blocked));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER,
+                    new ResourceItem(R.drawable.permission_protected_media,
+                                 org.chromium.chrome.R.string.protected_content,
+                                 org.chromium.chrome.R.string.protected_content,
+                                 ContentSetting.ASK, ContentSetting.BLOCK, 0, 0));
+            localMap.put(ContentSettingsType.CONTENT_SETTINGS_TYPE_USB_CHOOSER_DATA,
+                    new ResourceItem(R.drawable.settings_usb, 0, 0, ContentSetting.ASK,
+                                 ContentSetting.BLOCK, 0, 0));
+            sResourceInfo = localMap;
+        }
+        return sResourceInfo;
+    }
+
+    /**
+     * Returns the ResourceItem for a ContentSettingsType.
+     */
+    private static ResourceItem getResourceItem(int contentType) {
+        return getResourceInfo().get(contentType);
+    }
+
     /**
      * Returns the resource id of the icon for a content type.
      */
     public static int getIcon(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-                return R.drawable.permission_cookie;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-                return R.drawable.permission_fullscreen;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-                return R.drawable.permission_location;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-                return R.drawable.permission_javascript;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-                return R.drawable.permission_camera;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-                return R.drawable.permission_mic;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MIDI_SYSEX:
-                return R.drawable.permission_midi;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-                return R.drawable.permission_push_notification;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-                return R.drawable.permission_popups;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
-                return R.drawable.permission_protected_media;
-            default:
-                return 0;
-        }
+        return getResourceItem(contentType).getIcon();
+    }
+
+    /**
+     * Returns the Drawable object of the icon for a content type with a disabled tint.
+     */
+    public static Drawable getDisabledIcon(int contentType, Resources resources) {
+        Drawable icon = ApiCompatibilityUtils.getDrawable(resources, getIcon(contentType));
+        icon.mutate();
+        int disabledColor = ApiCompatibilityUtils.getColor(resources,
+                R.color.primary_text_disabled_material_light);
+        icon.setColorFilter(disabledColor, PorterDuff.Mode.SRC_IN);
+        return icon;
     }
 
     /**
@@ -47,28 +199,7 @@ public class ContentSettingsResources {
      * and in the global toggle at the top of a Website Settings page for a content type.
      */
     public static int getTitle(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-                return R.string.cookies_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-                return R.string.website_settings_fullscreen;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-                return R.string.website_settings_device_location;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-                return R.string.javascript_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-                return R.string.website_settings_use_camera;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-                return R.string.website_settings_use_mic;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-                return R.string.push_notifications_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-                return R.string.popup_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
-                return org.chromium.chrome.R.string.protected_content;
-            default:
-                return 0;
-        }
+        return getResourceItem(contentType).getTitle();
     }
 
     /**
@@ -76,28 +207,7 @@ public class ContentSettingsResources {
      * a content type.
      */
     public static int getExplanation(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-                return R.string.cookies_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-                return R.string.fullscreen_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-                return R.string.geolocation_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-                return R.string.javascript_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-                return R.string.camera_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-                return R.string.mic_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MIDI_SYSEX:
-                return R.string.midi_sysex_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-                return R.string.push_notifications_permission_title;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-                return R.string.popup_permission_title;
-            default:
-                return 0;
-        }
+        return getResourceItem(contentType).getExplanation();
     }
 
     /**
@@ -106,21 +216,7 @@ public class ContentSettingsResources {
      * that appears on the Site Settings page and has a global toggle.
      */
     public static ContentSetting getDefaultEnabledValue(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-                return ContentSetting.ALLOW;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
-                return ContentSetting.ASK;
-            default:
-                return null;
-        }
+        return getResourceItem(contentType).getDefaultEnabledValue();
     }
 
     /**
@@ -129,21 +225,7 @@ public class ContentSettingsResources {
      * that appears on the Site Settings page and has a global toggle.
      */
     public static ContentSetting getDefaultDisabledValue(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-                return ContentSetting.ASK;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
-                return ContentSetting.BLOCK;
-            default:
-                return null;
-        }
+        return getResourceItem(contentType).getDefaultDisabledValue();
     }
 
     /**
@@ -192,34 +274,14 @@ public class ContentSettingsResources {
      * Returns the summary (resource id) to show when the content type is enabled.
      */
     public static int getEnabledSummary(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES:
-                return R.string.website_settings_category_cookie_allowed;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-                return R.string.website_settings_category_ask_before_accessing;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT:
-                return R.string.website_settings_category_allowed_recommended;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_NOTIFICATIONS:
-                return R.string.website_settings_category_ask_before_sending;
-            default:
-                return getCategorySummary(getDefaultEnabledValue(contentType));
-        }
+        return getResourceItem(contentType).getEnabledSummary();
     }
 
     /**
      * Returns the summary (resource id) to show when the content type is disabled.
      */
     public static int getDisabledSummary(int contentType) {
-        switch (contentType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN:
-                return R.string.website_settings_category_ask_first_recommended;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_POPUPS:
-                return R.string.website_settings_category_blocked_recommended;
-            default:
-                return getCategorySummary(getDefaultDisabledValue(contentType));
-        }
+        return getResourceItem(contentType).getDisabledSummary();
     }
 
     /**
@@ -235,5 +297,13 @@ public class ContentSettingsResources {
      */
     public static int getCookieAllowedExceptThirdPartySummary() {
         return R.string.website_settings_category_allowed_except_third_party;
+    }
+
+    /**
+     * Returns the summary for Autoplay content settings when it is disabled because of Data Saver
+     * being enabled.
+     */
+    public static int getAutoplayDisabledByDataSaverSummary() {
+        return R.string.website_settings_category_autoplay_disabled_data_saver;
     }
 }

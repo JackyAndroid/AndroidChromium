@@ -7,12 +7,15 @@ package org.chromium.chrome.browser.cookies;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Java representation of net/cookies/canonical_cookie.h.
+ *
+ * Also has static methods serialize Cookies.
  */
 class CanonicalCookie {
-    private final String mUrl;
     private final String mName;
     private final String mValue;
     private final String mDomain;
@@ -22,14 +25,13 @@ class CanonicalCookie {
     private final long mLastAccess;
     private final boolean mSecure;
     private final boolean mHttpOnly;
-    private final boolean mFirstPartyOnly;
+    private final int mSameSite;
     private final int mPriority;
 
     /** Constructs a CanonicalCookie */
-    CanonicalCookie(String url, String name, String value, String domain, String path,
-            long creation, long expiration, long lastAccess, boolean secure, boolean httpOnly,
-            boolean firstPartyOnly, int priority) {
-        mUrl = url;
+    CanonicalCookie(String name, String value, String domain, String path, long creation,
+            long expiration, long lastAccess, boolean secure, boolean httpOnly, int sameSite,
+            int priority) {
         mName = name;
         mValue = value;
         mDomain = domain;
@@ -39,7 +41,7 @@ class CanonicalCookie {
         mLastAccess = lastAccess;
         mSecure = secure;
         mHttpOnly = httpOnly;
-        mFirstPartyOnly = firstPartyOnly;
+        mSameSite = sameSite;
         mPriority = priority;
     }
 
@@ -53,9 +55,9 @@ class CanonicalCookie {
         return mHttpOnly;
     }
 
-    /** @return True if the cookie is First-Party only. */
-    boolean isFirstPartyOnly() {
-        return mFirstPartyOnly;
+    /** @return SameSite enum */
+    int getSameSite() {
+        return mSameSite;
     }
 
     /** @return True if the cookie is secure. */
@@ -88,11 +90,6 @@ class CanonicalCookie {
         return mPath;
     }
 
-    /** @return Cookie URL. */
-    String getUrl() {
-        return mUrl;
-    }
-
     /** @return Cookie domain. */
     String getDomain() {
         return mDomain;
@@ -103,14 +100,65 @@ class CanonicalCookie {
         return mValue;
     }
 
-    /**
-     * Serializes for saving to disk. Does not close the stream.
-     * It is up to the caller to do so.
-     *
-     * @param out Stream to write the cookie to.
-     */
-    void saveToStream(DataOutputStream out) throws IOException {
-        out.writeUTF(mUrl);
+    // Note incognito state cannot persist across app installs since the encryption key is stored
+    // in the activity state bundle. So the version here is more of a guard than a real version
+    // used for format migrations.
+    private static final int SERIALIZATION_VERSION = 20160426;
+
+    static void saveListToStream(DataOutputStream out, CanonicalCookie[] cookies)
+            throws IOException {
+        if (out == null) {
+            throw new IllegalArgumentException("out arg is null");
+        }
+        if (cookies == null) {
+            throw new IllegalArgumentException("cookies arg is null");
+        }
+        for (CanonicalCookie cookie : cookies) {
+            if (cookie == null) {
+                throw new IllegalArgumentException("cookies arg contains null value");
+            }
+        }
+
+        int length = cookies.length;
+        out.writeInt(SERIALIZATION_VERSION);
+        out.writeInt(length);
+        for (int i = 0; i < length; ++i) {
+            cookies[i].saveToStream(out);
+        }
+    }
+
+    // Not private for tests.
+    static class UnexpectedFormatException extends Exception {
+        public UnexpectedFormatException(String message) {
+            super(message);
+        }
+    }
+
+    static List<CanonicalCookie> readListFromStream(DataInputStream in)
+            throws IOException, UnexpectedFormatException {
+        if (in == null) {
+            throw new IllegalArgumentException("in arg is null");
+        }
+
+        final int version = in.readInt();
+        if (version != SERIALIZATION_VERSION) {
+            throw new UnexpectedFormatException("Unexpected version");
+        }
+        final int length = in.readInt();
+        if (length < 0) {
+            throw new UnexpectedFormatException("Negative length: " + length);
+        }
+
+        ArrayList<CanonicalCookie> cookies = new ArrayList<>(length);
+        for (int i = 0; i < length; ++i) {
+            cookies.add(createFromStream(in));
+        }
+        return cookies;
+    }
+
+    private void saveToStream(DataOutputStream out) throws IOException {
+        // URL is no longer included. Keep for backward compatability.
+        out.writeUTF("");
         out.writeUTF(mName);
         out.writeUTF(mValue);
         out.writeUTF(mDomain);
@@ -120,20 +168,15 @@ class CanonicalCookie {
         out.writeLong(mLastAccess);
         out.writeBoolean(mSecure);
         out.writeBoolean(mHttpOnly);
-        out.writeBoolean(mFirstPartyOnly);
+        out.writeInt(mSameSite);
         out.writeInt(mPriority);
     }
 
-    /**
-     * Constructs a cookie by deserializing a single entry from the
-     * input stream.
-     *
-     * @param in Stream to read a cookie entry from.
-     */
-    static CanonicalCookie createFromStream(DataInputStream in)
-            throws IOException {
+    private static CanonicalCookie createFromStream(DataInputStream in) throws IOException {
+        // URL is no longer included. Keep for backward compatability.
+        in.readUTF();
         return new CanonicalCookie(in.readUTF(), in.readUTF(), in.readUTF(), in.readUTF(),
-                in.readUTF(), in.readLong(), in.readLong(), in.readLong(), in.readBoolean(),
-                in.readBoolean(), in.readBoolean(), in.readInt());
+                in.readLong(), in.readLong(), in.readLong(), in.readBoolean(), in.readBoolean(),
+                in.readInt(), in.readInt());
     }
 }

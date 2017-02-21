@@ -14,8 +14,10 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.chromium.base.CommandLine;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.partnerbookmarks.PartnerBookmarksReader;
 
 import java.util.ArrayList;
@@ -71,7 +73,7 @@ public class PartnerBrowserCustomizations {
      *         to read provider is also considered initialization.
      */
     @VisibleForTesting
-    static boolean isInitialized() {
+    public static boolean isInitialized() {
         return sIsInitialized;
     }
 
@@ -284,6 +286,10 @@ public class PartnerBrowserCustomizations {
      *         provider or provider set it to null to disable homepage.
      */
     public static String getHomePageUrl() {
+        CommandLine commandLine = CommandLine.getInstance();
+        if (commandLine.hasSwitch(ChromeSwitches.PARTNER_HOMEPAGE_FOR_TESTING)) {
+            return commandLine.getSwitchValue(ChromeSwitches.PARTNER_HOMEPAGE_FOR_TESTING);
+        }
         return sHomepage;
     }
 }

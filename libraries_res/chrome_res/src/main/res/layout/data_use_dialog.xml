@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="16dp"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp" >
+
+    <TextView
+        android:id="@+id/data_use_message"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="8dp"
+        android:textColor="@color/light_normal_color"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/learn_more"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:clickable="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="8dp"
+        android:text="@string/learn_more"
+        android:textColor="@color/light_active_color"
+        android:textSize="16sp" />
+
+    <CheckBox
+        android:id="@+id/data_use_checkbox"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:textColor="@color/light_normal_color"
+        android:textSize="16sp" />
+
+</LinearLayout>

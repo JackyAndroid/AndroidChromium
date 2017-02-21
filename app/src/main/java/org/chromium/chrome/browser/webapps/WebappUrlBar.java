@@ -21,8 +21,9 @@ import android.widget.TextView;
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.UrlUtilities;
 import org.chromium.chrome.browser.omnibox.LocationBarLayout;
+import org.chromium.components.url_formatter.UrlFormatter;
+import org.chromium.ui.base.DeviceFormFactor;
 
 import java.net.URI;
 
@@ -147,7 +148,9 @@ public class WebappUrlBar extends FrameLayout implements View.OnLayoutChangeList
     }
 
     private void updateSecurityIcon(int securityLevel) {
-        mCurrentIconResource = LocationBarLayout.getSecurityIconResource(securityLevel, false);
+        boolean isSmallDevice = !DeviceFormFactor.isTablet(getContext());
+        mCurrentIconResource =
+                LocationBarLayout.getSecurityIconResource(securityLevel, isSmallDevice, false);
 
         if (mCurrentIconResource != 0 && mIconResourceWidths.get(mCurrentIconResource, -1) == -1) {
             Drawable icon = ApiCompatibilityUtils.getDrawable(getResources(), mCurrentIconResource);
@@ -162,7 +165,7 @@ public class WebappUrlBar extends FrameLayout implements View.OnLayoutChangeList
         boolean showScheme = mCurrentIconResource == 0;
         String displayUrl = originalUrl;
         if (uri != null) {
-            String shortenedUrl = UrlUtilities.formatUrlForSecurityDisplay(uri, showScheme);
+            String shortenedUrl = UrlFormatter.formatUrlForSecurityDisplay(uri, showScheme);
             if (!TextUtils.isEmpty(shortenedUrl)) displayUrl = shortenedUrl;
         }
 

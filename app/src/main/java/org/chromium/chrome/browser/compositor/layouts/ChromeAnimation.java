@@ -219,6 +219,7 @@ public class ChromeAnimation<T> {
         private long mDuration;
         private long mStartDelay;
         private boolean mDelayStartValue;
+        private boolean mHasFinished;
         private Interpolator mInterpolator = getDecelerateInterpolator();
 
         /**
@@ -313,6 +314,7 @@ public class ChromeAnimation<T> {
          * Starts the animation and calls setProperty() with the initial value.
          */
         public void start() {
+            mHasFinished = false;
             mCurrentTime = 0;
             update(0);
         }
@@ -321,10 +323,12 @@ public class ChromeAnimation<T> {
          * @return Whether or not this current animation is finished.
          */
         public boolean finished() {
-            if (mCurrentTime >= mDuration + mStartDelay) {
-                return true;
+            if (!mHasFinished && mCurrentTime >= mDuration + mStartDelay) {
+                mHasFinished = true;
+                onPropertyAnimationFinished();
             }
-            return false;
+
+            return mHasFinished;
         }
 
         /**
@@ -342,6 +346,11 @@ public class ChromeAnimation<T> {
          * @param p The current animated value based on the current time and the Interpolator.
          */
         public abstract void setProperty(float p);
+
+        /**
+         * The abstract method that gets called when the property animation finished.
+         */
+        public abstract void onPropertyAnimationFinished();
     }
 
     /**
@@ -359,6 +368,12 @@ public class ChromeAnimation<T> {
          */
         public void setProperty(T prop, float val);
 
+        /**
+         * Notifies that the animation for a certain property has finished.
+         *
+         * @param prop The property that has finished animating.
+         */
+        public void onPropertyAnimationFinished(T prop);
     }
 
     /**
@@ -389,6 +404,11 @@ public class ChromeAnimation<T> {
         @Override
         public void setProperty(float p) {
             mAnimatedObject.setProperty(mProperty, p);
+        }
+
+        @Override
+        public void onPropertyAnimationFinished() {
+            mAnimatedObject.onPropertyAnimationFinished(mProperty);
         }
 
         /**

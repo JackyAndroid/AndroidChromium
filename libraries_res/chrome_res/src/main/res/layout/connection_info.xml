@@ -21,6 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:paddingBottom="@dimen/connection_info_padding_thin"
         android:paddingStart="@dimen/connection_info_padding_thin" >
 
         <TextView

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" >
+
+        <EditText
+            android:id="@+id/bookmark_search_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:gravity="center_vertical"
+            android:hint="@string/bookmark_action_bar_search"
+            android:imeOptions="flagNoExtractUi|actionSearch"
+            android:inputType="textNoSuggestions"
+            android:singleLine="true"
+            android:textColor="#343434"
+            android:textSize="20sp" />
+    </android.support.v7.widget.Toolbar>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E1E1E1" />
+
+    <view class="org.chromium.chrome.browser.bookmarks.BookmarkSearchView$HistoryResultSwitcher"
+        android:id="@+id/history_result_switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out" >
+
+        <ListView
+            android:id="@+id/bookmark_history_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp" />
+
+        <ViewSwitcher
+            android:id="@+id/result_empty_switcher"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inAnimation="@android:anim/fade_in"
+            android:outAnimation="@android:anim/fade_out" >
+
+            <ListView
+                android:id="@+id/bookmark_result_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@null"
+                android:dividerHeight="0dp" />
+
+            <TextView
+                android:id="@+id/bookmark_search_empty_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawablePadding="3dp"
+                android:drawableTop="@drawable/bookmark_logo_large"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/bookmark_no_result"
+                android:textColor="#5B5B5B"
+                android:textSize="16sp" />
+        </ViewSwitcher>
+    </view>
+
+</merge>

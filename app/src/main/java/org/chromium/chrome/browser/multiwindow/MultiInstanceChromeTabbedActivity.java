@@ -7,8 +7,10 @@ package org.chromium.chrome.browser.multiwindow;
 import org.chromium.chrome.browser.ChromeTabbedActivity;
 
 /**
- * An Activity to launch ChromeTabbedActivity without "singleTask" launchMode.
- * This is needed because a chrome launcher activity and a chrome UI activity should be in the same
- * task to support samsung multi-instance.
+ * A subclass of ChromeTabbedActivity, used in Samsung multi-instance mode (before Android N).
+ *
+ * Unlike ChromeTabbedActivity, this activity does not have launchMode="singleTask" in the manifest,
+ * so multiple instances of this activity can be launched. Also, this activity can live in the same
+ * task as ChromeLauncherActivity, which is needed to support Samsung multi-instance.
  */
 public class MultiInstanceChromeTabbedActivity extends ChromeTabbedActivity {}

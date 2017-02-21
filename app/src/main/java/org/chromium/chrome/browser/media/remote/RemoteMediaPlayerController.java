@@ -16,14 +16,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.MediaRouteChooserDialogFragment;
 import android.support.v7.app.MediaRouteControllerDialogFragment;
 import android.support.v7.app.MediaRouteDialogFactory;
-import android.util.Log;
 
 import com.google.android.gms.cast.CastMediaControlIntent;
 
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.media.remote.MediaRouteController.MediaStateListener;
 import org.chromium.chrome.browser.media.remote.RemoteVideoInfo.PlayerState;
 import org.chromium.ui.widget.Toast;
 
@@ -38,12 +39,11 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
     // Singleton instance of the class. May only be accessed from UI thread.
     private static RemoteMediaPlayerController sInstance;
 
-    private static final String TAG = "VideoFling";
+    private static final String TAG = "MediaFling";
 
     private static final String DEFAULT_CASTING_MESSAGE = "Casting to Chromecast";
 
-    private TransportControl mNotificationControl;
-    private TransportControl mLockScreenControl;
+    private CastNotificationControl mNotificationControl;
 
     private Context mCastContextApplicationContext;
     // The Activity that was in the foreground when the video was cast.
@@ -53,8 +53,6 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
 
     // points to mDefaultRouteSelector, mYouTubeRouteSelector or null
     private MediaRouteController mCurrentRouteController;
-
-    private boolean mFirstConnection = true;
 
     // This is a key for meta-data in the package manifest.
     private static final String REMOTE_MEDIA_PLAYERS_KEY =
@@ -142,7 +140,7 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
             if (classNameString != null) {
                 String[] classNames = classNameString.split(",");
                 for (String className : classNames) {
-                    Log.i(TAG, "Adding remote media route controller " + className.trim());
+                    Log.d(TAG, "Adding remote media route controller %s", className.trim());
                     Class<?> mediaRouteControllerClass = Class.forName(className.trim());
                     Object mediaRouteController = mediaRouteControllerClass.newInstance();
                     assert mediaRouteController instanceof MediaRouteController;
@@ -161,17 +159,9 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
 
         if (!controller.initialize()) return;
 
-        if (mFirstConnection) {
-            controller.reconnectAnyExistingRoute();
-            mFirstConnection = false;
-        }
-
-        if (mNotificationControl != null) {
-            mNotificationControl.setRouteController(controller);
-        }
-        if (mLockScreenControl != null) {
-            mLockScreenControl.setRouteController(controller);
-        }
+        mNotificationControl = CastNotificationControl.getOrCreate(
+                mChromeVideoActivity.get(), controller);
+        mNotificationControl.setPosterBitmap(getPoster());
         controller.prepareMediaRoute();
 
         controller.addUiListener(this);
@@ -185,11 +175,6 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
      */
     public void requestRemotePlayback(
             MediaRouteController.MediaStateListener player, MediaRouteController controller) {
-        // If we are already casting then simply switch to new video.
-        if (controller.isBeingCast()) {
-            controller.playerTakesOverCastDevice(player);
-            return;
-        }
         Activity currentActivity = ApplicationStatus.getLastTrackedFocusedActivity();
         mChromeVideoActivity = new WeakReference<Activity>(currentActivity);
 
@@ -198,10 +183,7 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         }
 
         onStateReset(controller);
-        if (controller.shouldResetState(player)) {
-            controller.setMediaStateListener(player);
-            showMediaRouteDialog(controller, currentActivity);
-        }
+        showMediaRouteDialog(player, controller, currentActivity);
 
     }
 
@@ -218,18 +200,19 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         if (mCurrentRouteController == null) return;
         if (mCurrentRouteController.getMediaStateListener() != player) return;
 
-        showMediaRouteControlDialog(mCurrentRouteController,
-                ApplicationStatus.getLastTrackedFocusedActivity());
+        showMediaRouteControlDialog(ApplicationStatus.getLastTrackedFocusedActivity());
     }
 
-    private void showMediaRouteDialog(MediaRouteController controller, Activity activity) {
+    private void showMediaRouteDialog(MediaStateListener player, MediaRouteController controller,
+            Activity activity) {
 
         FragmentManager fm = ((FragmentActivity) activity).getSupportFragmentManager();
         if (fm == null) {
             throw new IllegalStateException("The activity must be a subclass of FragmentActivity");
         }
 
-        MediaRouteDialogFactory factory = new ChromeMediaRouteDialogFactory();
+        MediaRouteDialogFactory factory = new MediaRouteChooserDialogFactory(player, controller,
+                activity);
 
         if (fm.findFragmentByTag(
                 "android.support.v7.mediarouter:MediaRouteChooserDialogFragment") != null) {
@@ -242,13 +225,13 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         f.show(fm, "android.support.v7.mediarouter:MediaRouteChooserDialogFragment");
     }
 
-    private void showMediaRouteControlDialog(MediaRouteController controller, Activity activity) {
+    private void showMediaRouteControlDialog(Activity activity) {
 
         FragmentManager fm = ((FragmentActivity) activity).getSupportFragmentManager();
         if (fm == null) {
             throw new IllegalStateException("The activity must be a subclass of FragmentActivity");
         }
-        MediaRouteDialogFactory factory = new ChromeMediaRouteDialogFactory();
+        MediaRouteDialogFactory factory = new MediaRouteControllerDialogFactory();
 
         if (fm.findFragmentByTag(
                 "android.support.v7.mediarouter:MediaRouteControllerDialogFragment") != null) {
@@ -258,22 +241,6 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         MediaRouteControllerDialogFragment f = factory.onCreateControllerDialogFragment();
 
         f.show(fm, "android.support.v7.mediarouter:MediaRouteControllerDialogFragment");
-    }
-
-     /**
-     * Starts up the notification and lock screen with the given playback state.
-     *
-     * @param initialState the initial state of the notification
-     * @param mediaRouteController the mediaRouteController for which these are needed
-     */
-    public void startNotificationAndLockScreen(PlayerState initialState,
-            MediaRouteController mediaRouteController) {
-        mCurrentRouteController = mediaRouteController;
-        createNotificationControl();
-        getNotification().show(initialState);
-        createLockScreen();
-        TransportControl lockScreen = getLockScreen();
-        if (lockScreen != null) lockScreen.show(initialState);
     }
 
     /**
@@ -291,49 +258,16 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         mCurrentRouteController = controller;
     }
 
-    private TransportControl getNotification() {
+    private CastNotificationControl getNotificationControl() {
         return mNotificationControl;
-    }
-
-    /**
-     *
-     */
-    private void createNotificationControl() {
-        mNotificationControl = NotificationTransportControl.getOrCreate(
-                mChromeVideoActivity.get(), mCurrentRouteController);
-        mNotificationControl.setError(null);
-        mNotificationControl.setScreenName(mCurrentRouteController.getRouteName());
-        mNotificationControl.addListener(mCurrentRouteController);
-    }
-
-    private TransportControl getLockScreen() {
-        return mLockScreenControl;
-    }
-
-    private void createLockScreen() {
-        mLockScreenControl = LockScreenTransportControl.getOrCreate(
-                mChromeVideoActivity.get(), mCurrentRouteController);
-        mLockScreenControl.setError(null);
-        mLockScreenControl.setScreenName(mCurrentRouteController.getRouteName());
-        mLockScreenControl.addListener(mCurrentRouteController);
-        mLockScreenControl.setPosterBitmap(getPoster());
     }
 
     @Override
     public void onPrepared(MediaRouteController mediaRouteController) {
-
-        startNotificationAndLockScreen(PlayerState.PLAYING, mediaRouteController);
     }
 
     @Override
-    public void onPlaybackStateChanged(PlayerState oldState, PlayerState newState) {
-        if (newState == PlayerState.PLAYING || newState == PlayerState.LOADING
-                || newState == PlayerState.PAUSED) {
-            TransportControl notificationControl = getNotification();
-            if (notificationControl != null) notificationControl.show(newState);
-            TransportControl lockScreen = getLockScreen();
-            if (lockScreen != null) lockScreen.show(newState);
-        }
+    public void onPlaybackStateChanged(PlayerState newState) {
     }
 
     @Override
@@ -344,10 +278,10 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
     }
 
     @Override
-    public void onDurationUpdated(int durationMillis) {}
+    public void onDurationUpdated(long durationMillis) {}
 
     @Override
-    public void onPositionChanged(int positionMillis) {}
+    public void onPositionChanged(long positionMillis) {}
 
     @Override
     public void onTitleChanged(String title) {}
@@ -392,9 +326,6 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
     private void resetPlayingVideo() {
         if (mNotificationControl != null) {
             mNotificationControl.setRouteController(mCurrentRouteController);
-        }
-        if (mLockScreenControl != null) {
-            mLockScreenControl.setRouteController(mCurrentRouteController);
         }
     }
 

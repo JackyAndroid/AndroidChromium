@@ -11,12 +11,6 @@
         <attr name="optimalWidthWeight" format="float" />
     </declare-styleable>
 
-    <declare-styleable name="ChartGridView">
-        <attr name="primaryDrawable" format="reference" />
-        <attr name="secondaryDrawable" format="reference" />
-        <attr name="borderDrawable" format="reference" />
-    </declare-styleable>
-
     <declare-styleable name="ChartNetworkSeriesView">
         <attr name="strokeColor" format="color" />
         <attr name="fillColor" format="color" />

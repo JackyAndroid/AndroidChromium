@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/infobar_padding" >
+
+    <TextView
+        android:id="@+id/header_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/tab_switcher_callout_header"
+        android:textSize="@dimen/infobar_big_icon_message_size"
+        android:textColor="@color/default_text_color" />
+
+    <TextView
+        android:id="@+id/description_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/tab_switcher_callout_body"
+        android:textSize="@dimen/infobar_descriptive_text_size"
+        android:textColor="@color/descriptive_text_color" />
+
+    <Button
+        android:id="@+id/confirm_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_gravity="end"
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/ok_got_it"
+        android:textColor="@color/infobar_accent_blue" />
+
+</LinearLayout>

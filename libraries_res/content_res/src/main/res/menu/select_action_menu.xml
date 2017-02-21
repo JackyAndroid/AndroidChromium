@@ -8,14 +8,7 @@
 
 <!--suppress AlwaysShowAction -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/select_action_menu_select_all"
-        android:icon="?android:attr/actionModeSelectAllDrawable"
-        android:title="@android:string/selectAll"
-        android:showAsAction="always|withText"
-        android:alphabeticShortcut="a"
-        />
-    <item
+   <item
         android:id="@+id/select_action_menu_cut"
         android:icon="?android:attr/actionModeCutDrawable"
         android:title="@android:string/cut"
@@ -41,6 +34,13 @@
         android:title="@string/actionbar_share"
         android:showAsAction="always|withText"
         style="@style/SelectActionMenuShare"
+        />
+    <item
+        android:id="@+id/select_action_menu_select_all"
+        android:icon="?android:attr/actionModeSelectAllDrawable"
+        android:title="@android:string/selectAll"
+        android:showAsAction="always|withText"
+        android:alphabeticShortcut="a"
         />
     <group
         android:id="@+id/select_action_menu_text_processing_menus">

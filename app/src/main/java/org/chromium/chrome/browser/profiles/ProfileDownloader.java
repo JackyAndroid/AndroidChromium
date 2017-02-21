@@ -57,7 +57,7 @@ public class ProfileDownloader {
     /**
     * Private class to pend profile download requests when system accounts have not been seeded into
     * AccountTrackerService. It listens onSystemAccountsSeedingComplete to finish pending requests
-    * and onSystemAccountsForceRefreshed to clear outdated pending requests.
+    * and onSystemAccountsChanged to clear outdated pending requests.
     */
     private static class PendingProfileDownloads
             implements AccountTrackerService.OnSystemAccountsSeededListener {
@@ -106,7 +106,7 @@ public class ProfileDownloader {
         }
 
         @Override
-        public void onSystemAccountsForceRefreshed() {
+        public void onSystemAccountsChanged() {
             mProfiles.clear();
             mAccountIds.clear();
             mImageSidePixels.clear();
@@ -123,7 +123,7 @@ public class ProfileDownloader {
     public static void startFetchingAccountInfoFor(Context context, Profile profile,
             String accountId, int imageSidePixels, boolean isPreSignin) {
         ThreadUtils.assertOnUiThread();
-        if (!AccountTrackerService.get(context).isSystemAccountsSeeded()) {
+        if (!AccountTrackerService.get(context).checkAndSeedSystemAccounts()) {
             PendingProfileDownloads.get(context).pendProfileDownload(
                     profile, accountId, imageSidePixels);
             return;

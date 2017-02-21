@@ -19,15 +19,14 @@
         android:contentDescription="@null"
         style="@style/WebNotificationLargeIcon"/>
 
-    <ImageView
+    <ViewStub
+        android:id="@+id/small_icon_overlay"
+        android:inflatedId="@id/small_icon_overlay"
+        android:layout="@layout/web_notification_small_icon"
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:layout_gravity="bottom|end"
-        android:padding="3dp"
-        android:scaleType="centerInside"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_chrome"/>
+        android:layout_gravity="bottom|end"/>
 
 </FrameLayout>

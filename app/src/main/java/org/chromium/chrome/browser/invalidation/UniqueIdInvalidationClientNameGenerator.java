@@ -8,8 +8,8 @@ import android.content.Context;
 
 import org.chromium.chrome.browser.identity.UniqueIdentificationGenerator;
 import org.chromium.chrome.browser.identity.UuidBasedUniqueIdentificationGenerator;
-import org.chromium.sync.notifier.InvalidationClientNameGenerator;
-import org.chromium.sync.notifier.InvalidationClientNameProvider;
+import org.chromium.components.sync.notifier.InvalidationClientNameGenerator;
+import org.chromium.components.sync.notifier.InvalidationClientNameProvider;
 
 /**
  * An InvalidationClientNameGenerator that wraps an UniqueIdentificationGenerator.

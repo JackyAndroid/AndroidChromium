@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- TODO(dfalcantara): Figure out how to split off the units from the value and
+                            then make that part of the string smaller with a Spannable.
+    -->
+    <TextView
+        android:id="@+id/space_used_display"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/drawer_margin_large"
+        android:paddingEnd="@dimen/drawer_margin_large"
+        android:textColor="@color/light_active_color"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/space_total_display"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/drawer_margin_large"
+        android:paddingEnd="@dimen/drawer_margin_large"
+        android:textColor="@color/descriptive_text_color"
+        android:textSize="14sp" />
+
+    <!-- The widget ends up claiming 48dp of space, vertically. -->
+    <ProgressBar
+        android:id="@+id/space_bar"
+        style="@style/MaterialProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="22dp"
+        android:layout_marginStart="@dimen/drawer_margin_large"
+        android:layout_marginEnd="@dimen/drawer_margin_large" />
+
+</merge>

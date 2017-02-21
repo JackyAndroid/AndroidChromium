@@ -6,93 +6,64 @@ package org.chromium.chrome.browser.accessibility;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.preference.PreferenceManager;
 
+import org.chromium.base.ContextUtils;
+import org.chromium.base.ObserverList;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
-import org.chromium.base.annotations.NativeCall;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.chromium.chrome.browser.util.MathUtils;
 
 /**
- * Singleton wrapper class for native FontSizePrefs. Provides support for preferences for Font
- * Scale Factor, Force Enable Zoom, and User Set Force Enable Zoom. User Set Force Enable Zoom
- * tracks whether the user  has manually set the force enable zoom button, while Force Enable Zoom
- * tracks whether force enable zoom is on or off. Font Scale Factor reflects the global font scale.
+ * Singleton class for accessing these font size-related preferences:
+ *  - User Font Scale Factor: the font scale value that the user sees and can set. This is a value
+ *        between 50% and 200% (i.e. 0.5 and 2).
+ *  - Font Scale Factor: the font scale factor applied to webpage text during font boosting. This
+ *        equals the user font scale factor times the Android system font scale factor, which
+ *        reflects the font size indicated in Android settings > Display > Font size.
+ *  - Force Enable Zoom: whether force enable zoom is on or off
+ *  - User Set Force Enable Zoom: whether the user has manually set the force enable zoom button
  */
-public class FontSizePrefs implements OnSharedPreferenceChangeListener {
-    public static final String PREF_FORCE_ENABLE_ZOOM = "force_enable_zoom";
-    public static final String PREF_TEXT_SCALE = "text_scale";
-    public static final String PREF_USER_SET_FORCE_ENABLE_ZOOM = "user_set_force_enable_zoom";
+public class FontSizePrefs {
+    /**
+     * The font scale threshold beyond which force enable zoom is automatically turned on. It
+     * is chosen such that force enable zoom will be activated when the accessibility large text
+     * setting is on (i.e. this value should be the same as or lesser than the font size scale used
+     * by accessiblity large text).
+     */
+    public static final float FORCE_ENABLE_ZOOM_THRESHOLD_MULTIPLIER = 1.3f;
+
+    private static final float EPSILON = 0.001f;
+
+    static final String PREF_USER_SET_FORCE_ENABLE_ZOOM = "user_set_force_enable_zoom";
+    static final String PREF_USER_FONT_SCALE_FACTOR = "user_font_scale_factor";
 
     private static FontSizePrefs sFontSizePrefs;
+
     private final long mFontSizePrefsAndroidPtr;
+    private final Context mApplicationContext;
     private final SharedPreferences mSharedPreferences;
-    private final Map<Observer, FontSizePrefsObserverWrapper> mObserverMap;
+    private final ObserverList<FontSizePrefsObserver> mObserverList;
+
+    private Float mSystemFontScaleForTests = null;
 
     /**
-     * Observer interface for observing changes in FontScaleFactor, ForceEnableZoom and
-     * UserSetForceEnableZoom.
+     * Interface for observing changes in font size-related preferences.
      */
-    public interface Observer {
-        void onChangeFontSize(float newFontSize);
-        void onChangeForceEnableZoom(boolean enabled);
-        void onChangeUserSetForceEnableZoom(boolean enabled);
-    }
-
-    /**
-     * Wrapper for FontSizePrefsObserverAndroid.
-     */
-    private static class FontSizePrefsObserverWrapper {
-        private final Observer mFontSizePrefsObserver;
-        private final long mNativeFontSizePrefsObserverWrapperPtr;
-
-        public FontSizePrefsObserverWrapper(Observer observer) {
-            mNativeFontSizePrefsObserverWrapperPtr = nativeInitObserverAndroid();
-            mFontSizePrefsObserver = observer;
-        }
-
-        public long getNativePtr() {
-            return mNativeFontSizePrefsObserverWrapperPtr;
-        }
-
-        public void destroy() {
-            nativeDestroyObserverAndroid(mNativeFontSizePrefsObserverWrapperPtr);
-        }
-
-        @CalledByNative("FontSizePrefsObserverWrapper")
-        public void onChangeFontSize(float newFontSize) {
-            mFontSizePrefsObserver.onChangeFontSize(newFontSize);
-        }
-
-        @CalledByNative("FontSizePrefsObserverWrapper")
-        public void onChangeForceEnableZoom(boolean enabled) {
-            mFontSizePrefsObserver.onChangeForceEnableZoom(enabled);
-        }
-
-        public void onChangeUserSetForceEnableZoom(boolean enabled) {
-            mFontSizePrefsObserver.onChangeUserSetForceEnableZoom(enabled);
-        }
-
-        @NativeCall("FontSizePrefsObserverWrapper")
-        private native long nativeInitObserverAndroid();
-
-        @NativeCall("FontSizePrefsObserverWrapper")
-        private native void nativeDestroyObserverAndroid(long nativeFontSizePrefsObserverAndroid);
+    public interface FontSizePrefsObserver {
+        void onFontScaleFactorChanged(float fontScaleFactor, float userFontScaleFactor);
+        void onForceEnableZoomChanged(boolean enabled);
     }
 
     private FontSizePrefs(Context context) {
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
         mFontSizePrefsAndroidPtr = nativeInit();
-        mObserverMap = new HashMap<Observer, FontSizePrefsObserverWrapper>();
+        mApplicationContext = context.getApplicationContext();
+        mSharedPreferences = ContextUtils.getAppSharedPreferences();
+        mObserverList = new ObserverList<FontSizePrefsObserver>();
     }
 
     /**
-     * Returns the FontSizePrefs corresponding to the inputted Profile. If no FontSizePrefs existed,
-     * this method will create one.
+     * Returns the singleton FontSizePrefs, constructing it if it doesn't already exist.
      */
     public static FontSizePrefs getInstance(Context context) {
         ThreadUtils.assertOnUiThread();
@@ -103,86 +74,152 @@ public class FontSizePrefs implements OnSharedPreferenceChangeListener {
     }
 
     /**
-     * Adds the observer to listen for Font Scale and Force Enable Zoom preferences.
-     * @return true if the observerMap was changed as a result of the call.
+     * Adds an observer to listen for changes to font scale-related preferences.
      */
-    public boolean addObserver(Observer obs) {
-        if (mObserverMap.containsKey(obs)) return false;
-        FontSizePrefsObserverWrapper wrappedObserver =
-                new FontSizePrefsObserverWrapper(obs);
-        nativeAddObserver(mFontSizePrefsAndroidPtr, wrappedObserver.getNativePtr());
-        mObserverMap.put(obs, wrappedObserver);
-        return true;
+    public void addObserver(FontSizePrefsObserver observer) {
+        mObserverList.addObserver(observer);
     }
 
     /**
-     * Removes the observer and unregisters it from Font Scale and Force Enable Zoom changes.
-     * @return true if an observer was removed as a result of the call.
+     * Removes an observer so it will no longer receive updates for changes to font scale-related
+     * preferences.
      */
-    public boolean removeObserver(Observer obs) {
-        FontSizePrefsObserverWrapper wrappedObserver = mObserverMap.remove(obs);
-        if (wrappedObserver == null) return false;
-        nativeRemoveObserver(mFontSizePrefsAndroidPtr, wrappedObserver.getNativePtr());
-        wrappedObserver.destroy();
-        return true;
+    public void removeObserver(FontSizePrefsObserver observer) {
+        mObserverList.removeObserver(observer);
     }
 
     /**
-     * Sets UserSetForceEnableZoom. This is the only one of three preferences stored through
-     * SharedPreferences.
+     * Updates the fontScaleFactor based on the userFontScaleFactor and the system-wide font scale.
+     *
+     * This should be called during application start-up and whenever the system font size changes.
      */
-    public void setUserSetForceEnableZoom(boolean enabled) {
-        SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
-        sharedPreferencesEditor.putBoolean(PREF_USER_SET_FORCE_ENABLE_ZOOM, enabled);
-        sharedPreferencesEditor.apply();
-    }
-
-    /**
-     * Returns true if user has manually set ForceEnableZoom and false otherwise.
-     */
-    public boolean getUserSetForceEnableZoom() {
-        return mSharedPreferences.getBoolean(PREF_USER_SET_FORCE_ENABLE_ZOOM,
-                false);
-    }
-
-    public void setFontScaleFactor(float fontScaleFactor) {
-        nativeSetFontScaleFactor(mFontSizePrefsAndroidPtr, fontScaleFactor);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (PREF_USER_SET_FORCE_ENABLE_ZOOM.equals(key)) {
-            for (FontSizePrefsObserverWrapper obsWrapper : mObserverMap.values()) {
-                obsWrapper.onChangeUserSetForceEnableZoom(getUserSetForceEnableZoom());
-            }
+    public void onSystemFontScaleChanged() {
+        float userFontScaleFactor = getUserFontScaleFactor();
+        if (userFontScaleFactor != 0f) {
+            setFontScaleFactor(userFontScaleFactor * getSystemFontScale());
         }
     }
 
+    /**
+     * Sets the userFontScaleFactor. This should be a value between .5 and 2.
+     */
+    public void setUserFontScaleFactor(float userFontScaleFactor) {
+        SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
+        sharedPreferencesEditor.putFloat(PREF_USER_FONT_SCALE_FACTOR, userFontScaleFactor);
+        sharedPreferencesEditor.apply();
+        setFontScaleFactor(userFontScaleFactor * getSystemFontScale());
+    }
+
+    /**
+     * Returns the userFontScaleFactor. This is the value that should be displayed to the user.
+     */
+    public float getUserFontScaleFactor() {
+        float userFontScaleFactor = mSharedPreferences.getFloat(PREF_USER_FONT_SCALE_FACTOR, 0f);
+        if (userFontScaleFactor == 0f) {
+            float fontScaleFactor = getFontScaleFactor();
+
+            if (Math.abs(fontScaleFactor - 1f) <= EPSILON) {
+                // If the font scale factor is 1, assume that the user hasn't customized their font
+                // scale and/or wants the default value
+                userFontScaleFactor = 1f;
+            } else {
+                // Initialize userFontScaleFactor based on fontScaleFactor, since
+                // userFontScaleFactor was added long after fontScaleFactor.
+                userFontScaleFactor =
+                        MathUtils.clamp(fontScaleFactor / getSystemFontScale(), 0.5f, 2f);
+            }
+            SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
+            sharedPreferencesEditor.putFloat(PREF_USER_FONT_SCALE_FACTOR, userFontScaleFactor);
+            sharedPreferencesEditor.apply();
+        }
+        return userFontScaleFactor;
+    }
+
+    /**
+     * Returns the fontScaleFactor. This is the product of the userFontScaleFactor and the system
+     * font scale, and is the amount by which webpage text will be scaled during font boosting.
+     */
     public float getFontScaleFactor() {
         return nativeGetFontScaleFactor(mFontSizePrefsAndroidPtr);
     }
 
-    public void setForceEnableZoom(boolean enabled) {
-        nativeSetForceEnableZoom(mFontSizePrefsAndroidPtr, enabled);
+    /**
+     * Sets forceEnableZoom due to a user request (e.g. checking a checkbox). This implicitly sets
+     * userSetForceEnableZoom.
+     */
+    public void setForceEnableZoomFromUser(boolean enabled) {
+        setForceEnableZoom(enabled, true);
     }
 
+    /**
+     * Returns whether forceEnableZoom is enabled.
+     */
     public boolean getForceEnableZoom() {
         return nativeGetForceEnableZoom(mFontSizePrefsAndroidPtr);
     }
 
-    private native void nativeAddObserver(long nativeFontSizePrefsAndroid,
-            long nativeObserverPtr);
+    /**
+     * Sets a mock value for the system-wide font scale. Use only in tests.
+     */
+    @VisibleForTesting
+    void setSystemFontScaleForTest(float fontScale) {
+        mSystemFontScaleForTests = fontScale;
+    }
 
-    private native void nativeRemoveObserver(long nativeFontSizePrefsAndroid,
-            long nativeObserverPtr);
+    private float getSystemFontScale() {
+        if (mSystemFontScaleForTests != null) return mSystemFontScaleForTests;
+        return mApplicationContext.getResources().getConfiguration().fontScale;
+    }
+
+    private void setForceEnableZoom(boolean enabled, boolean fromUser) {
+        SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
+        sharedPreferencesEditor.putBoolean(PREF_USER_SET_FORCE_ENABLE_ZOOM, fromUser);
+        sharedPreferencesEditor.apply();
+        nativeSetForceEnableZoom(mFontSizePrefsAndroidPtr, enabled);
+    }
+
+    private boolean getUserSetForceEnableZoom() {
+        return mSharedPreferences.getBoolean(PREF_USER_SET_FORCE_ENABLE_ZOOM, false);
+    }
+
+    private void setFontScaleFactor(float fontScaleFactor) {
+        float previousFontScaleFactor = getFontScaleFactor();
+        nativeSetFontScaleFactor(mFontSizePrefsAndroidPtr, fontScaleFactor);
+
+        if (previousFontScaleFactor < FORCE_ENABLE_ZOOM_THRESHOLD_MULTIPLIER
+                && fontScaleFactor >= FORCE_ENABLE_ZOOM_THRESHOLD_MULTIPLIER
+                && !getForceEnableZoom()) {
+            // If the font scale factor just crossed above the threshold, set force enable zoom even
+            // if the user has previously unset it.
+            setForceEnableZoom(true, false);
+        } else if (previousFontScaleFactor >= FORCE_ENABLE_ZOOM_THRESHOLD_MULTIPLIER
+                && fontScaleFactor < FORCE_ENABLE_ZOOM_THRESHOLD_MULTIPLIER
+                && !getUserSetForceEnableZoom()) {
+            // If the font scale factor just crossed below the threshold and the user didn't set
+            // force enable zoom manually, then unset force enable zoom.
+            setForceEnableZoom(false, false);
+        }
+    }
+
+    @CalledByNative
+    private void onFontScaleFactorChanged(float fontScaleFactor) {
+        float userFontScaleFactor = getUserFontScaleFactor();
+        for (FontSizePrefsObserver observer : mObserverList) {
+            observer.onFontScaleFactorChanged(fontScaleFactor, userFontScaleFactor);
+        }
+    }
+
+    @CalledByNative
+    private void onForceEnableZoomChanged(boolean enabled) {
+        for (FontSizePrefsObserver observer : mObserverList) {
+            observer.onForceEnableZoomChanged(enabled);
+        }
+    }
 
     private native long nativeInit();
-
-    private native void nativeSetFontScaleFactor(long nativeFontSizePrefsAndroid, float font);
-
+    private native void nativeSetFontScaleFactor(long nativeFontSizePrefsAndroid,
+            float fontScaleFactor);
     private native float nativeGetFontScaleFactor(long nativeFontSizePrefsAndroid);
-
     private native boolean nativeGetForceEnableZoom(long nativeFontSizePrefsAndroid);
-
     private native void nativeSetForceEnableZoom(long nativeFontSizePrefsAndroid, boolean enabled);
 }

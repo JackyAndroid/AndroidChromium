@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<org.chromium.chrome.browser.signin.AccountSigninView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/signin_body_background">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="52dp">
+
+        <!-- The view that allows the user to choose the sign in account -->
+        <org.chromium.chrome.browser.signin.AccountSigninChooseView
+            android:id="@+id/account_signin_choose_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:requiresFadingEdge="vertical"
+            android:fadingEdgeLength="48dp">
+
+            <LinearLayout
+                android:id="@+id/account_signin_choose_view_root_child_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- The layout_width/layout_height is set to 16/9 dynamically in Java -->
+                <TextView 
+                    android:id="@+id/signin_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom"
+                    android:paddingStart="@dimen/signin_chooser_padding"
+                    android:paddingEnd="@dimen/signin_chooser_padding"
+                    android:paddingBottom="@dimen/signin_chooser_padding"
+                    android:background="@color/signin_head_background"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="@dimen/fre_title_text_size"
+                    android:text="@string/sign_in_to_chrome"/>
+
+                <View 
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/signin_border_line_color"
+                    android:alpha="0.08"/>
+
+                <TextView 
+                    android:id="@+id/signin_choice_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/signin_chooser_padding"
+                    android:lineSpacingMultiplier="1.4"
+                    android:text="@string/signin_account_choice_description"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="@dimen/fre_normal_text_size"/>
+            </LinearLayout>
+        </org.chromium.chrome.browser.signin.AccountSigninChooseView>
+
+        <!-- The view that allows the user to confirm signed in account, sync and service personalization -->
+        <org.chromium.chrome.browser.signin.AccountSigninConfirmationView
+            android:id="@+id/signin_confirmation_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:requiresFadingEdge="vertical"
+            android:fadingEdgeLength="48dp"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- The layout_width/layout_height is set to 16/9 dynamically in Java -->
+                <LinearLayout
+                    android:id="@+id/signin_confirmation_head"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:background="@color/signin_head_background"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/signin_account_image"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_marginBottom="24dp"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="@null"/>
+
+                    <TextView
+                        android:id="@+id/signin_account_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/default_text_color"
+                        android:textSize="@dimen/fre_title_text_size"
+                        android:ellipsize="end"
+                        android:maxLines="1"/>
+
+                    <TextView
+                        android:id="@+id/signin_account_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:textColor="@color/descriptive_text_color"
+                        android:textSize="@dimen/fre_normal_text_size"
+                        android:ellipsize="end"
+                        android:maxLines="1"/>
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/signin_confirmation_head_body_border"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@id/signin_confirmation_head"
+                    android:background="@color/signin_border_line_color"
+                    android:alpha="0.08"/>
+
+                <TextView
+                    android:id="@+id/signin_chrome_sync_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_below="@id/signin_confirmation_head_body_border"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/sync_confirmation_chrome_sync_title"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="@dimen/fre_normal_text_size"
+                    android:fontFamily="sans-serif-medium"
+                    android:drawableStart="@drawable/chrome_sync_logo"
+                    android:drawablePadding="16dp"/>
+
+                <TextView
+                    android:id="@+id/signin_chrome_sync_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:layout_below="@id/signin_chrome_sync_title"
+                    android:paddingStart="56dp"
+                    android:paddingEnd="16dp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:text="@string/sync_confirmation_chrome_sync_message"
+                    android:textColor="@color/descriptive_text_color"
+                    android:textSize="@dimen/fre_normal_text_size" />
+
+                <View
+                    android:id="@+id/signin_confirmation_body_rule_line"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="56dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/signin_chrome_sync_description"
+                    android:background="@color/signin_border_line_color"
+                    android:alpha="0.08"/>
+
+                <TextView
+                    android:id="@+id/signin_personalize_service_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_below="@id/signin_confirmation_body_rule_line"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/sync_confirmation_personalize_services_title"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="@dimen/fre_normal_text_size"
+                    android:fontFamily="sans-serif-medium"
+                    android:drawableStart="@drawable/googleg"
+                    android:drawablePadding="16dp"/>
+
+                <TextView
+                    android:id="@+id/signin_personalize_service_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="32dp"
+                    android:layout_below="@id/signin_personalize_service_title"
+                    android:paddingStart="56dp"
+                    android:paddingEnd="16dp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:text="@string/sync_confirmation_personalize_services_body"
+                    android:textColor="@color/descriptive_text_color"
+                    android:textSize="@dimen/fre_normal_text_size"/>
+
+                <org.chromium.ui.widget.TextViewWithClickableSpans
+                    android:id="@+id/signin_settings_control"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/signin_personalize_service_description"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="36dp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:text="@string/signin_signed_in_settings_description"
+                    android:textColor="@color/descriptive_text_color"
+                    android:textSize="@dimen/fre_normal_text_size" />
+            </RelativeLayout>
+        </org.chromium.chrome.browser.signin.AccountSigninConfirmationView>
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/button_bar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:orientation="horizontal" >
+
+        <!--suppress ButtonStyle -->
+        <Button
+            android:id="@+id/negative_button"
+            style="@style/ButtonCompatBorderless"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/fre_skip_text"
+            android:textAllCaps="true"
+            android:textColor="@color/light_active_color"
+            android:textSize="14sp"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="invisible"/>
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:measureAllChildren="true">
+
+            <!--suppress ButtonStyle -->
+            <org.chromium.ui.widget.ButtonCompat
+                android:id="@+id/positive_button"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="@string/choose_account_sign_in"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                chrome:buttonColor="@color/light_active_color"
+                chrome:buttonRaised="false"/>
+
+            <Button
+                android:id="@+id/more_button"
+                style="@style/ButtonCompatBorderless"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="@string/more"
+                android:textAllCaps="true"
+                android:textColor="@color/light_active_color"
+                android:textSize="14sp"
+                android:drawableEnd="@drawable/down_arrow"
+                android:drawablePadding="8dp"
+                android:visibility="gone"/>
+            </FrameLayout>
+
+        <View
+            android:id="@+id/positive_button_end_padding"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+</org.chromium.chrome.browser.signin.AccountSigninView>

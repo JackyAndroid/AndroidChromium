@@ -3,16 +3,101 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<LinearLayout
+<org.chromium.chrome.browser.physicalweb.SwipeRefreshWidget
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:id="@+id/physical_web_swipe_refresh_widget"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" >
 
-    <ListView
-        android:id="@android:id/list"
+    <FrameLayout
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
-    </ListView>
+        android:layout_width="match_parent" >
 
-</LinearLayout>
+        <ListView
+            android:id="@+id/physical_web_urls_list"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:divider="@null" />
+
+        <RelativeLayout
+            android:id="@+id/physical_web_empty"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" >
+
+            <TextView
+                android:id="@+id/physical_web_empty_list_text"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/physical_web_empty_list_scanning"
+                android:textSize="16sp"
+                android:textColor="@color/light_normal_color" />
+
+            <ImageView
+                android:id="@+id/physical_web_logo"
+                android:layout_height="140dp"
+                android:layout_width="140dp"
+                android:layout_marginBottom="5dp"
+                android:layout_above="@id/physical_web_empty_list_text"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/physical_web_logo"
+                android:contentDescription="@null" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/physical_web_bottom_bar"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_gravity="bottom|center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone" >
+
+            <org.chromium.chrome.browser.widget.FadingShadowView
+                android:id="@+id/physical_web_bottom_bar_shadow"
+                android:layout_height="@dimen/infobar_shadow_height"
+                android:layout_width="match_parent" />
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="top"
+                android:background="#fff" >
+
+                <ImageView
+                    android:layout_height="@dimen/infobar_big_icon_size"
+                    android:layout_width="@dimen/infobar_big_icon_size"
+                    android:layout_weight="0"
+                    android:layout_marginTop="@dimen/infobar_padding"
+                    android:layout_marginBottom="@dimen/infobar_padding"
+                    android:layout_marginStart="@dimen/infobar_padding"
+                    android:layout_marginEnd="@dimen/infobar_big_icon_margin"
+                    android:src="@drawable/physical_web_notification_large"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/infobar_padding"
+                    android:text="@string/physical_web_bottom_bar"
+                    android:textSize="@dimen/infobar_text_size" />
+
+                <ImageButton
+                    android:id="@+id/physical_web_bottom_bar_close"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_weight="0"
+                    android:padding="@dimen/infobar_padding"
+                    android:src="@drawable/btn_close"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="@string/close" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</org.chromium.chrome.browser.physicalweb.SwipeRefreshWidget>

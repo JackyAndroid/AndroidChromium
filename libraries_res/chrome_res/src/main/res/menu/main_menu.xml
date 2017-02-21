@@ -16,6 +16,9 @@
               <item android:id="@+id/bookmark_this_page_id"
                 android:title="@string/accessibility_menu_bookmark"
                 android:icon="@drawable/btn_star"/>
+              <item android:id="@+id/offline_page_id"
+                android:title="@string/download_page"
+                android:icon="@drawable/ic_get_app_white_24dp"/>
               <item android:id="@+id/info_menu_id"
                 android:title="@string/accessibility_menu_info"
                 android:icon="@drawable/btn_info" />
@@ -24,16 +27,23 @@
                 android:icon="@drawable/btn_reload_stop"/>
             </menu>
         </item>
+        <item android:id="@+id/update_menu_id"
+            android:title="@string/menu_update"
+            android:icon="@drawable/menu_update" />
+        <item android:id="@+id/move_to_other_window_menu_id"
+            android:title="@string/menu_move_to_other_window" />
         <item android:id="@+id/new_tab_menu_id"
             android:title="@string/menu_new_tab" />
         <item android:id="@+id/new_incognito_tab_menu_id"
             android:title="@string/menu_new_incognito_tab" />
         <item android:id="@+id/all_bookmarks_menu_id"
-            android:title="@string/menu_bookmarks" />
+            android:title="@null" />
         <item android:id="@+id/recent_tabs_menu_id"
             android:title="@string/menu_recent_tabs" />
         <item android:id="@+id/open_history_menu_id"
             android:title="@string/menu_history" />
+        <item android:id="@+id/downloads_menu_id"
+            android:title="@string/menu_downloads" />
         <item android:id="@+id/share_row_menu_id"
             android:title="@null">
           <menu>
@@ -43,8 +53,6 @@
                 android:title="@null" />
           </menu>
         </item>
-        <item android:id="@+id/print_id"
-            android:title="@string/menu_print" />
         <item android:id="@+id/find_in_page_id"
             android:title="@string/menu_find_in_page" />
         <item android:id="@+id/add_to_homescreen_id"
@@ -60,6 +68,8 @@
             android:title="@string/menu_preferences" />
         <item android:id="@+id/help_id"
             android:title="@string/menu_help" />
+        <item android:id="@+id/enter_vr_id"
+            android:title="@string/enter_vr" />
     </group>
 
     <!-- Items shown only in the tab switcher -->

@@ -7,15 +7,13 @@
 -->
 
 <resources>
-    <!-- Compositor Tab Title Dimensions -->
-    <dimen name="compositor_tab_title_bar_shadow_x_offset">0.6667dp</dimen>            <!-- 1px hdpi -->
-    <dimen name="compositor_tab_title_bar_shadow_y_offset">0.6667dp</dimen>            <!-- 1px hdpi -->
-    <dimen name="compositor_tab_title_bar_shadow_x_offset_incognito">-0.6667dp</dimen> <!-- -1px hdpi -->
-    <dimen name="compositor_tab_title_bar_shadow_y_offset_incognito">-0.6667dp</dimen> <!-- -1px hdpi -->
     <!-- The size of the bounding box for favicons. -->
     <dimen name="compositor_tab_title_favicon_size">16dp</dimen>
 
     <!-- TabSwitcher -->
     <dimen name="tabswitcher_border_frame_padding_left">5.333dp</dimen>
     <dimen name="tabswitcher_border_frame_padding_top">49.333dp</dimen>
+
+    <!-- Location bar -->
+    <dimen name="location_bar_status_separator_width">0.5dp</dimen>
 </resources>

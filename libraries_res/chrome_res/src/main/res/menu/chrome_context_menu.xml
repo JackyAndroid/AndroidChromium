@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2013 The Chromium Authors. All rights reserved.
-
      Use of this source code is governed by a BSD-style license that can be
-     found in the LICENSE file.
--->
+     found in the LICENSE file. -->
+
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:id="@+id/contextmenu_group_anchor">
         <item android:id="@+id/contextmenu_load_images"
             android:title="@string/contextmenu_load_images"/>
+        <item android:id="@+id/contextmenu_open_in_other_window"
+            android:title="@string/contextmenu_open_in_other_window"/>
         <item android:id="@+id/contextmenu_open_in_new_tab"
             android:title="@string/contextmenu_open_in_new_tab"/>
         <item android:id="@+id/contextmenu_open_in_incognito_tab"
@@ -20,6 +21,8 @@
             android:title="@string/contextmenu_copy_link_text"/>
         <item android:id="@+id/contextmenu_save_link_as"
             android:title="@string/contextmenu_save_link" />
+        <item android:id="@+id/contextmenu_save_offline"
+            android:title="@string/contextmenu_save_offline" />
     </group>
     <group android:id="@+id/contextmenu_group_image">
         <item android:id="@+id/contextmenu_load_original_image"
@@ -28,6 +31,8 @@
             android:title="@string/contextmenu_save_image"/>
         <item android:id="@+id/contextmenu_open_image"
             android:title="@string/contextmenu_open_image"/>
+        <item android:id="@+id/contextmenu_open_image_in_new_tab"
+            android:title="@string/contextmenu_open_image_in_new_tab"/>
         <!-- Title is set in Java. Suppress lint warning about missing title. -->
         <!--suppress MenuTitle -->
         <item android:id="@+id/contextmenu_search_by_image" />

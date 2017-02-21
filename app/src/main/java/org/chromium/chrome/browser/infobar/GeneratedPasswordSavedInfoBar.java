@@ -28,7 +28,7 @@ public class GeneratedPasswordSavedInfoBar extends InfoBar {
      */
     public GeneratedPasswordSavedInfoBar(int iconDrawableId, String messageText,
             int inlineLinkRangeStart, int inlineLinkRangeEnd, String buttonLabel) {
-        super(null, iconDrawableId, null, null);
+        super(iconDrawableId, null, null);
         mMessageText = messageText;
         mInlineLinkRangeStart = inlineLinkRangeStart;
         mInlineLinkRangeEnd = inlineLinkRangeEnd;

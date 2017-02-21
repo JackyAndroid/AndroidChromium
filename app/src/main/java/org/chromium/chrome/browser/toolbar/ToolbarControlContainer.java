@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.Region;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,8 +17,10 @@ import android.widget.FrameLayout;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.EdgeSwipeHandler;
 import org.chromium.chrome.browser.contextualsearch.SwipeRecognizer;
+import org.chromium.chrome.browser.util.ViewUtils;
 import org.chromium.chrome.browser.widget.ClipDrawableProgressBar.DrawingInfo;
 import org.chromium.chrome.browser.widget.ControlContainer;
+import org.chromium.chrome.browser.widget.ToolbarProgressBar;
 import org.chromium.chrome.browser.widget.ViewResourceFrameLayout;
 import org.chromium.ui.UiUtils;
 import org.chromium.ui.resources.dynamics.ViewResourceAdapter;
@@ -55,9 +58,15 @@ public class ToolbarControlContainer extends FrameLayout implements ControlConta
     }
 
     @Override
+    public View getView() {
+        return this;
+    }
+
+    @Override
     public void getProgressBarDrawingInfo(DrawingInfo drawingInfoOut) {
         // TODO(yusufo): Avoid casting to the layout without making the interface bigger.
-        ((ToolbarLayout) mToolbar).getProgressBar().getDrawingInfo(drawingInfoOut);
+        ToolbarProgressBar progressBar = ((ToolbarLayout) mToolbar).getProgressBar();
+        if (progressBar != null) progressBar.getDrawingInfo(drawingInfoOut);
     }
 
     @Override
@@ -88,6 +97,20 @@ public class ToolbarControlContainer extends FrameLayout implements ControlConta
         assert mMenuBtn != null;
 
         super.onFinishInflate();
+    }
+
+    @Override
+    public boolean gatherTransparentRegion(Region region) {
+        // Reset the translation on the control container before attempting to compute the
+        // transparent region.
+        float translateY = getTranslationY();
+        setTranslationY(0);
+
+        ViewUtils.gatherTransparentRegionsForOpaqueView(this, region);
+
+        setTranslationY(translateY);
+
+        return true;
     }
 
     /**
@@ -185,6 +208,9 @@ public class ToolbarControlContainer extends FrameLayout implements ControlConta
         @Override
         protected void onCaptureEnd() {
             mToolbar.setTextureCaptureMode(false);
+            // Forcing a texture capture should only be done for one draw. Turn off forced
+            // texture capture.
+            mToolbar.setForceTextureCapture(false);
         }
 
         @Override

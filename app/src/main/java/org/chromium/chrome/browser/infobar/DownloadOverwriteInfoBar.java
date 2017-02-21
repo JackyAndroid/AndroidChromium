@@ -19,6 +19,7 @@ import android.view.View;
 
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.download.DownloadUtils;
 
 import java.util.List;
 
@@ -41,10 +42,11 @@ public class DownloadOverwriteInfoBar extends InfoBar {
      * Constructs DownloadOverwriteInfoBar.
      * @param fileName The file name. ex) example.jpg
      * @param dirName The dir name. ex) Downloads
-     * @param dirFullPath The full dir path. ex) sdcards/Downloads
+     * @param dirFullPath The full dir path. ex) sdcards/Downloads.  If empty, the Download Manager
+     *                    will be opened.
      */
     private DownloadOverwriteInfoBar(String fileName, String dirName, String dirFullPath) {
-        super(null, R.drawable.infobar_downloading, null, null);
+        super(R.drawable.infobar_downloading, null, null);
         mFileName = fileName;
         mDirName = dirName;
         mDirFullPath = dirFullPath;
@@ -57,9 +59,18 @@ public class DownloadOverwriteInfoBar extends InfoBar {
         onButtonClicked(action);
     }
 
+    private boolean opensDownloadManager() {
+        return mDirFullPath == null || mDirFullPath.isEmpty();
+    }
+
     private CharSequence getMessageText(Context context) {
         String template = context.getString(R.string.download_overwrite_infobar_text);
-        Intent intent = getIntentForDirectoryLaunch(mDirFullPath);
+        Intent intent = null;
+
+        // If the full path is left empty, we assume that the file is in the Chrome Download
+        // Manager.  So then in formatInfoBarMessage, if the intent remains null then we are going
+        // to open the download manager when the directory name is clicked.
+        if (!opensDownloadManager()) intent = getIntentForDirectoryLaunch(mDirFullPath);
         return formatInfoBarMessage(context, template, mFileName, mDirName, intent);
     }
 
@@ -73,6 +84,7 @@ public class DownloadOverwriteInfoBar extends InfoBar {
         if (uri == null) {
             return null;
         }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(uri, "*/*");
         return intent;
     }
@@ -96,7 +108,7 @@ public class DownloadOverwriteInfoBar extends InfoBar {
      * @param dirNameIntent The intent to be launched when user touches the directory name link.
      * @return CharSequence formatted message for InfoBar.
      */
-    private static CharSequence formatInfoBarMessage(final Context context, String template,
+    private CharSequence formatInfoBarMessage(final Context context, String template,
             String fileName, String dirName, final Intent dirNameIntent) {
         SpannableString formattedFileName = new SpannableString(fileName);
         formattedFileName.setSpan(new StyleSpan(Typeface.BOLD), 0, fileName.length(),
@@ -108,6 +120,13 @@ public class DownloadOverwriteInfoBar extends InfoBar {
                 @Override
                 public void onClick(View view) {
                     context.startActivity(dirNameIntent);
+                }
+            }, 0, dirName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else if (opensDownloadManager()) {
+            formattedDirName.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(View view) {
+                    DownloadUtils.showDownloadManager(null, null);
                 }
             }, 0, dirName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }

@@ -197,7 +197,7 @@ public abstract class TabModelSelectorBase implements TabModelSelector {
     /**
      * Marks the task state being initialized and notifies observers.
      */
-    protected void markTabStateInitialized() {
+    public void markTabStateInitialized() {
         mTabStateInitialized = true;
         for (TabModelSelectorObserver listener : mObservers) listener.onTabStateInitialized();
     }

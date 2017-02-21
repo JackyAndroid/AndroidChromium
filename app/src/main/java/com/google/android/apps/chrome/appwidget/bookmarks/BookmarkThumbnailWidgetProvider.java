@@ -4,12 +4,12 @@
 
 package com.google.android.apps.chrome.appwidget.bookmarks;
 
-import org.chromium.chrome.browser.bookmarkswidget.BookmarkThumbnailWidgetProviderBase;
+import org.chromium.chrome.browser.bookmarkswidget.BookmarkWidgetProvider;
 
 /**
  * This class can't be renamed or moved since it's exported in the manifest and hence is part of
  * Chrome's public API.
  */
-public class BookmarkThumbnailWidgetProvider extends BookmarkThumbnailWidgetProviderBase {
-    // Do not add code here. Add it to BookmarkThumbnailWidgetProviderBase.
+public class BookmarkThumbnailWidgetProvider extends BookmarkWidgetProvider {
+    // Do not add code here. Add it to BookmarkWidgetProvider.
 }

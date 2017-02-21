@@ -74,6 +74,7 @@ public class AccessibilityTabModelListItem extends FrameLayout implements OnClic
     private final GestureDetector mSwipeGestureDetector;
     private final int mDefaultHeight;
     private AccessibilityTabModelListView mCanScrollListener;
+    private boolean mCloseButtonClicked;
 
     /**
      * An interface that exposes actions taken on this item.  The registered listener will be
@@ -140,6 +141,7 @@ public class AccessibilityTabModelListItem extends FrameLayout implements OnClic
         @Override
         public void onAnimationCancel(Animator animation) {
             mIsCancelled = true;
+            mCloseButtonClicked = false;
         }
 
         @Override
@@ -172,6 +174,7 @@ public class AccessibilityTabModelListItem extends FrameLayout implements OnClic
         @Override
         public void onAnimationCancel(Animator animation) {
             mIsCancelled = true;
+            mCloseButtonClicked = false;
         }
 
         @Override
@@ -300,6 +303,7 @@ public class AccessibilityTabModelListItem extends FrameLayout implements OnClic
         if (v == AccessibilityTabModelListItem.this && !mListener.hasPendingClosure(tabId)) {
             mListener.tabSelected(tabId);
         } else if (v == mCloseButton) {
+            mCloseButtonClicked = true;
             if (mCanUndo) {
                 runBlinkOutAnimation();
             } else {
@@ -345,7 +349,19 @@ public class AccessibilityTabModelListItem extends FrameLayout implements OnClic
 
     private final TabObserver mTabObserver = new EmptyTabObserver() {
         @Override
-        public void onFaviconUpdated(Tab tab) {
+        public void onClosingStateChanged(Tab tab, boolean closing) {
+            // If the tab is closed through something other than interacting with the ListItem
+            // itself (e.g. the tab strip), we need to notify the listener of the change.
+            // See https://crbug.com/567863.
+            if (closing && !mCloseButtonClicked) {
+                if (mListener != null) {
+                    mListener.tabChanged(tab.getId());
+                }
+            }
+        }
+
+        @Override
+        public void onFaviconUpdated(Tab tab, Bitmap icon) {
             updateFavicon();
             notifyTabUpdated(tab);
         }

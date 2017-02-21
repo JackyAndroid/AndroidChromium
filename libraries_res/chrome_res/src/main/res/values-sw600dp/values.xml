@@ -33,6 +33,4 @@
     <!-- Compositor Tab Title Text -->
     <bool name="compositor_tab_title_fake_bold_text">false</bool>
 
-    <!-- The maximum indent depth of folders when selecting bookmarks. -->
-    <integer name="select_bookmark_folder_max_depth_indent">10</integer>
 </resources>

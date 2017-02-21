@@ -20,6 +20,12 @@ public interface MediaNotificationListener {
     public static final int ACTION_SOURCE_MEDIA_SESSION = 1001;
 
     /**
+     * The media action was received by unplugging the headset,
+     * which broadcasts an ACTION_AUDIO_BECOMING_NOISY intent.
+     */
+    public static final int ACTION_SOURCE_HEADSET_UNPLUG = 1002;
+
+    /**
      * Called when the user wants to resume the playback.
      * @param actionSource The source the listener got the action from.
      */

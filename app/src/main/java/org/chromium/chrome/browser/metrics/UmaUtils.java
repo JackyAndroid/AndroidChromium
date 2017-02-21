@@ -4,16 +4,20 @@
 
 package org.chromium.chrome.browser.metrics;
 
+import android.os.SystemClock;
+
 import org.chromium.base.annotations.CalledByNative;
+import org.chromium.base.annotations.JNINamespace;
 
 /**
  * Utilities to support startup metrics - Android version.
  */
+@JNINamespace("chrome::android")
 public class UmaUtils {
-
     private static long sApplicationStartWallClockMs;
 
     private static boolean sRunningApplicationStart;
+    private static long sForegroundStartTimeMs;
 
     /**
      * Record the time at which the activity started. This should be called asap after
@@ -25,6 +29,10 @@ public class UmaUtils {
         // then need the start time in the C++ side before we return to Java. As such we
         // save it in a static that the C++ can fetch once it has initialized the JNI.
         sApplicationStartWallClockMs = System.currentTimeMillis();
+    }
+
+    public static void recordForegroundStartTime() {
+        sForegroundStartTimeMs = SystemClock.uptimeMillis();
     }
 
     /**
@@ -46,9 +54,33 @@ public class UmaUtils {
         sRunningApplicationStart = isAppStart;
     }
 
+    /**
+     * Determines if this client is eligible to send metrics and crashes based on sampling. If it
+     * is, and there was user consent, then metrics and crashes would be reported
+     */
+    public static boolean isClientInMetricsReportingSample() {
+        return nativeIsClientInMetricsReportingSample();
+    }
+
+    /**
+     * Sets whether metrics reporting was opt-in or not. If it was opt-in, then the enable checkbox
+     * on first-run was default unchecked. If it was opt-out, then the checkbox was default checked.
+     * This should only be set once, and only during first-run.
+     */
+    public static void recordMetricsReportingDefaultOptIn(boolean optIn) {
+        nativeRecordMetricsReportingDefaultOptIn(optIn);
+    }
+
     @CalledByNative
-    public static long getMainEntryPointTime() {
+    public static long getMainEntryPointWallTime() {
         return sApplicationStartWallClockMs;
     }
 
+    public static long getForegroundStartTime() {
+        assert sForegroundStartTimeMs != 0;
+        return sForegroundStartTimeMs;
+    }
+
+    private static native boolean nativeIsClientInMetricsReportingSample();
+    private static native void nativeRecordMetricsReportingDefaultOptIn(boolean optIn);
 }

@@ -12,14 +12,6 @@
         android:title="@string/safe_browsing_description" />
     <org.chromium.chrome.browser.preferences.TextMessagePreference
         android:title="@string/data_reduction_caveats_description" />
-    <org.chromium.chrome.browser.preferences.TextMessagePreference
-        android:key="data_reduction_experiment_text"
-        android:title="@string/data_reduction_experiment_description" />
-    <org.chromium.chrome.browser.preferences.HyperlinkPreference
-        android:key="data_reduction_experiment_link"
-        android:title="@string/learn_more"
-        chrome:url="@string/data_reduction_experiment_link_url"
-        chrome:imitateWebLink="true" />
     <org.chromium.chrome.browser.preferences.LearnMorePreference
         android:key="data_reduction_learn_more"
         chrome:helpContext="@string/help_context_data_reduction" />

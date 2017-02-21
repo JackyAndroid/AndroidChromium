@@ -4,9 +4,13 @@
 
 package org.chromium.chrome.browser.util;
 
+import android.content.res.Resources;
 import android.graphics.Color;
 
+import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ntp.NewTabPage;
+import org.chromium.chrome.browser.ntp.NtpStyleUtils;
 import org.chromium.chrome.browser.tab.Tab;
 
 /**
@@ -16,7 +20,8 @@ public class ColorUtils {
     private static final float CONTRAST_LIGHT_ITEM_THRESHOLD = 3f;
     private static final float LIGHTNESS_OPAQUE_BOX_THRESHOLD = 0.82f;
     private static final float LOCATION_BAR_TRANSPARENT_BACKGROUND_ALPHA = 0.2f;
-    private static final float LIGHT_PROGRESSBAR_BACKGROUND_ALPHA = 0.5f;
+    private static final float MAX_LUMINANCE_FOR_VALID_THEME_COLOR = 0.94f;
+    private static final float THEMED_FOREGROUND_BLACK_FRACTION = 0.64f;
 
     /** Percentage to darken a color by when setting the status bar color. */
     private static final float DARKEN_COLOR_FRACTION = 0.6f;
@@ -24,7 +29,7 @@ public class ColorUtils {
     /**
      * Computes the lightness value in HSL standard for the given color.
      */
-    private static float getLightnessForColor(int color) {
+    public static float getLightnessForColor(int color) {
         int red = Color.red(color);
         int green = Color.green(color);
         int blue = Color.blue(color);
@@ -51,9 +56,17 @@ public class ColorUtils {
     /**
      * @return The base color for the textbox given a toolbar background color.
      */
-    public static int getTextBoxColorForToolbarBackground(int color) {
-        if (shouldUseOpaqueTextboxBackground(color)) return Color.WHITE;
-        return getColorWithOverlay(Color.WHITE, color, LOCATION_BAR_TRANSPARENT_BACKGROUND_ALPHA);
+    public static int getTextBoxColorForToolbarBackground(Resources res, Tab tab, int color) {
+        if (shouldUseOpaqueTextboxBackground(color)) {
+            // NTP should have no visible textbox in the toolbar, so just return the toolbar's
+            // background color.
+            if (tab.getNativePage() instanceof NewTabPage) {
+                return NtpStyleUtils.getToolbarBackgroundColorResource(res);
+            }
+
+            return Color.WHITE;
+        }
+        return getColorWithOverlay(color, Color.WHITE, LOCATION_BAR_TRANSPARENT_BACKGROUND_ALPHA);
     }
 
     /**
@@ -69,22 +82,19 @@ public class ColorUtils {
     }
 
     /**
-     * Gets the background color for light theme progress bar.
-     * @param toolbarColor The color of the toolbar.
-     * @return The color of the progress bar in light theme, given the toolbar color.
+     * Get a color when overlayed with a different color.
+     * @param baseColor The base Android color.
+     * @param overlayColor The overlay Android color.
+     * @param overlayAlpha The alpha |overlayColor| should have on the base color.
      */
-    public static int getLightProgressbarBackground(int toolbarColor) {
-        return getColorWithOverlay(Color.WHITE, toolbarColor, LIGHT_PROGRESSBAR_BACKGROUND_ALPHA);
-    }
-
-    private static int getColorWithOverlay(int baseColor, int overlayColor, float overlayAlpha) {
+    public static int getColorWithOverlay(int baseColor, int overlayColor, float overlayAlpha) {
         return Color.rgb(
-            (int) (overlayAlpha * Color.red(baseColor)
-                    + (1f - overlayAlpha) * Color.red(overlayColor)),
-            (int) (overlayAlpha * Color.green(baseColor)
-                    + (1f - overlayAlpha) * Color.green(overlayColor)),
-            (int) (overlayAlpha * Color.blue(baseColor)
-                    + (1f - overlayAlpha) * Color.blue(overlayColor)));
+                (int) MathUtils.interpolate(Color.red(baseColor), Color.red(overlayColor),
+                        overlayAlpha),
+                (int) MathUtils.interpolate(Color.green(baseColor), Color.green(overlayColor),
+                        overlayAlpha),
+                (int) MathUtils.interpolate(Color.blue(baseColor), Color.blue(overlayColor),
+                        overlayAlpha));
     }
 
     /**
@@ -93,9 +103,19 @@ public class ColorUtils {
      * @return Color that should be used for Android status bar.
      */
     public static int getDarkenedColorForStatusBar(int color) {
+        return getDarkenedColor(color, DARKEN_COLOR_FRACTION);
+    }
+
+    /**
+     * Darken a color to a fraction of its current brightness.
+     * @param color The input color.
+     * @param darkenFraction The fraction of the current brightness the color should be.
+     * @return The new darkened color.
+     */
+    public static int getDarkenedColor(int color, float darkenFraction) {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
-        hsv[2] *= DARKEN_COLOR_FRACTION;
+        hsv[2] *= darkenFraction;
         return Color.HSVToColor(hsv);
     }
 
@@ -105,7 +125,7 @@ public class ColorUtils {
      * @param backgroundColor The background color value which is being queried.
      * @return Whether light colored elements should be used.
      */
-    public static boolean shoudUseLightForegroundOnBackground(int backgroundColor) {
+    public static boolean shouldUseLightForegroundOnBackground(int backgroundColor) {
         return getContrastForColor(backgroundColor) >= CONTRAST_LIGHT_ITEM_THRESHOLD;
     }
 
@@ -126,5 +146,40 @@ public class ColorUtils {
      */
     public static int getOpaqueColor(int color) {
         return Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
+    }
+
+    /**
+     * Test if the toolbar is using the default color.
+     * @param resources The resources to get the toolbar primary color.
+     * @param color The color that the toolbar is using.
+     * @return If the color is the default toolbar color.
+     */
+    public static boolean isUsingDefaultToolbarColor(Resources resources, int color) {
+        return color == ApiCompatibilityUtils.getColor(resources, R.color.default_primary_color);
+    }
+
+    /**
+     * Determine if a theme color is valid. A theme color is invalid if its luminance is > 0.94.
+     * @param color The color to test.
+     * @return True if the theme color is valid.
+     */
+    public static boolean isValidThemeColor(int color) {
+        return ColorUtils.getLightnessForColor(color) <= MAX_LUMINANCE_FOR_VALID_THEME_COLOR;
+    }
+
+    /**
+     * Compute a color to use for assets that sit on top of a themed background.
+     * @param themeColor The base theme color.
+     * @return A color to use for elements in the foreground (on top of the base theme color).
+     */
+    public static int getThemedAssetColor(int themeColor, boolean isIncognito) {
+        if (ColorUtils.shouldUseLightForegroundOnBackground(themeColor) || isIncognito) {
+            // Dark theme.
+            return Color.WHITE;
+        } else {
+            // Light theme.
+            return ColorUtils.getColorWithOverlay(themeColor, Color.BLACK,
+                    THEMED_FOREGROUND_BLACK_FRACTION);
+        }
     }
 }

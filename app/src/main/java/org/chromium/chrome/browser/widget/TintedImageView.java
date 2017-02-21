@@ -62,7 +62,10 @@ public class TintedImageView extends ImageView {
     }
 
     private void updateTintColor() {
-        if (mTint == null) return;
+        if (mTint == null) {
+            clearColorFilter();
+            return;
+        }
         setColorFilter(mTint.getColorForState(getDrawableState(), 0), PorterDuff.Mode.SRC_IN);
     }
 }

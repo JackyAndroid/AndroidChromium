@@ -4,6 +4,8 @@
 
 package org.chromium.chrome.browser;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
@@ -126,8 +128,14 @@ public class TabState {
     public String openerAppId;
     public boolean shouldPreserve;
 
+    /** The tab's theme color. */
+    public int themeColor;
+
     /** Whether this TabState was created from a file containing info about an incognito Tab. */
     protected boolean mIsIncognito;
+
+    /** Whether the theme color was set for this tab. */
+    private boolean mHasThemeColor;
 
     /** @return Whether a Stable channel build of Chrome is being used. */
     private static boolean isStableChannelBuild() {
@@ -188,7 +196,7 @@ public class TabState {
      * @param encrypted Whether the file is encrypted or not.
      * @return TabState that has been restored, or null if it failed.
      */
-    public static TabState readState(FileInputStream input, boolean encrypted) throws IOException {
+    private static TabState readState(FileInputStream input, boolean encrypted) throws IOException {
         DataInputStream stream = null;
         if (encrypted) {
             Cipher cipher = CipherFactory.getInstance().getCipher(Cipher.DECRYPT_MODE);
@@ -261,6 +269,16 @@ public class TabState {
                         + "Assuming shouldPreserve is false");
             }
             tabState.mIsIncognito = encrypted;
+            try {
+                tabState.themeColor = stream.readInt();
+                tabState.mHasThemeColor = true;
+            } catch (EOFException eof) {
+                // Could happen if reading a version of TabState without a theme color.
+                tabState.themeColor = Color.WHITE;
+                tabState.mHasThemeColor = false;
+                Log.w(TAG, "Failed to read theme color from tab state. "
+                        + "Assuming theme color is white");
+            }
             return tabState;
         } finally {
             stream.close();
@@ -269,53 +287,70 @@ public class TabState {
 
     /**
      * Writes the TabState to disk. This method may be called on either the UI or background thread.
-     * @param output Stream to write the tab's state to.
+     * @param file File to write the tab's state to.
      * @param state State object obtained from from {@link Tab#getState()}.
      * @param encrypted Whether or not the TabState should be encrypted.
      */
-    public static void saveState(FileOutputStream output, TabState state, boolean encrypted)
-            throws IOException {
+    public static void saveState(File file, TabState state, boolean encrypted) {
         if (state == null || state.contentsState == null) {
             return;
         }
 
-        DataOutputStream stream;
-        if (encrypted) {
-            Cipher cipher = CipherFactory.getInstance().getCipher(Cipher.ENCRYPT_MODE);
-            if (cipher != null) {
-                stream = new DataOutputStream(new CipherOutputStream(output, cipher));
-            } else {
-                // If cipher is null, getRandomBytes failed, which means encryption is meaningless.
-                // Therefore, do not save anything. This will cause users to lose Incognito state in
-                // certain cases. That is annoying, but is better than failing to provide the
-                // guarantee of Incognito Mode.
-                return;
-            }
+        // Create the byte array from contentsState before opening the FileOutputStream, in case
+        // contentsState.buffer is an instance of MappedByteBuffer that is mapped to
+        // the tab state file.
+        byte[] contentsStateBytes = new byte[state.contentsState.buffer().limit()];
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            state.contentsState.buffer().rewind();
+            state.contentsState.buffer().get(contentsStateBytes);
         } else {
-            stream = new DataOutputStream(output);
+            // For JellyBean and below a bug in MappedByteBufferAdapter causes rewind to not be
+            // propagated to the underlying ByteBuffer, and results in an underflow exception. See:
+            // http://b.android.com/53637.
+            for (int i = 0; i < state.contentsState.buffer().limit(); i++) {
+                contentsStateBytes[i] = state.contentsState.buffer().get(i);
+            }
         }
 
+        DataOutputStream dataOutputStream = null;
+        FileOutputStream fileOutputStream = null;
         try {
+            fileOutputStream = new FileOutputStream(file);
+
             if (encrypted) {
-                stream.writeLong(KEY_CHECKER);
-            }
-            stream.writeLong(state.timestampMillis);
-            state.contentsState.buffer().rewind();
-            stream.writeInt(state.contentsState.buffer().remaining());
-            if (encrypted) {
-                byte[] bytes = new byte[state.contentsState.buffer().remaining()];
-                state.contentsState.buffer().get(bytes);
-                stream.write(bytes);
+                Cipher cipher = CipherFactory.getInstance().getCipher(Cipher.ENCRYPT_MODE);
+                if (cipher != null) {
+                    dataOutputStream = new DataOutputStream(new CipherOutputStream(
+                            fileOutputStream, cipher));
+                } else {
+                    // If cipher is null, getRandomBytes failed, which means encryption is
+                    // meaningless. Therefore, do not save anything. This will cause users
+                    // to lose Incognito state in certain cases. That is annoying, but is
+                    // better than failing to provide the guarantee of Incognito Mode.
+                    return;
+                }
             } else {
-                output.getChannel().write(state.contentsState.buffer());
+                dataOutputStream = new DataOutputStream(fileOutputStream);
             }
-            stream.writeInt(state.parentId);
-            stream.writeUTF(state.openerAppId != null ? state.openerAppId : "");
-            stream.writeInt(state.contentsState.version());
-            stream.writeLong(state.syncId);
-            stream.writeBoolean(state.shouldPreserve);
+            if (encrypted) {
+                dataOutputStream.writeLong(KEY_CHECKER);
+            }
+            dataOutputStream.writeLong(state.timestampMillis);
+            dataOutputStream.writeInt(contentsStateBytes.length);
+            dataOutputStream.write(contentsStateBytes);
+            dataOutputStream.writeInt(state.parentId);
+            dataOutputStream.writeUTF(state.openerAppId != null ? state.openerAppId : "");
+            dataOutputStream.writeInt(state.contentsState.version());
+            dataOutputStream.writeLong(state.syncId);
+            dataOutputStream.writeBoolean(state.shouldPreserve);
+            dataOutputStream.writeInt(state.themeColor);
+        } catch (FileNotFoundException e) {
+            Log.w(TAG, "FileNotFoundException while attempting to save TabState.");
+        } catch (IOException e) {
+            Log.w(TAG, "IOException while attempting to save TabState.");
         } finally {
-            StreamUtil.closeQuietly(stream);
+            StreamUtil.closeQuietly(dataOutputStream);
+            StreamUtil.closeQuietly(fileOutputStream);
         }
     }
 
@@ -354,6 +389,16 @@ public class TabState {
     /** @return Whether an incognito TabState was loaded by {@link #readState}. */
     public boolean isIncognito() {
         return mIsIncognito;
+    }
+
+    /** @return The theme color of the tab or Color.WHITE if not set. */
+    public int getThemeColor() {
+        return themeColor;
+    }
+
+    /** @return True if the tab has a theme color set. */
+    public boolean hasThemeColor() {
+        return mHasThemeColor;
     }
 
     /**

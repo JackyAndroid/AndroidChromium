@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<org.chromium.chrome.browser.bookmarks.BookmarkSearchView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bookmark_search_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical" >
+
+    <include layout="@layout/bookmark_search_core" />
+
+</org.chromium.chrome.browser.bookmarks.BookmarkSearchView>

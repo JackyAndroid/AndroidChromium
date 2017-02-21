@@ -4,6 +4,7 @@
 
 package org.chromium.chrome.browser.ssl;
 
+import org.chromium.components.security_state.ConnectionSecurityLevel;
 import org.chromium.content_public.browser.WebContents;
 
 /**

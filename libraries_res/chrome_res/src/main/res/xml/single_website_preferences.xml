@@ -29,6 +29,8 @@
     <PreferenceCategory
         android:key="site_permissions"
         android:title="@string/website_settings_permissions_category" />
+
+    <!-- The order of the following items is from: http://crbug.com/610358. -->
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="cookies_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
@@ -38,17 +40,24 @@
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="microphone_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
+        android:key="push_notifications_list" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="javascript_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="popup_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
+        android:key="background_sync_permission_list" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
+        android:key="keygen_permission_list" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="fullscreen_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
-        android:key="midi_sysex_permission_list" />
-    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
-        android:key="push_notifications_list" />
-    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="protected_media_identifier_permission_list" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
+        android:key="autoplay_permission_list" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
+        android:key="midi_sysex_permission_list" />
+
     <org.chromium.chrome.browser.preferences.ButtonPreference
         android:key="reset_site_button"
         android:title="@string/website_reset" />

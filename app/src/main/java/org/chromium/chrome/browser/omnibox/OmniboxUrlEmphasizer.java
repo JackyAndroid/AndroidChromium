@@ -13,7 +13,7 @@ import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.profiles.Profile;
-import org.chromium.chrome.browser.ssl.ConnectionSecurityLevel;
+import org.chromium.components.security_state.ConnectionSecurityLevel;
 
 import java.util.Locale;
 
@@ -128,13 +128,7 @@ public class OmniboxUrlEmphasizer {
     public static void emphasizeUrl(Spannable url, Resources resources, Profile profile,
             int securityLevel, boolean isInternalPage,
             boolean useDarkColors, boolean emphasizeHttpsScheme) {
-        assert (securityLevel == ConnectionSecurityLevel.SECURITY_ERROR
-                || securityLevel == ConnectionSecurityLevel.SECURITY_WARNING)
-                ? emphasizeHttpsScheme
-                : true;
-
         String urlString = url.toString();
-
         EmphasizeComponentsResponse emphasizeResponse =
                 parseForEmphasizeComponents(profile, urlString);
 
@@ -149,29 +143,25 @@ public class OmniboxUrlEmphasizer {
         int startHostIndex = emphasizeResponse.hostStart;
         int endHostIndex = emphasizeResponse.hostStart + emphasizeResponse.hostLength;
 
-        // Add the https scheme highlight
+        // Color the HTTPS scheme.
         ForegroundColorSpan span;
         if (emphasizeResponse.hasScheme()) {
             int colorId = nonEmphasizedColorId;
-            if (!isInternalPage && emphasizeHttpsScheme) {
+            if (!isInternalPage) {
                 boolean strikeThroughScheme = false;
                 switch (securityLevel) {
                     case ConnectionSecurityLevel.NONE:
-                        colorId = nonEmphasizedColorId;
-                        break;
+                    // Intentional fall-through:
                     case ConnectionSecurityLevel.SECURITY_WARNING:
-                        colorId = R.color.url_emphasis_start_scheme_security_warning;
-                        strikeThroughScheme = true;
                         break;
-                    case ConnectionSecurityLevel.SECURITY_ERROR:
-                        colorId = R.color.url_emphasis_start_scheme_security_error;
+                    case ConnectionSecurityLevel.DANGEROUS:
+                        if (emphasizeHttpsScheme) colorId = R.color.google_red_700;
                         strikeThroughScheme = true;
                         break;
                     case ConnectionSecurityLevel.EV_SECURE:
-                        colorId = R.color.url_emphasis_start_scheme_ev_secure;
-                        break;
+                    // Intentional fall-through:
                     case ConnectionSecurityLevel.SECURE:
-                        colorId = R.color.url_emphasis_start_scheme_secure;
+                        if (emphasizeHttpsScheme) colorId = R.color.google_green_700;
                         break;
                     default:
                         assert false;

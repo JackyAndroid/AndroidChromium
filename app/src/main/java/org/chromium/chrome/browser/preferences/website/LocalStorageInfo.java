@@ -12,10 +12,12 @@ import java.io.Serializable;
 public class LocalStorageInfo implements Serializable {
     private final String mOrigin;
     private final long mSize;
+    private final boolean mImportantDomain;
 
-    LocalStorageInfo(String origin, long size) {
+    LocalStorageInfo(String origin, long size, boolean importantDomain) {
         mOrigin = origin;
         mSize = size;
+        mImportantDomain = importantDomain;
     }
 
     public String getOrigin() {
@@ -29,5 +31,9 @@ public class LocalStorageInfo implements Serializable {
 
     public long getSize() {
         return mSize;
+    }
+
+    public boolean isDomainImportant() {
+        return mImportantDomain;
     }
 }

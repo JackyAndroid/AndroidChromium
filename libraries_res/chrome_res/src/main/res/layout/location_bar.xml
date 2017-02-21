@@ -13,29 +13,37 @@
         android:src="@drawable/ic_omnibox_incognito_badge"
         android:contentDescription="@null"
         android:visibility="gone" />
+
     <FrameLayout android:id="@+id/location_bar_icon"
         android:layout_width="@dimen/location_bar_icon_width"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="gone" >
+
         <ImageView android:id="@+id/navigation_button"
             style="@style/LocationBarButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:scaleType="center"
-            android:contentDescription="@string/accessibility_toolbar_btn_site_info"/>
-        <ImageButton android:id="@+id/security_button"
+            android:contentDescription="@string/accessibility_toolbar_btn_site_info" />
+
+        <org.chromium.chrome.browser.widget.TintedImageButton
+            android:id="@+id/security_button"
             style="@style/LocationBarButton"
-            android:layout_height="match_parent"
             android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:scaleType="center"
             android:layout_gravity="center"
             android:alpha="0"
             android:visibility="invisible"
             android:contentDescription="@string/accessibility_toolbar_btn_site_info" />
+
     </FrameLayout>
+
+    <include layout="@layout/location_bar_status" />
+
     <include
-        android:id="@+id/url_container"
+        android:id="@+id/url_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="3dp"
@@ -43,21 +51,37 @@
         android:layout_marginStart="@dimen/location_bar_icon_width"
         android:layout_gravity="center_vertical"
         android:nextFocusForward="@+id/tab_switcher_button"
-        layout="@layout/url_container"
-        />
+        layout="@layout/url_bar" />
+
     <FrameLayout android:id="@+id/url_action_container"
         android:layout_width="@dimen/location_bar_icon_width"
         android:layout_height="@dimen/toolbar_height_no_shadow"
         android:layout_gravity="end|center_vertical"
-        android:visibility="gone">
-        <org.chromium.chrome.browser.widget.TintedImageButton
-            android:id="@+id/document_menu_button"
-            style="@style/LocationBarButton"
-            android:layout_height="match_parent"
-            android:layout_width="match_parent"
-            android:layoutDirection="locale"
-            android:src="@drawable/btn_menu"
-            android:contentDescription="@string/accessibility_toolbar_btn_menu" />
+        android:visibility="gone" >
+
+        <FrameLayout
+            android:id="@+id/document_menu_button_wrapper"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layoutDirection="locale" >
+
+            <org.chromium.chrome.browser.widget.TintedImageButton
+                android:id="@+id/document_menu_button"
+                style="@style/LocationBarMenuButton"
+                android:src="@drawable/btn_menu"
+                android:contentDescription="@string/accessibility_toolbar_btn_menu" />
+
+            <ImageView
+                android:id="@+id/document_menu_badge"
+                style="@style/LocationBarMenuButton"
+                android:src="@drawable/badge_update_dark"
+                android:scaleType="center"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:visibility="invisible" />
+
+        </FrameLayout>
+
         <org.chromium.chrome.browser.widget.TintedImageButton
             android:id="@+id/delete_button"
             style="@style/LocationBarButton"
@@ -67,6 +91,7 @@
             android:src="@drawable/btn_delete_url"
             android:visibility="invisible"
             android:contentDescription="@string/accessibility_toolbar_btn_delete_url" />
+
         <org.chromium.chrome.browser.widget.TintedImageButton
             android:id="@+id/mic_button"
             style="@style/LocationBarButton"
@@ -76,5 +101,6 @@
             android:src="@drawable/btn_mic"
             android:visibility="invisible"
             android:contentDescription="@string/accessibility_toolbar_btn_mic" />
+
     </FrameLayout>
 </merge>

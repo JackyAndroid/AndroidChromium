@@ -9,15 +9,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.Log;
 import org.chromium.base.ObserverList;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.base.library_loader.LibraryProcessType;
 import org.chromium.base.library_loader.ProcessInitException;
 import org.chromium.chrome.browser.ChromeApplication;
+import org.chromium.chrome.browser.init.BrowserParts;
+import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
+import org.chromium.chrome.browser.init.EmptyBrowserParts;
+import org.chromium.chrome.browser.signin.AccountTrackerService;
 import org.chromium.chrome.browser.signin.SigninHelper;
 import org.chromium.content.browser.BrowserStartupController;
 import org.chromium.content.browser.BrowserStartupController.StartupCallback;
@@ -27,7 +31,7 @@ import org.chromium.content.browser.BrowserStartupController.StartupCallback;
  * an account's credentials (saved password, etc) are changed.
  */
 public class AccountsChangedReceiver extends BroadcastReceiver {
-    private static final String TAG = "AccountsChangeReceiver";
+    private static final String TAG = "AccountsChangedRx";
 
     /**
      * Receives a callback whenever {@link AccountManager#LOGIN_ACCOUNTS_CHANGED_ACTION} is
@@ -62,7 +66,6 @@ public class AccountsChangedReceiver extends BroadcastReceiver {
         sObservers.removeObserver(observer);
     }
 
-    @SuppressFBWarnings("DM_EXIT")
     @Override
     public void onReceive(Context context, final Intent intent) {
         final Context appContext = context.getApplicationContext();
@@ -82,45 +85,52 @@ public class AccountsChangedReceiver extends BroadcastReceiver {
     }
 
     private void continueHandleAccountChangeIfNeeded(final Context context, final Intent intent) {
-        if (AccountManager.LOGIN_ACCOUNTS_CHANGED_ACTION.equals(intent.getAction())) {
-            boolean isChromeVisible = ApplicationStatus.hasVisibleActivities();
-            if (isChromeVisible) {
-                StartupCallback startupCallback = new StartupCallback() {
-                    @Override
-                    public void onSuccess(boolean alreadyStarted) {
-                        ThreadUtils.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                SigninHelper.get(context.getApplicationContext())
-                                        .validateAccountSettings(true);
-                            }
-                        });
-                    }
-                    @Override
-                    public void onFailure() {
-                        // Startup failed. So notify SigninHelper of changed accounts via
-                        // shared prefs.
-                        SigninHelper.markAccountsChangedPref(context);
-                    }
-                };
+        if (!AccountManager.LOGIN_ACCOUNTS_CHANGED_ACTION.equals(intent.getAction())) return;
 
-                try {
-                    ((ChromeApplication) context.getApplicationContext())
-                            .startChromeBrowserProcessesAsync(startupCallback);
-                } catch (ProcessInitException e) {
-                    Log.e(TAG, "Unable to load native library.", e);
-                    ChromeApplication.reportStartupErrorAndExit(e);
-                }
-            } else {
-                // Notify SigninHelper of changed accounts (via shared prefs).
+        AccountTrackerService.get(context).invalidateAccountSeedStatus(
+                false /* don't refresh right now */);
+        boolean isChromeVisible = ApplicationStatus.hasVisibleActivities();
+        if (isChromeVisible) {
+            startBrowserIfNeededAndValidateAccounts(context);
+        } else {
+            // Notify SigninHelper of changed accounts (via shared prefs).
+            SigninHelper.markAccountsChangedPref(context);
+        }
+        notifyAccountsChangedOnBrowserStartup(context, intent);
+    }
+
+    @SuppressFBWarnings("DM_EXIT")
+    private static void startBrowserIfNeededAndValidateAccounts(final Context context) {
+        BrowserParts parts = new EmptyBrowserParts() {
+            @Override
+            public void finishNativeInitialization() {
+                ThreadUtils.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SigninHelper.get(context).validateAccountSettings(true);
+                    }
+                });
+            }
+
+            @Override
+            public void onStartupFailure() {
+                // Startup failed. So notify SigninHelper of changed accounts via
+                // shared prefs.
                 SigninHelper.markAccountsChangedPref(context);
             }
-            notifyObserver(context, intent);
+        };
+        try {
+            ChromeBrowserInitializer.getInstance(context).handlePreNativeStartup(parts);
+            ChromeBrowserInitializer.getInstance(context).handlePostNativeStartup(true, parts);
+        } catch (ProcessInitException e) {
+            Log.e(TAG, "Unable to load native library.", e);
+            ChromeApplication.reportStartupErrorAndExit(e);
         }
     }
 
-    private static void notifyObserver(final Context context, final Intent intent) {
-        StartupCallback chainedObserverCallback = new StartupCallback() {
+    private static void notifyAccountsChangedOnBrowserStartup(
+            final Context context, final Intent intent) {
+        StartupCallback notifyAccountsChangedCallback = new StartupCallback() {
             @Override
             public void onSuccess(boolean alreadyStarted) {
                 for (AccountsChangedObserver observer : sObservers) {
@@ -134,8 +144,8 @@ public class AccountsChangedReceiver extends BroadcastReceiver {
             }
         };
         // If the browser process has already been loaded, a task will be posted immediately to
-        // call the |chainedObserverCallback| passed in as a parameter.
+        // call the |notifyAccountsChangedCallback| passed in as a parameter.
         BrowserStartupController.get(context, LibraryProcessType.PROCESS_BROWSER)
-                .addStartupCompletedObserver(chainedObserverCallback);
+                .addStartupCompletedObserver(notifyAccountsChangedCallback);
     }
 }

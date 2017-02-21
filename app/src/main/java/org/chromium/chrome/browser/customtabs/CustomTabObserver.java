@@ -5,15 +5,22 @@
 package org.chromium.chrome.browser.customtabs;
 
 import android.app.Application;
-import android.os.IBinder;
+import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.SystemClock;
 import android.support.customtabs.CustomTabsCallback;
+import android.support.customtabs.CustomTabsSessionToken;
+import android.text.TextUtils;
 
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.chrome.browser.ssl.ConnectionSecurityLevel;
+import org.chromium.chrome.R;
+import org.chromium.chrome.browser.prerender.ExternalPrerenderHandler;
 import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
+import org.chromium.components.security_state.ConnectionSecurityLevel;
+import org.chromium.content_public.browser.ContentBitmapCallback;
 import org.chromium.content_public.browser.LoadUrlParams;
 
 import java.util.concurrent.TimeUnit;
@@ -22,19 +29,39 @@ import java.util.concurrent.TimeUnit;
  * A {@link TabObserver} that also handles custom tabs specific logging and messaging.
  */
 class CustomTabObserver extends EmptyTabObserver {
-    private CustomTabsConnection mCustomTabsConnection;
-    private IBinder mSession;
+    private final CustomTabsConnection mCustomTabsConnection;
+    private final CustomTabsSessionToken mSession;
+    private final boolean mOpenedByChrome;
+    private float mScaleForNavigationInfo = 1f;
+
     private long mIntentReceivedTimestamp;
     private long mPageLoadStartedTimestamp;
+
+    private boolean mScreenshotTakenForCurrentNavigation;
 
     private static final int STATE_RESET = 0;
     private static final int STATE_WAITING_LOAD_START = 1;
     private static final int STATE_WAITING_LOAD_FINISH = 2;
     private int mCurrentState;
 
-    public CustomTabObserver(Application application, IBinder session) {
-        mCustomTabsConnection = CustomTabsConnection.getInstance(application);
+    public CustomTabObserver(
+            Application application, CustomTabsSessionToken session, boolean openedByChrome) {
+        if (openedByChrome) {
+            mCustomTabsConnection = null;
+        } else {
+            mCustomTabsConnection = CustomTabsConnection.getInstance(application);
+        }
         mSession = session;
+        if (!openedByChrome && mCustomTabsConnection.shouldSendNavigationInfoForSession(mSession)) {
+            float desiredWidth = application.getResources().getDimensionPixelSize(
+                    R.dimen.custom_tabs_screenshot_width);
+            float desiredHeight = application.getResources().getDimensionPixelSize(
+                    R.dimen.custom_tabs_screenshot_height);
+            Rect bounds = ExternalPrerenderHandler.estimateContentSize(application, false);
+            mScaleForNavigationInfo = (bounds.width() == 0 || bounds.height() == 0) ? 1f :
+                    Math.min(desiredWidth / bounds.width(), desiredHeight / bounds.height());
+        }
+        mOpenedByChrome = openedByChrome;
         resetPageLoadTracking();
     }
 
@@ -48,7 +75,9 @@ class CustomTabObserver extends EmptyTabObserver {
 
     @Override
     public void onLoadUrl(Tab tab, LoadUrlParams params, int loadType) {
-        mCustomTabsConnection.registerLaunch(mSession, params.getUrl());
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.registerLaunch(mSession, params.getUrl());
+        }
     }
 
     @Override
@@ -57,25 +86,41 @@ class CustomTabObserver extends EmptyTabObserver {
             mPageLoadStartedTimestamp = SystemClock.elapsedRealtime();
             mCurrentState = STATE_WAITING_LOAD_FINISH;
         } else if (mCurrentState == STATE_WAITING_LOAD_FINISH) {
-            mCustomTabsConnection.notifyNavigationEvent(
-                    mSession, CustomTabsCallback.NAVIGATION_ABORTED);
+            if (mCustomTabsConnection != null) {
+                mCustomTabsConnection.notifyNavigationEvent(
+                        mSession, CustomTabsCallback.NAVIGATION_ABORTED);
+                mCustomTabsConnection.sendNavigationInfo(
+                        mSession, tab.getUrl(), tab.getTitle(), null);
+            }
             mPageLoadStartedTimestamp = SystemClock.elapsedRealtime();
         }
-        mCustomTabsConnection.notifyNavigationEvent(
-                mSession, CustomTabsCallback.NAVIGATION_STARTED);
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.notifyNavigationEvent(
+                    mSession, CustomTabsCallback.NAVIGATION_STARTED);
+            mScreenshotTakenForCurrentNavigation = false;
+        }
     }
 
     @Override
     public void onShown(Tab tab) {
-        mCustomTabsConnection.notifyNavigationEvent(
-                mSession, CustomTabsCallback.TAB_SHOWN);
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.notifyNavigationEvent(
+                    mSession, CustomTabsCallback.TAB_SHOWN);
+        }
+    }
+
+    @Override
+    public void onHidden(Tab tab) {
+        if (!mScreenshotTakenForCurrentNavigation) captureNavigationInfo(tab);
     }
 
     @Override
     public void onPageLoadFinished(Tab tab) {
         long pageLoadFinishedTimestamp = SystemClock.elapsedRealtime();
-        mCustomTabsConnection.notifyNavigationEvent(
-                mSession, CustomTabsCallback.NAVIGATION_FINISHED);
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.notifyNavigationEvent(
+                    mSession, CustomTabsCallback.NAVIGATION_FINISHED);
+        }
         // Both histograms (commit and PLT) are reported here, to make sure
         // that they are always recorded together, and that we only record
         // commits for successful navigations.
@@ -83,35 +128,68 @@ class CustomTabObserver extends EmptyTabObserver {
             long timeToPageLoadStartedMs = mPageLoadStartedTimestamp - mIntentReceivedTimestamp;
             long timeToPageLoadFinishedMs =
                     pageLoadFinishedTimestamp - mIntentReceivedTimestamp;
+
+            String histogramPrefix = mOpenedByChrome ? "ChromeGeneratedCustomTab" : "CustomTabs";
             // Same bounds and bucket count as "Startup.FirstCommitNavigationTime"
             RecordHistogram.recordCustomTimesHistogram(
-                    "CustomTabs.IntentToFirstCommitNavigationTime", timeToPageLoadStartedMs,
+                    histogramPrefix + ".IntentToFirstCommitNavigationTime", timeToPageLoadStartedMs,
                     1, TimeUnit.MINUTES.toMillis(1), TimeUnit.MILLISECONDS, 225);
             // Same bounds and bucket count as PLT histograms.
-            RecordHistogram.recordCustomTimesHistogram("CustomTabs.IntentToPageLoadedTime",
+            RecordHistogram.recordCustomTimesHistogram(histogramPrefix + ".IntentToPageLoadedTime",
                     timeToPageLoadFinishedMs, 10, TimeUnit.MINUTES.toMillis(10),
                     TimeUnit.MILLISECONDS, 100);
         }
         resetPageLoadTracking();
+        captureNavigationInfo(tab);
     }
 
     @Override
     public void onDidAttachInterstitialPage(Tab tab) {
-        if (tab.getSecurityLevel() != ConnectionSecurityLevel.SECURITY_ERROR) return;
+        if (tab.getSecurityLevel() != ConnectionSecurityLevel.DANGEROUS) return;
         resetPageLoadTracking();
-        mCustomTabsConnection.notifyNavigationEvent(
-                mSession, CustomTabsCallback.NAVIGATION_FAILED);
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.notifyNavigationEvent(
+                    mSession, CustomTabsCallback.NAVIGATION_FAILED);
+        }
     }
 
     @Override
     public void onPageLoadFailed(Tab tab, int errorCode) {
         resetPageLoadTracking();
-        mCustomTabsConnection.notifyNavigationEvent(
-                mSession, CustomTabsCallback.NAVIGATION_FAILED);
+        if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.notifyNavigationEvent(
+                    mSession, CustomTabsCallback.NAVIGATION_FAILED);
+        }
     }
 
     private void resetPageLoadTracking() {
         mCurrentState = STATE_RESET;
         mIntentReceivedTimestamp = -1;
+    }
+
+    private void captureNavigationInfo(final Tab tab) {
+        if (mCustomTabsConnection == null) return;
+        if (!mCustomTabsConnection.shouldSendNavigationInfoForSession(mSession)) return;
+
+        final ContentBitmapCallback callback = new ContentBitmapCallback() {
+            @Override
+            public void onFinishGetBitmap(Bitmap bitmap, int response) {
+                if (TextUtils.isEmpty(tab.getTitle()) && bitmap == null) return;
+                mCustomTabsConnection.sendNavigationInfo(
+                        mSession, tab.getUrl(), tab.getTitle(), bitmap);
+            }
+        };
+        // Delay screenshot capture since the page might be doing post load tasks. And this also
+        // gives time to get rid of any redirects and avoid capturing screenshots for those.
+        ThreadUtils.postOnUiThreadDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!tab.isHidden() && mCurrentState != STATE_RESET) return;
+                if (tab.getWebContents() == null) return;
+                tab.getWebContents().getContentBitmapAsync(
+                        Bitmap.Config.ARGB_8888, mScaleForNavigationInfo, new Rect(), callback);
+                mScreenshotTakenForCurrentNavigation = true;
+            }
+        }, 1000);
     }
 }

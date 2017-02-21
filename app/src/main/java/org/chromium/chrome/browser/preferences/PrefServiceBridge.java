@@ -6,10 +6,11 @@ package org.chromium.chrome.browser.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.browser.ContentSettingsType;
 import org.chromium.chrome.browser.preferences.website.ContentSetting;
@@ -71,6 +72,52 @@ public final class PrefServiceBridge {
         }
     }
 
+    /**
+     * Interface for a class that is listening to clear browser data events.
+     */
+    public interface OnClearBrowsingDataListener {
+        public abstract void onBrowsingDataCleared();
+    }
+
+    /**
+     * Interface for a class that is fetching important site information.
+     */
+    public interface ImportantSitesCallback {
+        /**
+         * Called when the list of important registerable domains has been fetched from cpp.
+         * See net/base/registry_controlled_domains/registry_controlled_domain.h for more details on
+         * registrable domains and the current list of effective eTLDs.
+         * @param domains Important registerable domains.
+         * @param exampleOrigins Example origins for each domain. These can be used to retrieve
+         *                       favicons.
+         * @param importantReasons Bitfield of reasons why this domain was selected. Pass this back
+         *                         to clearBrowinsgData so we can record metrics.
+         */
+        @CalledByNative("ImportantSitesCallback")
+        void onImportantRegisterableDomainsReady(
+                String[] domains, String[] exampleOrigins, int[] importantReasons);
+    }
+
+    /**
+     * Interface to a class that receives callbacks instructing it to inform the user about other
+     * forms of browsing history.
+     */
+    public interface OtherFormsOfBrowsingHistoryListener {
+        /**
+         * Called by the web history service when it discovers that other forms of browsing history
+         * exist.
+         */
+        @CalledByNative("OtherFormsOfBrowsingHistoryListener")
+        public abstract void enableDialogAboutOtherFormsOfBrowsingHistory();
+
+        /**
+         * Called by the web history service when the conditions for showing the dialog about
+         * other forms of browsing history are met.
+         */
+        @CalledByNative("OtherFormsOfBrowsingHistoryListener")
+        public abstract void showNoticeAboutOtherFormsOfBrowsingHistory();
+    }
+
     @CalledByNative
     private static AboutVersionStrings createAboutVersionStrings(String applicationVersion,
             String osVersion) {
@@ -103,7 +150,7 @@ public final class PrefServiceBridge {
      * Migrates (synchronously) the preferences to the most recent version.
      */
     public void migratePreferences(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences preferences = ContextUtils.getAppSharedPreferences();
         int currentVersion = preferences.getInt(MIGRATION_PREF_KEY, 0);
         if (currentVersion == MIGRATION_CURRENT_VERSION) return;
         if (currentVersion > MIGRATION_CURRENT_VERSION) {
@@ -115,18 +162,8 @@ public final class PrefServiceBridge {
         if (currentVersion < 1) {
             nativeMigrateJavascriptPreference();
         }
-        // Step 2 intentionally skipped.
-        if (currentVersion < 3) {
-            nativeMigrateLocationPreference();
-            nativeMigrateProtectedMediaPreference();
-        }
-        if (currentVersion < 4) {
-            // For a brief period (M44 Beta), it was possible for users to disable images via Site
-            // Settings. Now that this option has been removed, ensure that users are not stuck with
-            // images disabled.
-            setContentSettingEnabled(ContentSettingsType.CONTENT_SETTINGS_TYPE_IMAGES, true);
-        }
-        preferences.edit().putInt(MIGRATION_PREF_KEY, MIGRATION_CURRENT_VERSION).commit();
+        // Steps 2,3,4 intentionally skipped.
+        preferences.edit().putInt(MIGRATION_PREF_KEY, MIGRATION_CURRENT_VERSION).apply();
     }
 
     /**
@@ -146,7 +183,7 @@ public final class PrefServiceBridge {
             WebsitePreferenceBridge.nativeSetGeolocationSettingForOrigin(url, url,
                     allowed ? ContentSetting.ALLOW.toInt() : ContentSetting.BLOCK.toInt(), false);
             SharedPreferences sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(context);
+                    ContextUtils.getAppSharedPreferences();
             sharedPreferences.edit().putBoolean(LOCATION_AUTO_ALLOWED, true).apply();
         }
     }
@@ -207,16 +244,23 @@ public final class PrefServiceBridge {
      */
     @CalledByNative
     public static String getAndroidPermissionForContentSetting(int contentSettingType) {
-        switch(contentSettingType) {
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION:
-                return android.Manifest.permission.ACCESS_FINE_LOCATION;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC:
-                return android.Manifest.permission.RECORD_AUDIO;
-            case ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA:
-                return android.Manifest.permission.CAMERA;
-            default:
-                return null;
+        if (contentSettingType == ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION) {
+            return android.Manifest.permission.ACCESS_FINE_LOCATION;
         }
+        if (contentSettingType == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC) {
+            return android.Manifest.permission.RECORD_AUDIO;
+        }
+        if (contentSettingType == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA) {
+            return android.Manifest.permission.CAMERA;
+        }
+        return null;
+    }
+
+    /**
+     * @return whether autoplay is enabled.
+     */
+    public boolean isAutoplayEnabled() {
+        return nativeGetAutoplayEnabled();
     }
 
     public boolean isAcceptCookiesEnabled() {
@@ -261,10 +305,17 @@ public final class PrefServiceBridge {
     }
 
     /**
-     * @return whether push notifications are enabled.
+     * @return whether notifications are enabled.
      */
-    public boolean isPushNotificationsEnabled() {
-        return nativeGetPushNotificationsEnabled();
+    public boolean isNotificationsEnabled() {
+        return nativeGetNotificationsEnabled();
+    }
+
+    /**
+     * @return whether vibration is enabled for notifications.
+     */
+    public boolean isNotificationsVibrateEnabled() {
+        return nativeGetNotificationsVibrateEnabled();
     }
 
     /**
@@ -330,6 +381,20 @@ public final class PrefServiceBridge {
     }
 
     /**
+     * @return true if background sync is managed by policy.
+     */
+    public boolean isBackgroundSyncManaged() {
+        return isContentSettingManaged(ContentSettingsType.CONTENT_SETTINGS_TYPE_BACKGROUND_SYNC);
+    }
+
+    /**
+     * @return true if background sync is enabled.
+     */
+    public boolean isBackgroundSyncAllowed() {
+        return nativeGetBackgroundSyncEnabled();
+    }
+
+    /**
      * Sets the preference that controls protected media identifier.
      */
     public void setProtectedMediaIdentifierEnabled(boolean enabled) {
@@ -341,13 +406,6 @@ public final class PrefServiceBridge {
      */
     public void setTranslateEnabled(boolean enabled) {
         nativeSetTranslateEnabled(enabled);
-    }
-
-    /**
-     * Sets the preference that controls automatic detection of character encoding.
-     */
-    public void setAutoDetectEncodingEnabled(boolean enabled) {
-        nativeSetAutoDetectEncodingEnabled(enabled);
     }
 
     /**
@@ -372,24 +430,24 @@ public final class PrefServiceBridge {
     }
 
     /**
+     * Enable or disable background sync.
+     */
+    public void setBackgroundSyncEnabled(boolean enabled) {
+        nativeSetBackgroundSyncEnabled(enabled);
+    }
+
+    /**
+     * @return the last account id associated with sync.
+     */
+    public String getSyncLastAccountId() {
+        return nativeGetSyncLastAccountId();
+    }
+
+    /**
      * @return the last account username associated with sync.
      */
     public String getSyncLastAccountName() {
         return nativeGetSyncLastAccountName();
-    }
-
-    /**
-     * @return whether usage and crash report is managed.
-     */
-    public boolean isCrashReportManaged() {
-        return nativeGetCrashReportManaged();
-    }
-
-    /**
-     * Enable or disable crashes_ui.
-     */
-    public void setCrashReporting(boolean reporting) {
-        nativeSetCrashReporting(reporting);
     }
 
     /**
@@ -511,17 +569,25 @@ public final class PrefServiceBridge {
     }
 
     /**
+     * @return whether there is a user set value for kNetworkPredictionOptions.  This should only be
+     * used for preference migration. See http://crbug.com/334602
+     */
+    public boolean obsoleteNetworkPredictionOptionsHasUserSetting() {
+        return nativeObsoleteNetworkPredictionOptionsHasUserSetting();
+    }
+
+    /**
      * @return Network predictions preference.
      */
-    public NetworkPredictionOptions getNetworkPredictionOptions() {
-        return NetworkPredictionOptions.intToEnum(nativeGetNetworkPredictionOptions());
+    public boolean getNetworkPredictionEnabled() {
+        return nativeGetNetworkPredictionEnabled();
     }
 
     /**
      * Sets network predictions preference.
      */
-    public void setNetworkPredictionOptions(NetworkPredictionOptions option) {
-        nativeSetNetworkPredictionOptions(option.enumToInt());
+    public void setNetworkPredictionEnabled(boolean enabled) {
+        nativeSetNetworkPredictionEnabled(enabled);
     }
 
     /**
@@ -536,8 +602,8 @@ public final class PrefServiceBridge {
      * connection type.
      * @return Whether network predictions are allowed.
      */
-    public boolean canPredictNetworkActions() {
-        return nativeCanPredictNetworkActions();
+    public boolean canPrefetchAndPrerender() {
+        return nativeCanPrefetchAndPrerender();
     }
 
     /**
@@ -590,13 +656,6 @@ public final class PrefServiceBridge {
     }
 
     /**
-     * @return true if automatic detection of character encoding is enabled, false otherwise.
-     */
-    public boolean isAutoDetectEncodingEnabled() {
-        return nativeGetAutoDetectEncodingEnabled();
-    }
-
-    /**
      * Sets whether the web service to resolve navigation error should be enabled.
      */
     public void setResolveNavigationErrorEnabled(boolean enabled) {
@@ -604,10 +663,41 @@ public final class PrefServiceBridge {
     }
 
     /**
-     * Interface for a class that is listening to clear browser data events.
+     * Checks the state of deletion preference for a certain browsing data type.
+     * @param dataType The requested browsing data type (from the shared enum
+     *      {@link org.chromium.chrome.browser.browsing_data.BrowsingDataType}).
+     * @return The state of the corresponding deletion preference.
      */
-    public interface OnClearBrowsingDataListener {
-        public abstract void onBrowsingDataCleared();
+    public boolean getBrowsingDataDeletionPreference(int dataType) {
+        return nativeGetBrowsingDataDeletionPreference(dataType);
+    }
+
+    /**
+     * Sets the state of deletion preference for a certain browsing data type.
+     * @param dataType The requested browsing data type (from the shared enum
+     *      {@link org.chromium.chrome.browser.browsing_data.BrowsingDataType}).
+     * @param value The state to be set.
+     */
+    public void setBrowsingDataDeletionPreference(int dataType, boolean value) {
+        nativeSetBrowsingDataDeletionPreference(dataType, value);
+    }
+
+    /**
+     * Gets the time period for which browsing data will be deleted.
+     * @return The currently selected browsing data deletion time period (from the shared enum
+     *      {@link org.chromium.chrome.browser.browsing_data.TimePeriod}).
+     */
+    public int getBrowsingDataDeletionTimePeriod() {
+        return nativeGetBrowsingDataDeletionTimePeriod();
+    }
+
+    /**
+     * Sets the time period for which browsing data will be deleted.
+     * @param timePeriod The selected browsing data deletion time period (from the shared enum
+     *      {@link org.chromium.chrome.browser.browsing_data.TimePeriod}).
+     */
+    public void setBrowsingDataDeletionTimePeriod(int timePeriod) {
+        nativeSetBrowsingDataDeletionTimePeriod(timePeriod);
     }
 
     /**
@@ -615,13 +705,41 @@ public final class PrefServiceBridge {
      * |listener| is an object to be notified when clearing completes.
      * It can be null, but many operations (e.g. navigation) are
      * ill-advised while browsing data is being cleared.
+     * @param listener A listener to call back when the clearing is finished.
+     * @param dataTypes An array of browsing data types to delete, represented as values from
+     *      the shared enum {@link org.chromium.chrome.browser.browsing_data.BrowsingDataType}.
+     * @param timePeriod The time period for which to delete the data, represented as a value from
+     *      the shared enum {@link org.chromium.chrome.browser.browsing_data.TimePeriod}.
      */
-    public void clearBrowsingData(OnClearBrowsingDataListener listener,
-            boolean history, boolean cache, boolean cookiesAndSiteData,
-            boolean passwords, boolean formData) {
+    public void clearBrowsingData(
+            OnClearBrowsingDataListener listener, int[] dataTypes, int timePeriod) {
+        clearBrowsingDataExcludingDomains(listener, dataTypes, timePeriod, new String[0],
+                new int[0], new String[0], new int[0]);
+    }
+
+    /**
+     * Same as above, but now we can specify a list of domains to exclude from clearing browsing
+     * data.
+     * Do not use this method unless caller knows what they're doing. Not all backends are supported
+     * yet, and more data than expected could be deleted. See crbug.com/113621.
+     * @param listener A listener to call back when the clearing is finished.
+     * @param dataTypes An array of browsing data types to delete, represented as values from
+     *      the shared enum {@link org.chromium.chrome.browser.browsing_data.BrowsingDataType}.
+     * @param timePeriod The time period for which to delete the data, represented as a value from
+     *      the shared enum {@link org.chromium.chrome.browser.browsing_data.TimePeriod}.
+     * @param blacklistDomains A list of registerable domains that we don't clear data for.
+     * @param blacklistedDomainReasons A list of the reason metadata for the blacklisted domains.
+     * @param ignoredDomains A list of ignored domains that the user chose to not blacklist. We use
+     *                       these to remove important site entries if the user ignores them enough.
+     * @param ignoredDomainReasons A list of reason metadata for the ignored domains.
+     */
+    public void clearBrowsingDataExcludingDomains(OnClearBrowsingDataListener listener,
+            int[] dataTypes, int timePeriod, String[] blacklistDomains,
+            int[] blacklistedDomainReasons, String[] ignoredDomains, int[] ignoredDomainReasons) {
         assert mClearBrowsingDataListener == null;
         mClearBrowsingDataListener = listener;
-        nativeClearBrowsingData(history, cache, cookiesAndSiteData, passwords, formData);
+        nativeClearBrowsingData(dataTypes, timePeriod, blacklistDomains, blacklistedDomainReasons,
+                ignoredDomains, ignoredDomainReasons);
     }
 
     /*
@@ -639,8 +757,49 @@ public final class PrefServiceBridge {
         }
     }
 
+    /**
+     * This fetches sites (registerable domains) that we consider important. This combines many
+     * pieces of information, including site engagement and permissions. The callback is called
+     * with the list of important registerable domains.
+     *
+     * See net/base/registry_controlled_domains/registry_controlled_domain.h for more details on
+     * registrable domains and the current list of effective eTLDs.
+     * @param callback The callback that will be used to set the list of important sites.
+     */
+    public static void fetchImportantSites(ImportantSitesCallback callback) {
+        nativeFetchImportantSites(callback);
+    }
+
+    /**
+     * @return The maximum number of important sites that will be returned from the call above.
+     *         This is a constant that won't change.
+     */
+    public static int getMaxImportantSites() {
+        return nativeGetMaxImportantSites();
+    }
+
+    /** This lets us mark an origin as important for testing. */
+    @VisibleForTesting
+    public static void markOriginAsImportantForTesting(String origin) {
+        nativeMarkOriginAsImportantForTesting(origin);
+    }
+
+    /**
+     * Requests that the web history service finds out if we should inform the user about the
+     * existence of other forms of browsing history. The response will be asynchronous, through
+     * {@link OtherFormsOfBrowsingHistoryListener}.
+     */
+    public void requestInfoAboutOtherFormsOfBrowsingHistory(
+            OtherFormsOfBrowsingHistoryListener listener) {
+        nativeRequestInfoAboutOtherFormsOfBrowsingHistory(listener);
+    }
+
     public void setAllowCookiesEnabled(boolean allow) {
         nativeSetAllowCookiesEnabled(allow);
+    }
+
+    public void setAutoplayEnabled(boolean allow) {
+        nativeSetAutoplayEnabled(allow);
     }
 
     public void setBlockThirdPartyCookiesEnabled(boolean enabled) {
@@ -659,8 +818,12 @@ public final class PrefServiceBridge {
         nativeSetPasswordManagerAutoSigninEnabled(enabled);
     }
 
-    public void setPushNotificationsEnabled(boolean allow) {
-        nativeSetPushNotificationsEnabled(allow);
+    public void setNotificationsEnabled(boolean allow) {
+        nativeSetNotificationsEnabled(allow);
+    }
+
+    public void setNotificationsVibrateEnabled(boolean enabled) {
+        nativeSetNotificationsVibrateEnabled(enabled);
     }
 
     public void setAllowLocationEnabled(boolean allow) {
@@ -781,30 +944,6 @@ public final class PrefServiceBridge {
     }
 
     /**
-     * Sets whether JavaScript is allowed to run on the given website/domain.
-     *
-     * @param pattern A pattern that matches one or multiple domains. For
-     *        details see examples in content_settings_pattern.h.
-     * @param allow Whether to allow JavaScript on the given site/domain.
-     */
-    public void setJavaScriptAllowed(String pattern, boolean allow) {
-        nativeSetJavaScriptAllowed(
-                pattern, allow ? ContentSetting.ALLOW.toInt() : ContentSetting.BLOCK.toInt());
-    }
-
-    /**
-     * Adds/Edit a popup exception
-     *
-     * @param pattern attribute for the popup exception pattern
-     * @param allow attribute to specify whether to allow or block pattern
-     */
-    public void setPopupException(String pattern, boolean allow) {
-        nativeSetPopupException(pattern, allow
-                ? ContentSetting.ALLOW.toInt()
-                : ContentSetting.BLOCK.toInt());
-    }
-
-    /**
      * Get all the version strings from native.
      * @return AboutVersionStrings about version strings.
      */
@@ -822,10 +961,10 @@ public final class PrefServiceBridge {
     }
 
     /**
-     * @return whether ForceGoogleSafeSearch is set
+     * @return whether SafeSites for supervised users is enabled.
      */
-    public boolean isForceGoogleSafeSearch() {
-        return nativeGetForceGoogleSafeSearch();
+    public boolean isSupervisedUserSafeSitesEnabled() {
+        return nativeGetSupervisedUserSafeSitesEnabled();
     }
 
     /**
@@ -868,28 +1007,65 @@ public final class PrefServiceBridge {
             int contentSettingType, String pattern, int setting);
 
     /**
-      * @return whether Metrics reporting is enabled.
+      * @return whether usage and crash reporting pref is enabled.
       */
     public boolean isMetricsReportingEnabled() {
-        return nativeGetMetricsReportingEnabled();
+        return nativeIsMetricsReportingEnabled();
     }
 
     /**
-     * Sets whether the metrics reporting should be enabled.
+     * Sets whether the usage and crash reporting pref should be enabled.
      */
     public void setMetricsReportingEnabled(boolean enabled) {
         nativeSetMetricsReportingEnabled(enabled);
     }
 
     /**
-     * @return whether the metrics reporting preference has been set by user.
+     * @return whether usage and crash report pref is managed.
      */
-    public boolean hasSetMetricsReporting() {
-        return nativeHasSetMetricsReporting();
+    public boolean isMetricsReportingManaged() {
+        return nativeIsMetricsReportingManaged();
+    }
+
+    /**
+     * @param clicked Whether the update menu item was clicked. The preference is stored to
+     *                facilitate logging whether Chrome was updated after a click on the menu item.
+     */
+    public void setClickedUpdateMenuItem(boolean clicked) {
+        nativeSetClickedUpdateMenuItem(clicked);
+    }
+
+    /**
+     * @return Whether the update menu item was clicked.
+     */
+    public boolean getClickedUpdateMenuItem() {
+        return nativeGetClickedUpdateMenuItem();
+    }
+
+    /**
+     * @param version The latest version of Chrome available when the update menu item
+     *                was clicked.
+     */
+    public void setLatestVersionWhenClickedUpdateMenuItem(String version) {
+        nativeSetLatestVersionWhenClickedUpdateMenuItem(version);
+    }
+
+    /**
+     * @return The latest version of Chrome available when the update menu item was clicked.
+     */
+    public String getLatestVersionWhenClickedUpdateMenuItem() {
+        return nativeGetLatestVersionWhenClickedUpdateMenuItem();
+    }
+
+    @VisibleForTesting
+    public void setSupervisedUserId(String supervisedUserId) {
+        nativeSetSupervisedUserId(supervisedUserId);
     }
 
     private native boolean nativeGetAcceptCookiesEnabled();
     private native boolean nativeGetAcceptCookiesManaged();
+    private native boolean nativeGetAutoplayEnabled();
+    private native boolean nativeGetBackgroundSyncEnabled();
     private native boolean nativeGetBlockThirdPartyCookiesEnabled();
     private native boolean nativeGetBlockThirdPartyCookiesManaged();
     private native boolean nativeGetRememberPasswordsEnabled();
@@ -914,27 +1090,33 @@ public final class PrefServiceBridge {
     private native boolean nativeGetFullscreenManaged();
     private native boolean nativeGetTranslateEnabled();
     private native boolean nativeGetTranslateManaged();
-    private native boolean nativeGetAutoDetectEncodingEnabled();
     private native boolean nativeGetResolveNavigationErrorEnabled();
     private native boolean nativeGetResolveNavigationErrorManaged();
     private native boolean nativeGetProtectedMediaIdentifierEnabled();
-    private native boolean nativeGetCrashReportManaged();
     private native boolean nativeGetIncognitoModeEnabled();
     private native boolean nativeGetIncognitoModeManaged();
     private native boolean nativeGetPrintingEnabled();
     private native boolean nativeGetPrintingManaged();
-    private native boolean nativeGetForceGoogleSafeSearch();
+    private native boolean nativeGetSupervisedUserSafeSitesEnabled();
     private native void nativeSetTranslateEnabled(boolean enabled);
-    private native void nativeSetAutoDetectEncodingEnabled(boolean enabled);
     private native void nativeResetTranslateDefaults();
     private native void nativeMigrateJavascriptPreference();
-    private native void nativeMigrateLocationPreference();
-    private native void nativeMigrateProtectedMediaPreference();
-    private native void nativeSetJavaScriptAllowed(String pattern, int setting);
-    private native void nativeClearBrowsingData(boolean history, boolean cache,
-            boolean cookiesAndSiteData, boolean passwords, boolean formData);
+    private native boolean nativeGetBrowsingDataDeletionPreference(int dataType);
+    private native void nativeSetBrowsingDataDeletionPreference(int dataType, boolean value);
+    private native int nativeGetBrowsingDataDeletionTimePeriod();
+    private native void nativeSetBrowsingDataDeletionTimePeriod(int timePeriod);
+    private native void nativeClearBrowsingData(int[] dataTypes, int timePeriod,
+            String[] blacklistDomains, int[] blacklistedDomainReasons, String[] ignoredDomains,
+            int[] ignoredDomainReasons);
+    private native void nativeRequestInfoAboutOtherFormsOfBrowsingHistory(
+            OtherFormsOfBrowsingHistoryListener listener);
     private native boolean nativeCanDeleteBrowsingHistory();
+    private static native void nativeFetchImportantSites(ImportantSitesCallback callback);
+    private static native int nativeGetMaxImportantSites();
+    private static native void nativeMarkOriginAsImportantForTesting(String origin);
+    private native void nativeSetAutoplayEnabled(boolean allow);
     private native void nativeSetAllowCookiesEnabled(boolean allow);
+    private native void nativeSetBackgroundSyncEnabled(boolean allow);
     private native void nativeSetBlockThirdPartyCookiesEnabled(boolean enabled);
     private native void nativeSetDoNotTrackEnabled(boolean enabled);
     private native void nativeSetFullscreenAllowed(boolean allowed);
@@ -942,13 +1124,13 @@ public final class PrefServiceBridge {
     private native void nativeSetPasswordManagerAutoSigninEnabled(boolean enabled);
     private native void nativeSetProtectedMediaIdentifierEnabled(boolean enabled);
     private native boolean nativeGetAllowLocationEnabled();
-    private native boolean nativeGetPushNotificationsEnabled();
+    private native boolean nativeGetNotificationsEnabled();
+    private native boolean nativeGetNotificationsVibrateEnabled();
     private native void nativeSetAllowLocationEnabled(boolean allow);
-    private native void nativeSetPushNotificationsEnabled(boolean allow);
+    private native void nativeSetNotificationsEnabled(boolean allow);
+    private native void nativeSetNotificationsVibrateEnabled(boolean enabled);
     private native void nativeSetPasswordEchoEnabled(boolean enabled);
-    private native void nativeSetPopupException(String pattern, int setting);
-    private native void nativeSetCrashReporting(boolean reporting);
-    private native boolean nativeCanPredictNetworkActions();
+    private native boolean nativeCanPrefetchAndPrerender();
     private native AboutVersionStrings nativeGetAboutVersionStrings();
     private native void nativeSetContextualSearchPreference(String preference);
     private native String nativeGetContextualSearchPreference();
@@ -963,11 +1145,13 @@ public final class PrefServiceBridge {
     private native void nativeSetSafeBrowsingEnabled(boolean enabled);
     private native boolean nativeGetSafeBrowsingManaged();
     private native boolean nativeGetNetworkPredictionManaged();
-    private native int nativeGetNetworkPredictionOptions();
-    private native void nativeSetNetworkPredictionOptions(int option);
+    private native boolean nativeObsoleteNetworkPredictionOptionsHasUserSetting();
+    private native boolean nativeGetNetworkPredictionEnabled();
+    private native void nativeSetNetworkPredictionEnabled(boolean enabled);
     private native void nativeSetResolveNavigationErrorEnabled(boolean enabled);
     private native void nativeSetEulaAccepted();
     private native void nativeResetAcceptLanguages(String defaultLocale);
+    private native String nativeGetSyncLastAccountId();
     private native String nativeGetSyncLastAccountName();
     private native String nativeGetSupervisedUserCustodianName();
     private native String nativeGetSupervisedUserCustodianEmail();
@@ -976,7 +1160,12 @@ public final class PrefServiceBridge {
     private native String nativeGetSupervisedUserSecondCustodianName();
     private native String nativeGetSupervisedUserSecondCustodianEmail();
     private native String nativeGetSupervisedUserSecondCustodianProfileImageURL();
-    private native boolean nativeGetMetricsReportingEnabled();
+    private native boolean nativeIsMetricsReportingEnabled();
     private native void nativeSetMetricsReportingEnabled(boolean enabled);
-    private native boolean nativeHasSetMetricsReporting();
+    private native boolean nativeIsMetricsReportingManaged();
+    private native void nativeSetClickedUpdateMenuItem(boolean clicked);
+    private native boolean nativeGetClickedUpdateMenuItem();
+    private native void nativeSetLatestVersionWhenClickedUpdateMenuItem(String version);
+    private native String nativeGetLatestVersionWhenClickedUpdateMenuItem();
+    private native void nativeSetSupervisedUserId(String supervisedUserId);
 }

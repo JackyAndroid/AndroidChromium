@@ -4,9 +4,9 @@
 
 package org.chromium.chrome.browser.tab;
 
+import android.graphics.Bitmap;
 import android.view.ContextMenu;
 
-import org.chromium.content.browser.ContentViewCore;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 
@@ -31,12 +31,6 @@ public class EmptyTabObserver implements TabObserver {
     public void onContentChanged(Tab tab) { }
 
     @Override
-    public void onOverlayContentViewCoreAdded(Tab tab, ContentViewCore content) { }
-
-    @Override
-    public void onOverlayContentViewCoreRemoved(Tab tab, ContentViewCore content) { }
-
-    @Override
     public void onLoadUrl(Tab tab, LoadUrlParams params, int loadType) { }
 
     @Override
@@ -49,7 +43,7 @@ public class EmptyTabObserver implements TabObserver {
     public void onPageLoadFailed(Tab tab, int errorCode) { }
 
     @Override
-    public void onFaviconUpdated(Tab tab) { }
+    public void onFaviconUpdated(Tab tab, Bitmap icon) { }
 
     @Override
     public void onTitleUpdated(Tab tab) { }
@@ -128,4 +122,7 @@ public class EmptyTabObserver implements TabObserver {
     @Override
     public void webContentsCreated(Tab tab, WebContents sourceWebContents, long openerRenderFrameId,
             String frameName, String targetUrl, WebContents newWebContents) { }
+
+    @Override
+    public void onReparentingFinished(Tab tab) { }
 }

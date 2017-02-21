@@ -6,18 +6,21 @@ package org.chromium.chrome.browser;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.StrictMode;
 import android.view.ContextThemeWrapper;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.widget.FrameLayout;
 
+import org.chromium.base.Log;
+import org.chromium.base.SysUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.TraceEvent;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
-import org.chromium.chrome.browser.prerender.ExternalPrerenderHandler;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.content_public.browser.WebContents;
 
@@ -37,17 +40,16 @@ import java.util.Set;
  * This class is not thread-safe and must only be used on the UI thread.
  */
 public final class WarmupManager {
+    private static final String TAG = "WarmupManager";
+
     private static WarmupManager sWarmupManager;
 
     private final Set<String> mDnsRequestsInFlight;
     private final Map<String, Profile> mPendingPreconnectWithProfile;
 
-    private boolean mPrerenderIsAllowed;
-    private WebContents mPrerenderedWebContents;
-    private boolean mPrerendered;
     private int mToolbarContainerId;
     private ViewGroup mMainView;
-    private ExternalPrerenderHandler mExternalPrerenderHandler;
+    private WebContents mSpareWebContents;
 
     /**
      * @return The singleton instance for the WarmupManager, creating one if necessary.
@@ -59,80 +61,8 @@ public final class WarmupManager {
     }
 
     private WarmupManager() {
-        mPrerenderIsAllowed = true;
         mDnsRequestsInFlight = new HashSet<String>();
         mPendingPreconnectWithProfile = new HashMap<String, Profile>();
-    }
-
-    /**
-     * Disallow prerendering from now until the browser process death.
-     */
-    public void disallowPrerendering() {
-        ThreadUtils.assertOnUiThread();
-        mPrerenderIsAllowed = false;
-        cancelCurrentPrerender();
-        mExternalPrerenderHandler = null;
-    }
-
-    /**
-     * Check whether prerender manager has the given url prerendered. This also works with
-     * redirected urls.
-     *
-     * Uses the last used profile.
-     *
-     * @param url The url to check.
-     * @return Whether the given url has been prerendered.
-     */
-    public boolean hasPrerenderedUrl(String url) {
-        ThreadUtils.assertOnUiThread();
-        if (!mPrerenderIsAllowed) return false;
-        return hasAnyPrerenderedUrl() && ExternalPrerenderHandler.hasPrerenderedUrl(
-                Profile.getLastUsedProfile(), url, mPrerenderedWebContents);
-    }
-
-    /**
-     * @return Whether any url has been prerendered.
-     */
-    public boolean hasAnyPrerenderedUrl() {
-        ThreadUtils.assertOnUiThread();
-        if (!mPrerenderIsAllowed) return false;
-        return mPrerendered;
-    }
-
-    /**
-     * @return The prerendered {@link WebContents} clearing out the reference WarmupManager owns.
-     */
-    public WebContents takePrerenderedWebContents() {
-        ThreadUtils.assertOnUiThread();
-        if (!mPrerenderIsAllowed) return null;
-        WebContents prerenderedWebContents = mPrerenderedWebContents;
-        assert (mPrerenderedWebContents != null);
-        mPrerenderedWebContents = null;
-        return prerenderedWebContents;
-    }
-
-    /**
-     * Prerenders the given url using the prerender_manager.
-     *
-     * Uses the last used profile.
-     *
-     * @param url The url to prerender.
-     * @param referrer The referrer url to be used while prerendering
-     * @param widthPix The width in pixels to which the page should be prerendered.
-     * @param heightPix The height in pixels to which the page should be prerendered.
-     */
-    public void prerenderUrl(final String url, final String referrer,
-            final int widthPix, final int heightPix) {
-        ThreadUtils.assertOnUiThread();
-        if (!mPrerenderIsAllowed) return;
-        clearWebContentsIfNecessary();
-        if (mExternalPrerenderHandler == null) {
-            mExternalPrerenderHandler = new ExternalPrerenderHandler();
-        }
-
-        mPrerenderedWebContents = mExternalPrerenderHandler.addPrerender(
-                Profile.getLastUsedProfile(), url, referrer, widthPix, heightPix);
-        if (mPrerenderedWebContents != null) mPrerendered = true;
     }
 
     /**
@@ -142,6 +72,10 @@ public final class WarmupManager {
      */
     public void initializeViewHierarchy(Context baseContext, int toolbarContainerId) {
         TraceEvent.begin("WarmupManager.initializeViewHierarchy");
+        // Inflating the view hierarchy causes StrictMode violations on some
+        // devices. Since layout inflation should happen on the UI thread, allow
+        // the disk reads. crbug.com/644243.
+        StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
         try {
             ThreadUtils.assertOnUiThread();
             if (mMainView != null && mToolbarContainerId == toolbarContainerId) return;
@@ -156,7 +90,12 @@ public final class WarmupManager {
                 stub.setLayoutResource(toolbarContainerId);
                 stub.inflate();
             }
+        } catch (InflateException e) {
+            // See crbug.com/606715.
+            Log.e(TAG, "Inflation exception.", e);
+            mMainView = null;
         } finally {
+            StrictMode.setThreadPolicy(oldPolicy);
             TraceEvent.end("WarmupManager.initializeViewHierarchy");
         }
     }
@@ -175,29 +114,6 @@ public final class WarmupManager {
             viewHierarchy.removeView(currentChild);
             contentView.addView(currentChild);
         }
-    }
-
-    /**
-     * Destroys the native WebContents instance the WarmupManager currently holds onto.
-     */
-    public void clearWebContentsIfNecessary() {
-        ThreadUtils.assertOnUiThread();
-        mPrerendered = false;
-        if (mPrerenderedWebContents == null) return;
-
-        mPrerenderedWebContents.destroy();
-        mPrerenderedWebContents = null;
-    }
-
-    /**
-     * Cancel the current prerender.
-     */
-    public void cancelCurrentPrerender() {
-        ThreadUtils.assertOnUiThread();
-        clearWebContentsIfNecessary();
-        if (mExternalPrerenderHandler == null) return;
-
-        mExternalPrerenderHandler.cancelCurrentPrerender();
     }
 
     /**
@@ -283,6 +199,51 @@ public final class WarmupManager {
                 nativePreconnectUrlAndSubresources(profile, url);
             }
         }
+    }
+
+    /**
+     * Creates and initializes a spare WebContents, to be used in a subsequent navigation.
+     *
+     * This creates a renderer that is suitable for any navigation. It can be picked up by any tab.
+     * Can be called multiple times, and must be called from the UI thread.
+     * Note that this is a no-op on low-end devices.
+     */
+    public void createSpareWebContents() {
+        ThreadUtils.assertOnUiThread();
+        if (mSpareWebContents != null || SysUtils.isLowEndDevice()) return;
+        mSpareWebContents = WebContentsFactory.createWebContentsWithWarmRenderer(false, false);
+    }
+
+    /**
+     * Destroys the spare WebContents if there is one.
+     */
+    public void destroySpareWebContents() {
+        ThreadUtils.assertOnUiThread();
+        if (mSpareWebContents == null) return;
+        mSpareWebContents.destroy();
+        mSpareWebContents = null;
+    }
+
+    /**
+     * Returns a spare WebContents or null, depending on the availability of one.
+     *
+     * The parameters are the same as for {@link WebContentsFactory#createWebContents()}.
+     *
+     * @return a WebContents, or null.
+     */
+    public WebContents takeSpareWebContents(boolean incognito, boolean initiallyHidden) {
+        ThreadUtils.assertOnUiThread();
+        if (incognito || initiallyHidden) return null;
+        WebContents result = mSpareWebContents;
+        mSpareWebContents = null;
+        return result;
+    }
+
+    /**
+     * @return Whether a spare renderer is available.
+     */
+    public boolean hasSpareWebContents() {
+        return mSpareWebContents != null;
     }
 
     private static native void nativePreconnectUrlAndSubresources(Profile profile, String url);

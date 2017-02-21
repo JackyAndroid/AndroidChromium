@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * This class allows Java code to get and clear the list of recently closed tabs.
  */
-class RecentlyClosedBridge {
+public class RecentlyClosedBridge {
     private long mNativeRecentlyClosedTabsBridge;
 
     /**
@@ -24,7 +24,7 @@ class RecentlyClosedBridge {
         /**
          * This method will be called every time the list of recently closed tabs is updated.
          *
-         * It's a good place to call {@link RecentlyClosedBridge#getRecentlyClosedTabs()} to get the
+         * It's a good place to call {@link RecentlyClosedBridge#getRecentlyClosedTabs} to get the
          * updated list of tabs.
          */
         @CalledByNative("RecentlyClosedCallback")
@@ -57,14 +57,14 @@ class RecentlyClosedBridge {
      * Initializes this class with the given profile.
      * @param profile The Profile whose recently closed tabs will be queried.
      */
-    RecentlyClosedBridge(Profile profile) {
+    public RecentlyClosedBridge(Profile profile) {
         mNativeRecentlyClosedTabsBridge = nativeInit(profile);
     }
 
     /**
      * Cleans up the C++ side of this class. This instance must not be used after calling destroy().
      */
-    void destroy() {
+    public void destroy() {
         assert mNativeRecentlyClosedTabsBridge != 0;
         nativeDestroy(mNativeRecentlyClosedTabsBridge);
         mNativeRecentlyClosedTabsBridge = 0;
@@ -106,6 +106,14 @@ class RecentlyClosedBridge {
     }
 
     /**
+     * Opens the most recently closed tab in a new tab by reading data from the native tab restore
+     * service.
+     */
+    public void openRecentlyClosedTab() {
+        nativeOpenMostRecentlyClosedTab(mNativeRecentlyClosedTabsBridge);
+    }
+
+    /**
      * Clears all recently closed tabs.
      */
     void clearRecentlyClosedTabs() {
@@ -120,5 +128,6 @@ class RecentlyClosedBridge {
             long nativeRecentlyClosedTabsBridge, List<RecentlyClosedTab> tabs, int maxTabCount);
     private native boolean nativeOpenRecentlyClosedTab(long nativeRecentlyClosedTabsBridge,
             Tab tab, int recentTabId, int windowOpenDisposition);
+    private native boolean nativeOpenMostRecentlyClosedTab(long nativeRecentlyClosedTabsBridge);
     private native void nativeClearRecentlyClosedTabs(long nativeRecentlyClosedTabsBridge);
 }

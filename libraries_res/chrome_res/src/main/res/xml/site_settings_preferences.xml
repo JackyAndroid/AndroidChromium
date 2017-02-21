@@ -3,62 +3,81 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<!-- The list below All Sites is ordered by privacy-sensitive items first. If
-     you are not sure where to add your item, add it above Storage. -->
+<!-- The order of the following items is from: http://crbug.com/610358. -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- All sites -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="all_sites"
         android:title="@string/all_sites"
         android:icon="@drawable/settings_all_sites" />
     <!-- Cookies -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:key="cookies"
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences" />
     <!-- Location -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="device_location" />
     <!-- Camera -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="camera" />
     <!-- Microphone -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="microphone" />
+    <!-- Notifications -->
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="notifications" />
     <!-- JavaScript -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="javascript" />
     <!-- Popups -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="popups" />
+    <!-- Background sync -->
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="background_sync" />
     <!-- Fullscreen -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="fullscreen" />
-    <!-- Notifications -->
-    <Preference
-        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
-        android:key="notifications" />
     <!-- Protected content -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="protected_content" />
-    <!-- Language -->
+    <!-- Autoplay -->
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+        android:key="autoplay" />
+    <!-- Media -->
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+        android:fragment="org.chromium.chrome.browser.preferences.website.SiteSettingsPreferences"
+        android:key="media"
+        android:title="@string/media_permission_title"
+        android:icon="@drawable/settings_media" />
+    <!-- Google Translate -->
     <Preference
-        android:fragment="org.chromium.chrome.browser.preferences.website.LanguagePreferences"
-        android:key="language"
-        android:title="@string/language"
-        android:icon="@drawable/settings_language" />
+        android:fragment="org.chromium.chrome.browser.preferences.website.TranslatePreferences"
+        android:key="translate"
+        android:title="@string/google_translate"
+        android:icon="@drawable/settings_translate" />
     <!-- Storage -->
     <!-- TODO(finnur): Move this over to the new Usage screen, once it exists. -->
-    <Preference
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
         android:key="use_storage"
         android:title="@string/website_settings_storage"
         android:icon="@drawable/settings_storage" />
+    <!-- USB -->
+    <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+        android:fragment="org.chromium.chrome.browser.preferences.website.UsbChooserPreferences"
+        android:key="usb"
+        android:title="@string/website_settings_usb"
+        android:icon="@drawable/settings_usb" />
 </PreferenceScreen>

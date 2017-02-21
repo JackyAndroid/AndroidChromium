@@ -107,6 +107,15 @@ public class OverviewListLayout extends Layout implements AccessibilityTabModelA
     }
 
     @Override
+    public void onTabRestored(long time, int tabId) {
+        super.onTabRestored(time, tabId);
+        // Call show() so that new tabs and potentially the toggle between incognito and normal
+        // lists are created.
+        // TODO(twellington): add animation for showing the restored tab.
+        show(time, false);
+    }
+
+    @Override
     public void onTabModelSwitched(boolean incognito) {
         super.onTabModelSwitched(incognito);
         if (mTabModelWrapper == null) return;

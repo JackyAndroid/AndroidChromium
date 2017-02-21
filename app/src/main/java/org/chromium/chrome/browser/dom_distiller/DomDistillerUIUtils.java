@@ -13,6 +13,7 @@ import org.chromium.base.annotations.JNINamespace;
 import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel.StateChangeReason;
 import org.chromium.chrome.browser.feedback.FeedbackCollector;
 import org.chromium.chrome.browser.feedback.FeedbackReporter;
 import org.chromium.chrome.browser.profiles.Profile;
@@ -29,7 +30,19 @@ public final class DomDistillerUIUtils {
     private static final String DISTILLATION_QUALITY_GOOD = "good";
     private static final String DISTILLATION_QUALITY_BAD = "bad";
 
+    // Static handle to object for feedback reporting.
     private static FeedbackReporter sFeedbackReporter;
+
+    // Static handle to Reader Mode's manager.
+    private static ReaderModeManagerDelegate sManagerDelegate;
+
+    /**
+     * Set the delegate to the ReaderModeManager.
+     * @param delegate The delegate for the ReaderModeManager.
+     */
+    public static void setReaderModeManagerDelegate(ReaderModeManagerDelegate delegate) {
+        sManagerDelegate = delegate;
+    }
 
     /**
      * A static method for native code to open the external feedback form UI.
@@ -76,6 +89,27 @@ public final class DomDistillerUIUtils {
             builder.setView(DistilledPagePrefsView.create(activity));
             builder.show();
         }
+    }
+
+    /**
+     * A static method for native code to close the current Reader Mode panel. This should be
+     * some usage of a "close" button.
+     * @param animate If the panel should animate closed.
+     */
+    @CalledByNative
+    public static void closePanel(boolean animate) {
+        if (sManagerDelegate == null) return;
+        sManagerDelegate.closeReaderPanel(StateChangeReason.CLOSE_BUTTON, animate);
+    }
+
+    /**
+     * Clear static references to objects.
+     * @param delegate The delegate requesting the destoy. This prevents different managers in
+     * document mode from accidentally clearing a reference it doesn't own.
+     */
+    public static void destroy(ReaderModeManagerDelegate delegate) {
+        if (delegate != sManagerDelegate) return;
+        sManagerDelegate = null;
     }
 
     /**

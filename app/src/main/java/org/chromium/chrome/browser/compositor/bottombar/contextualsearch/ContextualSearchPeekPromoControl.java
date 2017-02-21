@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelAnimation;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelInflater;
 import org.chromium.chrome.browser.compositor.layouts.ChromeAnimation;
 import org.chromium.chrome.browser.util.MathUtils;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
@@ -16,7 +18,7 @@ import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
 /**
  * Controls the Search Peek Promo.
  */
-public class ContextualSearchPeekPromoControl extends ContextualSearchInflater
+public class ContextualSearchPeekPromoControl extends OverlayPanelInflater
         implements ChromeAnimation.Animatable<ContextualSearchPeekPromoControl.AnimationType> {
 
     /**
@@ -226,7 +228,7 @@ public class ContextualSearchPeekPromoControl extends ContextualSearchInflater
     public void animateAppearance() {
         // TODO(pedrosimonetti): Find a generic way to tell when a specific animation finishes.
         mOverlayPanel.addToAnimation(this, AnimationType.APPEARANCE, 0.f, 1.f,
-                ContextualSearchPanelAnimation.BASE_ANIMATION_DURATION_MS, 0);
+                OverlayPanelAnimation.BASE_ANIMATION_DURATION_MS, 0);
     }
 
     @Override
@@ -235,6 +237,9 @@ public class ContextualSearchPeekPromoControl extends ContextualSearchInflater
             updateForAppearanceAnimation(value);
         }
     }
+
+    @Override
+    public void onPropertyAnimationFinished(AnimationType prop) {}
 
     /**
      * Updates the UI for the appearance animation.

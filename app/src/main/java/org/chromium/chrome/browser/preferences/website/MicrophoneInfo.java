@@ -18,8 +18,8 @@ public class MicrophoneInfo extends PermissionInfo {
     }
 
     protected void setNativePreferenceValue(
-            String origin, String embedder, int value, boolean isIncognito) {
+            String origin, String embedder, ContentSetting value, boolean isIncognito) {
         WebsitePreferenceBridge.nativeSetMicrophoneSettingForOrigin(
-                origin, embedder, value, isIncognito);
+                origin, value.toInt(), isIncognito);
     }
 }

@@ -49,6 +49,7 @@
 
     <declare-styleable name="BoundedView">
         <attr name="maxWidth" format="dimension" />
+        <attr name="maxHeight" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="ClipDrawableProgressBar">
@@ -56,4 +57,15 @@
         <attr name="backgroundColor" format="reference|color" />
     </declare-styleable>
 
+    <declare-styleable name="RadioButtonWithDescription">
+        <attr name="titleText" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="TextMessageWithLinkAndIconPreference">
+        <!-- Used on a TextMessageWithLinkAndIconPreference that is followed
+             by another TextMessageWithLinkAndIconPreference to remove the
+             bottom spacing, so that related paragraphs of text are closer
+             to each other. -->
+        <attr name="noBottomSpacing" format="boolean" />
+    </declare-styleable>
 </resources>

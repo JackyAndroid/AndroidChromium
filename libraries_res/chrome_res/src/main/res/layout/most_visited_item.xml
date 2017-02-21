@@ -6,39 +6,50 @@
 <!-- A most visited item, for display on the new tab page. -->
 <org.chromium.chrome.browser.ntp.MostVisitedItemView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
     android:layout_width="@dimen/most_visited_tile_width"
-    android:layout_height="130dp" >
+    android:layout_height="wrap_content"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp" >
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/most_visited_item_bg"
-        android:orientation="vertical"
-        android:padding="4dp" >
-        <TextView
-            android:id="@+id/most_visited_title"
-            android:layout_width="match_parent"
-            android:layout_height="24dp"
-            android:layout_marginBottom="4dp"
-            android:paddingStart="4dp"
-            android:drawablePadding="8dp"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:singleLine="true"
-            android:textAlignment="viewStart"
-            android:textColor="@color/ntp_most_visited_text"
-            android:textSize="12sp" />
+    <ImageView
+        android:id="@+id/most_visited_icon"
+        android:layout_width="@dimen/most_visited_icon_size"
+        android:layout_height="@dimen/most_visited_icon_size"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="12dp"
+        android:contentDescription="@null" />
 
-        <org.chromium.chrome.browser.ntp.MostVisitedThumbnail
-            android:id="@+id/most_visited_thumbnail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:contentDescription="@null" />
-    </LinearLayout>
+    <org.chromium.chrome.browser.widget.TintedImageView
+        android:id="@+id/offline_badge"
+        android:layout_width="@dimen/most_visited_offline_badge_size"
+        android:layout_height="@dimen/most_visited_offline_badge_size"
+        android:layout_marginStart="48dp"
+        android:visibility="gone"
+        android:background="@drawable/offline_badge_background"
+        android:contentDescription="@string/accessibility_ntp_offline_badge"
+        chrome:tint="@color/most_visited_offline_badge_tint"
+        android:src="@drawable/offline_pin_round" />
 
     <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/selectableItemBackground" />
+        android:layout_width="@dimen/most_visited_icon_size"
+        android:layout_height="@dimen/most_visited_icon_size"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/most_visited_item_highlight" />
+
+    <TextView
+        android:id="@+id/most_visited_title"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="66dp"
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:lines="2"
+        android:lineSpacingMultiplier="1.17"
+        android:textColor="@color/most_visited_text"
+        android:textSize="12sp" />
 
 </org.chromium.chrome.browser.ntp.MostVisitedItemView>

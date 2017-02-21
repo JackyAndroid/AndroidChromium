@@ -10,14 +10,12 @@ import android.os.Handler;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.LayerTitleCache;
-import org.chromium.chrome.browser.compositor.bottombar.contextualsearch.ContextualSearchPanel;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelManager;
 import org.chromium.chrome.browser.compositor.layouts.components.LayoutTab;
 import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.EventFilter;
 import org.chromium.chrome.browser.compositor.scene_layer.SceneLayer;
 import org.chromium.chrome.browser.compositor.scene_layer.StaticTabSceneLayer;
-import org.chromium.chrome.browser.dom_distiller.ReaderModePanel;
-import org.chromium.chrome.browser.dom_distiller.ReaderModePanel.ReaderModePanelLayoutDelegate;
 import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -32,7 +30,7 @@ import java.util.LinkedList;
  * {@link #tabSelecting(long, int)} call, and is used to show a thumbnail of a {@link Tab}
  * until that {@link Tab} is ready to be shown.
  */
-public class StaticLayout extends ContextualSearchSupportedLayout {
+public class StaticLayout extends Layout {
     public static final String TAG = "StaticLayout";
 
     private static final int HIDE_TIMEOUT_MS = 2000;
@@ -58,19 +56,17 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
     private boolean mUnstalling;
     private StaticTabSceneLayer mSceneLayer;
 
-    // TODO(aruslan): look into moving this to an overlay/it's own layout.
-    private ReaderModePanel mReaderModePanel;
-
     /**
      * Creates an instance of the {@link StaticLayout}.
      * @param context             The current Android's context.
      * @param updateHost          The {@link LayoutUpdateHost} view for this layout.
      * @param renderHost          The {@link LayoutRenderHost} view for this layout.
      * @param eventFilter         The {@link EventFilter} that is needed for this view.
+     * @param panelManager        The {@link OverlayPanelManager} responsible for showing panels.
      */
     public StaticLayout(Context context, LayoutUpdateHost updateHost, LayoutRenderHost renderHost,
-            EventFilter eventFilter, ContextualSearchPanel panel) {
-        super(context, updateHost, renderHost, eventFilter, panel);
+            EventFilter eventFilter, OverlayPanelManager panelManager) {
+        super(context, updateHost, renderHost, eventFilter);
 
         mHandler = new Handler();
         mUnstallRunnable = new UnstallRunnable();
@@ -89,12 +85,6 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
     @Override
     public int getSizingFlags() {
         return SizingFlags.HELPER_SUPPORTS_FULLSCREEN;
-    }
-
-    @Override
-    public float getTopControlsOffset(float currentOffsetDp) {
-        if (mReaderModePanel == null) return super.getTopControlsOffset(currentOffsetDp);
-        return mReaderModePanel.getTopControlsOffset(currentOffsetDp);
     }
 
     /**
@@ -179,42 +169,7 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
         } else {
             setPostHideState();
         }
-        mReaderModePanel = ReaderModePanel.getReaderModePanel(mTabModelSelector.getTabById(id));
-        if (mReaderModePanel != null) {
-            mReaderModePanel.setLayoutDelegate(new ReaderModePanelLayoutDelegate() {
-                @Override
-                public void requestUpdate() {
-                    StaticLayout.this.requestUpdate();
-                }
-
-                @Override
-                public void setLayoutTabBrightness(float v) {
-                    if (mLayoutTabs != null && mLayoutTabs.length > 0
-                            && mLayoutTabs[0].getId() == id) {
-                        mLayoutTabs[0].setBrightness(v);
-                    }
-                }
-
-                @Override
-                public void setLayoutTabY(float v) {
-                    if (mLayoutTabs != null && mLayoutTabs.length > 0
-                            && mLayoutTabs[0].getId() == id) {
-                        mLayoutTabs[0].setY(v);
-                    }
-                }
-            });
-            final boolean isToolbarVisible = getHeight() == getHeightMinusTopControls();
-            final float dpToPx = getContext().getResources().getDisplayMetrics().density;
-            mReaderModePanel.onSizeChanged(getWidth(), getHeight(), isToolbarVisible, dpToPx);
-        }
         requestRender();
-    }
-
-    /**
-     * @return Currently active reader mode panel, or null.
-     */
-    public ReaderModePanel getReaderModePanel() {
-        return mReaderModePanel;
     }
 
     @Override
@@ -235,7 +190,7 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
 
     @Override
     public boolean handlesTabCreating() {
-        return mHandlesTabLifecycles;
+        return super.handlesTabCreating() || mHandlesTabLifecycles;
     }
 
     @Override
@@ -264,25 +219,6 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
     }
 
     @Override
-    protected void notifySizeChanged(float width, float height, int orientation) {
-        super.notifySizeChanged(width, height, orientation);
-        if (mReaderModePanel == null) return;
-
-        final boolean isToolbarVisible = getHeight() == getHeightMinusTopControls();
-        final float dpToPx = getContext().getResources().getDisplayMetrics().density;
-        mReaderModePanel.onSizeChanged(width, height, isToolbarVisible, dpToPx);
-    }
-
-    @Override
-    protected boolean onUpdateAnimation(long time, boolean jumpToEnd) {
-        boolean parentAnimating = super.onUpdateAnimation(time, jumpToEnd);
-        boolean panelAnimating = mReaderModePanel != null
-                ? mReaderModePanel.onUpdateAnimation(time, jumpToEnd)
-                : false;
-        return panelAnimating || parentAnimating;
-    }
-
-    @Override
     protected void updateSceneLayer(Rect viewport, Rect contentViewport,
             LayerTitleCache layerTitleCache, TabContentManager tabContentManager,
             ResourceManager resourceManager, ChromeFullscreenManager fullscreenManager) {
@@ -299,16 +235,6 @@ public class StaticLayout extends ContextualSearchSupportedLayout {
 
         mSceneLayer.update(dpToPx, contentViewport, layerTitleCache, tabContentManager,
                 fullscreenManager, layoutTab);
-
-        // TODO(pedrosimonetti): Coordinate w/ dtrainor@ to improve integration with TreeProvider.
-        SceneLayer overlayLayer = null;
-        if (mSearchPanel.isShowing()) {
-            overlayLayer = super.getSceneLayer();
-        } else if (mReaderModePanel != null && mReaderModePanel.isShowing()) {
-            mReaderModePanel.updateSceneLayer(resourceManager);
-            overlayLayer = mReaderModePanel.getSceneLayer();
-        }
-        mSceneLayer.setContentSceneLayer(overlayLayer);
 
         // TODO(dtrainor): Find the best way to properly track this metric for cold starts.
         // We should probably erase the thumbnail when we select a tab that we need to restore.

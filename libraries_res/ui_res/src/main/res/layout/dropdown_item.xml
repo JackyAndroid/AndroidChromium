@@ -44,7 +44,7 @@
             android:includeFontPadding="false"
             android:singleLine="true"
             android:textAlignment="viewStart"
-            android:textColor="#8b8b8b"
+            android:textColor="#646464"
             android:textSize="14sp" />
     </LinearLayout>
 

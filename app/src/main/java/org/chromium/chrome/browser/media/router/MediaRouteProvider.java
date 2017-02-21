@@ -4,11 +4,19 @@
 
 package org.chromium.chrome.browser.media.router;
 
+import android.content.Context;
+
 /**
  * An interface components providing media sinks and routes need to implement to hooks up into
  * {@link ChromeMediaRouter}.
  */
 public interface MediaRouteProvider {
+    /**
+     * Builder for {@link MediaRouteProvider}.
+     */
+    interface Builder {
+        MediaRouteProvider create(Context applicationContext, MediaRouteManager manager);
+    }
     /**
      * @param sourceId The id of the source to check.
      * @return if the specified source is supported by this route provider.
@@ -33,12 +41,14 @@ public interface MediaRouteProvider {
      * Tries to create a media route from the given media source to the media sink.
      * @param sourceId The source to create the route for.
      * @param sinkId The sink to create the route for.
+     * @param presentationId The presentation id generated for this route.
      * @param origin The origin of the frame initiating the request.
      * @param tabId The id of the tab containing the frame initiating the request.
+     * @param isIncognito Whether the route is being requested from an Incognito profile.
      * @param nativeRequestId The id of the request tracked by the native side.
      */
-    void createRoute(String sourceId, String sinkId, String routeId, String origin, int tabId,
-            int nativeRequestId);
+    void createRoute(String sourceId, String sinkId, String presentationId, String origin,
+            int tabId, boolean isIncognito, int nativeRequestId);
 
     /**
      * Tries to join an existing media route for the given media source and presentation id.

@@ -20,7 +20,7 @@ public class IncognitoNewTabPageView extends FrameLayout {
 
     private IncognitoNewTabPageManager mManager;
     private boolean mFirstShow = true;
-    private NewTabScrollView mScrollView;
+    private NewTabPageScrollView mScrollView;
 
     private int mSnapshotWidth;
     private int mSnapshotHeight;
@@ -49,7 +49,9 @@ public class IncognitoNewTabPageView extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
-        mScrollView = (NewTabScrollView) findViewById(R.id.ntp_scrollview);
+        mScrollView = (NewTabPageScrollView) findViewById(R.id.ntp_scrollview);
+        mScrollView.setBackgroundColor(
+                NtpStyleUtils.getBackgroundColorResource(getResources(), true));
 
         // FOCUS_BEFORE_DESCENDANTS is needed to support keyboard shortcuts. Otherwise, pressing
         // any shortcut causes the UrlBar to be focused. See ViewRootImpl.leaveTouchMode().
@@ -95,10 +97,9 @@ public class IncognitoNewTabPageView extends FrameLayout {
         mSnapshotScrollY = mScrollView.getScrollY();
     }
 
-    // OnAttachStateChangeListener overrides
-
     @Override
     public void onAttachedToWindow() {
+        super.onAttachedToWindow();
         assert mManager != null;
         if (mFirstShow) {
             mManager.onLoadingComplete();

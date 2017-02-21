@@ -5,26 +5,29 @@
 package org.chromium.chrome.browser.offlinepages;
 
 import org.chromium.base.VisibleForTesting;
-import org.chromium.components.bookmarks.BookmarkId;
-import org.chromium.components.bookmarks.BookmarkType;
 
 /**
  * Simple object representing an offline page.
  */
 public class OfflinePageItem {
     private final String mUrl;
-    private final BookmarkId mBookmarId;
-    private final String mOfflineUrl;
+    private final long mOfflineId;
+    private final ClientId mClientId;
+    private final String mFilePath;
     private final long mFileSize;
+    private final long mCreationTimeMs;
     private final int mAccessCount;
     private final long mLastAccessTimeMs;
 
-    public OfflinePageItem(String url, long bookmarkId, String offlineUrl, long fileSize,
-            int accessCount, long lastAccessTimeMs) {
+    public OfflinePageItem(String url, long offlineId, String clientNamespace, String clientId,
+            String filePath, long fileSize, long creationTimeMs, int accessCount,
+            long lastAccessTimeMs) {
         mUrl = url;
-        mBookmarId = new BookmarkId(bookmarkId, BookmarkType.NORMAL);
-        mOfflineUrl = offlineUrl;
+        mOfflineId = offlineId;
+        mClientId = new ClientId(clientNamespace, clientId);
+        mFilePath = filePath;
         mFileSize = fileSize;
+        mCreationTimeMs = creationTimeMs;
         mAccessCount = accessCount;
         mLastAccessTimeMs = lastAccessTimeMs;
     }
@@ -35,22 +38,34 @@ public class OfflinePageItem {
         return mUrl;
     }
 
-    /** @return Bookmark Id related to the offline page. */
+    /** @return offline id for this offline page. */
     @VisibleForTesting
-    public BookmarkId getBookmarkId() {
-        return mBookmarId;
+    public long getOfflineId() {
+        return mOfflineId;
     }
 
-    /** @return Path to the offline copy of the page. */
+    /** @return Client Id related to the offline page. */
     @VisibleForTesting
-    public String getOfflineUrl() {
-        return mOfflineUrl;
+    public ClientId getClientId() {
+        return mClientId;
+    }
+
+    /** @return File Path to the offline copy of the page. */
+    @VisibleForTesting
+    public String getFilePath() {
+        return mFilePath;
     }
 
     /** @return Size of the offline copy of the page. */
     @VisibleForTesting
     public long getFileSize() {
         return mFileSize;
+    }
+
+    /** @return Time in milliseconds the offline page was created. */
+    @VisibleForTesting
+    public long getCreationTimeMs() {
+        return mCreationTimeMs;
     }
 
     /** @return Number of times that the offline page has been accessed. */
@@ -60,6 +75,7 @@ public class OfflinePageItem {
     }
 
     /** @return Last time in milliseconds the offline page has been accessed. */
+    @VisibleForTesting
     public long getLastAccessTimeMs() {
         return mLastAccessTimeMs;
     }

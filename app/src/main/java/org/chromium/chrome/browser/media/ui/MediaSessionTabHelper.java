@@ -4,16 +4,25 @@
 
 package org.chromium.chrome.browser.media.ui;
 
-import org.chromium.base.ApplicationStatus;
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.AudioManager;
+import android.text.TextUtils;
+
+import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.UrlUtilities;
+import org.chromium.chrome.browser.metrics.MediaNotificationUma;
 import org.chromium.chrome.browser.metrics.MediaSessionUMA;
 import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
+import org.chromium.components.url_formatter.UrlFormatter;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.browser.WebContentsObserver;
+import org.chromium.content_public.common.MediaMetadata;
+import org.chromium.ui.base.WindowAndroid;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,13 +32,19 @@ import java.net.URISyntaxException;
  * media actions from the controls to the {@link org.chromium.content.browser.MediaSession}
  */
 public class MediaSessionTabHelper {
-    private static final String TAG = "cr.MediaSession";
+    private static final String TAG = "MediaSession";
 
     private static final String UNICODE_PLAY_CHARACTER = "\u25B6";
+    private static final int MINIMAL_FAVICON_SIZE = 114;
 
     private Tab mTab;
+    private Bitmap mFavicon = null;
+    private String mOrigin = null;
     private WebContents mWebContents;
     private WebContentsObserver mWebContentsObserver;
+    private int mPreviousVolumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE;
+    private MediaNotificationInfo.Builder mNotificationInfoBuilder = null;
+    private MediaMetadata mFallbackMetadata;
 
     private MediaNotificationListener mControlsListener = new MediaNotificationListener() {
         @Override
@@ -57,47 +72,77 @@ public class MediaSessionTabHelper {
         }
     };
 
+    void hideNotification() {
+        if (mTab == null) {
+            return;
+        }
+        MediaNotificationManager.hide(mTab.getId(), R.id.media_playback_notification);
+        Activity activity = getActivityFromTab(mTab);
+        if (activity != null) {
+            activity.setVolumeControlStream(mPreviousVolumeControlStream);
+        }
+        mNotificationInfoBuilder = null;
+    }
+
     private WebContentsObserver createWebContentsObserver(WebContents webContents) {
         return new WebContentsObserver(webContents) {
             @Override
             public void destroy() {
-                if (mTab == null) {
-                    MediaNotificationManager.clear(R.id.media_playback_notification);
-                } else {
-                    MediaNotificationManager.hide(mTab.getId(), R.id.media_playback_notification);
-                }
+                hideNotification();
                 super.destroy();
             }
 
             @Override
-            public void mediaSessionStateChanged(boolean isControllable, boolean isPaused) {
+            public void mediaSessionStateChanged(boolean isControllable, boolean isPaused,
+                    MediaMetadata metadata) {
                 if (!isControllable) {
-                    MediaNotificationManager.hide(mTab.getId(), R.id.media_playback_notification);
+                    hideNotification();
                     return;
                 }
-                String origin = mTab.getUrl();
-                try {
-                    origin = UrlUtilities.formatUrlForSecurityDisplay(new URI(origin), true);
-                } catch (URISyntaxException e) {
-                    Log.e(TAG, "Unable to parse the origin from the URL. "
-                            + "Showing the full URL instead.");
+
+                mFallbackMetadata = null;
+
+                // The page's title is used as a placeholder if no title is specified in the
+                // metadata.
+                if (metadata == null || TextUtils.isEmpty(metadata.getTitle())) {
+                    mFallbackMetadata = new MediaMetadata(
+                            sanitizeMediaTitle(mTab.getTitle()),
+                            metadata == null ? "" : metadata.getArtist(),
+                            metadata == null ? "" : metadata.getAlbum());
+                    metadata = mFallbackMetadata;
                 }
 
-                MediaNotificationManager.show(ApplicationStatus.getApplicationContext(),
+                Intent contentIntent = Tab.createBringTabToFrontIntent(mTab.getId());
+                if (contentIntent != null) {
+                    contentIntent.putExtra(MediaNotificationUma.INTENT_EXTRA_NAME,
+                            MediaNotificationUma.SOURCE_MEDIA);
+                }
+
+                mNotificationInfoBuilder =
                         new MediaNotificationInfo.Builder()
-                                .setTitle(sanitizeMediaTitle(mTab.getTitle()))
+                                .setMetadata(metadata)
                                 .setPaused(isPaused)
-                                .setOrigin(origin)
+                                .setOrigin(mOrigin)
                                 .setTabId(mTab.getId())
                                 .setPrivate(mTab.isIncognito())
                                 .setIcon(R.drawable.audio_playing)
+                                .setLargeIcon(mFavicon)
+                                .setDefaultLargeIcon(R.drawable.audio_playing_square)
                                 .setActions(MediaNotificationInfo.ACTION_PLAY_PAUSE
                                         | MediaNotificationInfo.ACTION_SWIPEAWAY)
+                                .setContentIntent(contentIntent)
                                 .setId(R.id.media_playback_notification)
-                                .setListener(mControlsListener));
+                                .setListener(mControlsListener);
+
+                MediaNotificationManager.show(ContextUtils.getApplicationContext(),
+                        mNotificationInfoBuilder.build());
+
+                Activity activity = getActivityFromTab(mTab);
+                if (activity != null) {
+                    activity.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+                }
             }
         };
-
     }
 
     private void setWebContents(WebContents webContents) {
@@ -122,12 +167,62 @@ public class MediaSessionTabHelper {
         }
 
         @Override
+        public void onFaviconUpdated(Tab tab, Bitmap icon) {
+            assert tab == mTab;
+
+            if (!updateFavicon(icon)) return;
+
+            if (mNotificationInfoBuilder == null) return;
+
+            mNotificationInfoBuilder.setLargeIcon(mFavicon);
+            MediaNotificationManager.show(
+                    ContextUtils.getApplicationContext(), mNotificationInfoBuilder.build());
+        }
+
+        @Override
+        public void onUrlUpdated(Tab tab) {
+            assert tab == mTab;
+
+            String origin = mTab.getUrl();
+            try {
+                origin = UrlFormatter.formatUrlForSecurityDisplay(new URI(origin), true);
+            } catch (URISyntaxException e) {
+                Log.e(TAG, "Unable to parse the origin from the URL. "
+                                + "Using the full URL instead.");
+            }
+
+            if (mOrigin != null && mOrigin.equals(origin)) return;
+            mOrigin = origin;
+            mFavicon = null;
+
+            if (mNotificationInfoBuilder == null) return;
+
+            mNotificationInfoBuilder.setOrigin(mOrigin);
+            mNotificationInfoBuilder.setLargeIcon(mFavicon);
+            MediaNotificationManager.show(
+                    ContextUtils.getApplicationContext(), mNotificationInfoBuilder.build());
+        }
+
+        @Override
+        public void onTitleUpdated(Tab tab) {
+            assert tab == mTab;
+            if (mNotificationInfoBuilder == null || mFallbackMetadata == null) return;
+
+            mFallbackMetadata = new MediaMetadata(mFallbackMetadata);
+            mFallbackMetadata.setTitle(sanitizeMediaTitle(mTab.getTitle()));
+            mNotificationInfoBuilder.setMetadata(mFallbackMetadata);
+
+            MediaNotificationManager.show(ContextUtils.getApplicationContext(),
+                    mNotificationInfoBuilder.build());
+        }
+
+        @Override
         public void onDestroyed(Tab tab) {
             assert mTab == tab;
 
             cleanupWebContents();
 
-            MediaNotificationManager.hide(mTab.getId(), R.id.media_playback_notification);
+            hideNotification();
             mTab.removeObserver(this);
             mTab = null;
         }
@@ -137,6 +232,11 @@ public class MediaSessionTabHelper {
         mTab = tab;
         mTab.addObserver(mTabObserver);
         if (mTab.getWebContents() != null) setWebContents(tab.getWebContents());
+
+        Activity activity = getActivityFromTab(mTab);
+        if (activity != null) {
+            mPreviousVolumeControlStream = activity.getVolumeControlStream();
+        }
     }
 
     /**
@@ -171,9 +271,36 @@ public class MediaSessionTabHelper {
             return MediaSessionUMA.MEDIA_SESSION_ACTION_SOURCE_MEDIA_NOTIFICATION;
         } else if (source == MediaNotificationListener.ACTION_SOURCE_MEDIA_SESSION) {
             return MediaSessionUMA.MEDIA_SESSION_ACTION_SOURCE_MEDIA_SESSION;
+        } else if (source == MediaNotificationListener.ACTION_SOURCE_HEADSET_UNPLUG) {
+            return MediaSessionUMA.MEDIA_SESSION_ACTION_SOURCE_HEADSET_UNPLUG;
         }
 
         assert false;
         return MediaSessionUMA.MEDIA_SESSION_ACTION_SOURCE_MAX;
+    }
+
+    private Activity getActivityFromTab(Tab tab) {
+        WindowAndroid windowAndroid = tab.getWindowAndroid();
+        if (windowAndroid == null) return null;
+
+        return windowAndroid.getActivity().get();
+    }
+
+    /**
+     * Updates the best favicon if the given icon is better.
+     * @return whether the best favicon is updated.
+     */
+    private boolean updateFavicon(Bitmap icon) {
+        if (icon == null) return false;
+
+        if (icon.getWidth() < MINIMAL_FAVICON_SIZE || icon.getHeight() < MINIMAL_FAVICON_SIZE) {
+            return false;
+        }
+        if (mFavicon != null && (icon.getWidth() < mFavicon.getWidth()
+                                        || icon.getHeight() < mFavicon.getHeight())) {
+            return false;
+        }
+        mFavicon = MediaNotificationManager.scaleIconForDisplay(icon);
+        return true;
     }
 }

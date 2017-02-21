@@ -9,10 +9,12 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
 
+import org.chromium.blink_public.platform.WebDisplayMode;
 import org.chromium.chrome.browser.ShortcutHelper;
 import org.chromium.chrome.browser.ShortcutSource;
 import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.content_public.common.ScreenOrientationValues;
+import org.chromium.webapk.lib.common.WebApkConstants;
 
 /**
  * Stores info about a web app.
@@ -23,13 +25,16 @@ public class WebappInfo {
     private String mEncodedIcon;
     private Bitmap mDecodedIcon;
     private Uri mUri;
+    private Uri mScopeUri;
     private String mName;
     private String mShortName;
+    private int mDisplayMode;
     private int mOrientation;
     private int mSource;
     private long mThemeColor;
     private long mBackgroundColor;
     private boolean mIsIconGenerated;
+    private String mWebApkPackageName;
 
     public static WebappInfo createEmpty() {
         return new WebappInfo();
@@ -53,6 +58,58 @@ public class WebappInfo {
         return shortName == null ? titleFromIntent(intent) : shortName;
     }
 
+    public static int displayModeFromIntent(Intent intent) {
+        String displayMode =
+                IntentUtils.safeGetStringExtra(intent, WebApkConstants.EXTRA_WEBAPK_DISPLAY_MODE);
+        if (displayMode == null) {
+            return IntentUtils.safeGetIntExtra(
+                    intent, ShortcutHelper.EXTRA_DISPLAY_MODE, WebDisplayMode.Standalone);
+        }
+
+        // {@link displayMode} should be one of
+        // https://w3c.github.io/manifest/#dfn-display-modes-values
+        if (displayMode.equals("fullscreen")) {
+            return WebDisplayMode.Fullscreen;
+        } else if (displayMode.equals("minimal-ui")) {
+            return WebDisplayMode.MinimalUi;
+        } else if (displayMode.equals("browser")) {
+            return WebDisplayMode.Browser;
+        } else {
+            return WebDisplayMode.Standalone;
+        }
+    }
+
+    public static int orientationFromIntent(Intent intent) {
+        String orientation =
+                IntentUtils.safeGetStringExtra(intent, WebApkConstants.EXTRA_WEBAPK_ORIENTATION);
+        if (orientation == null) {
+            return IntentUtils.safeGetIntExtra(
+                    intent, ShortcutHelper.EXTRA_ORIENTATION, ScreenOrientationValues.DEFAULT);
+        }
+
+        // {@link orientation} should be one of
+        // w3c.github.io/screen-orientation/#orientationlocktype-enum
+        if (orientation.equals("any")) {
+            return ScreenOrientationValues.ANY;
+        } else if (orientation.equals("natural")) {
+            return ScreenOrientationValues.NATURAL;
+        } else if (orientation.equals("landscape")) {
+            return ScreenOrientationValues.LANDSCAPE;
+        } else if (orientation.equals("landscape-primary")) {
+            return ScreenOrientationValues.LANDSCAPE_PRIMARY;
+        } else if (orientation.equals("landscape-secondary")) {
+            return ScreenOrientationValues.LANDSCAPE_SECONDARY;
+        } else if (orientation.equals("portrait")) {
+            return ScreenOrientationValues.PORTRAIT;
+        } else if (orientation.equals("portrait-primary")) {
+            return ScreenOrientationValues.PORTRAIT_PRIMARY;
+        } else if (orientation.equals("portrait-secondary")) {
+            return ScreenOrientationValues.PORTRAIT_SECONDARY;
+        } else {
+            return ScreenOrientationValues.DEFAULT;
+        }
+    }
+
     /**
      * Construct a WebappInfo.
      * @param intent Intent containing info about the app.
@@ -61,8 +118,9 @@ public class WebappInfo {
         String id = IntentUtils.safeGetStringExtra(intent, ShortcutHelper.EXTRA_ID);
         String icon = IntentUtils.safeGetStringExtra(intent, ShortcutHelper.EXTRA_ICON);
         String url = IntentUtils.safeGetStringExtra(intent, ShortcutHelper.EXTRA_URL);
-        int orientation = IntentUtils.safeGetIntExtra(intent,
-                ShortcutHelper.EXTRA_ORIENTATION, ScreenOrientationValues.DEFAULT);
+        String scope = IntentUtils.safeGetStringExtra(intent, ShortcutHelper.EXTRA_SCOPE);
+        int displayMode = displayModeFromIntent(intent);
+        int orientation = orientationFromIntent(intent);
         int source = IntentUtils.safeGetIntExtra(intent,
                 ShortcutHelper.EXTRA_SOURCE, ShortcutSource.UNKNOWN);
         long themeColor = IntentUtils.safeGetLongExtra(intent,
@@ -76,72 +134,67 @@ public class WebappInfo {
 
         String name = nameFromIntent(intent);
         String shortName = shortNameFromIntent(intent);
+        String webApkPackageName = IntentUtils.safeGetStringExtra(intent,
+                ShortcutHelper.EXTRA_WEBAPK_PACKAGE_NAME);
 
-        return create(id, url, icon, name, shortName, orientation, source,
-                themeColor, backgroundColor, isIconGenerated);
+        return create(id, url, scope, icon, name, shortName, displayMode, orientation, source,
+                themeColor, backgroundColor, isIconGenerated, webApkPackageName);
     }
 
     /**
      * Construct a WebappInfo.
-     * @param id ID for the webapp.
-     * @param url URL for the webapp.
-     * @param icon Icon to show for the webapp.
-     * @param name Name of the webapp.
-     * @param shortName The short name of the webapp.
-     * @param orientation Orientation of the webapp.
-     * @param source Source where the webapp was added from.
-     * @param themeColor The theme color of the webapp.
+     * @param id              ID for the webapp.
+     * @param url             URL for the webapp.
+     * @param scope           Scope for the webapp.
+     * @param icon            Icon to show for the webapp.
+     * @param name            Name of the webapp.
+     * @param shortName       The short name of the webapp.
+     * @param displayMode     Display mode of the webapp.
+     * @param orientation     Orientation of the webapp.
+     * @param source          Source where the webapp was added from.
+     * @param themeColor      The theme color of the webapp.
      * @param isIconGenerated Whether the |icon| was generated by Chromium.
+     * @param webApkPackageName The package of the WebAPK associated with the webapp. Null if
+     *                          no WebAPK is associated with the webapp.
      */
-    public static WebappInfo create(String id, String url, String icon, String name,
-            String shortName, int orientation, int source, long themeColor,
-            long backgroundColor, boolean isIconGenerated) {
+    public static WebappInfo create(String id, String url, String scope, String icon, String name,
+            String shortName, int displayMode, int orientation, int source, long themeColor,
+            long backgroundColor, boolean isIconGenerated, String webApkPackageName) {
         if (id == null || url == null) {
             Log.e("WebappInfo", "Data passed in was incomplete: " + id + ", " + url);
             return null;
         }
 
         Uri uri = Uri.parse(url);
-        return new WebappInfo(id, uri, icon, name, shortName, orientation, source,
-                themeColor, backgroundColor, isIconGenerated);
+        if (scope == null || scope.isEmpty()) {
+            scope = ShortcutHelper.getScopeFromUrl(url);
+        }
+        Uri scopeUri = Uri.parse(scope);
+        Uri webManifestUri = null;
+        return new WebappInfo(id, uri, scopeUri, icon, name, shortName, displayMode, orientation,
+                source, themeColor, backgroundColor, isIconGenerated, webApkPackageName);
     }
 
-    private WebappInfo(String id, Uri uri, String encodedIcon, String name,
-            String shortName, int orientation, int source, long themeColor,
-            long backgroundColor, boolean isIconGenerated) {
+    private WebappInfo(String id, Uri uri, Uri scopeUri, String encodedIcon, String name,
+            String shortName, int displayMode, int orientation, int source, long themeColor,
+            long backgroundColor, boolean isIconGenerated, String webApkPackageName) {
         mEncodedIcon = encodedIcon;
         mId = id;
         mName = name;
         mShortName = shortName;
         mUri = uri;
+        mScopeUri = scopeUri;
+        mDisplayMode = displayMode;
         mOrientation = orientation;
         mSource = source;
         mThemeColor = themeColor;
         mBackgroundColor = backgroundColor;
         mIsIconGenerated = isIconGenerated;
         mIsInitialized = mUri != null;
+        mWebApkPackageName = webApkPackageName;
     }
 
     private WebappInfo() {
-    }
-
-    /**
-     * Copies all the fields from the given WebappInfo into this instance.
-     * @param newInfo Information about the new webapp.
-     */
-    void copy(WebappInfo newInfo) {
-        mIsInitialized = newInfo.mIsInitialized;
-        mEncodedIcon = newInfo.mEncodedIcon;
-        mDecodedIcon = newInfo.mDecodedIcon;
-        mId = newInfo.mId;
-        mUri = newInfo.mUri;
-        mName = newInfo.mName;
-        mShortName = newInfo.mShortName;
-        mOrientation = newInfo.mOrientation;
-        mSource = newInfo.mSource;
-        mThemeColor = newInfo.mThemeColor;
-        mBackgroundColor = newInfo.mBackgroundColor;
-        mIsIconGenerated = newInfo.mIsIconGenerated;
     }
 
     public boolean isInitialized() {
@@ -156,12 +209,24 @@ public class WebappInfo {
         return mUri;
     }
 
+    public Uri scopeUri() {
+        return mScopeUri;
+    }
+
     public String name() {
         return mName;
     }
 
     public String shortName() {
         return mShortName;
+    }
+
+    public int displayMode() {
+        return mDisplayMode;
+    }
+
+    public String webApkPackageName() {
+        return mWebApkPackageName;
     }
 
     public int orientation() {
@@ -243,13 +308,27 @@ public class WebappInfo {
     public void setWebappIntentExtras(Intent intent) {
         intent.putExtra(ShortcutHelper.EXTRA_ID, id());
         intent.putExtra(ShortcutHelper.EXTRA_URL, uri().toString());
+        intent.putExtra(ShortcutHelper.EXTRA_SCOPE, scopeUri().toString());
         intent.putExtra(ShortcutHelper.EXTRA_ICON, encodedIcon());
+        intent.putExtra(ShortcutHelper.EXTRA_VERSION, ShortcutHelper.WEBAPP_SHORTCUT_VERSION);
         intent.putExtra(ShortcutHelper.EXTRA_NAME, name());
         intent.putExtra(ShortcutHelper.EXTRA_SHORT_NAME, shortName());
+        intent.putExtra(ShortcutHelper.EXTRA_DISPLAY_MODE, displayMode());
         intent.putExtra(ShortcutHelper.EXTRA_ORIENTATION, orientation());
         intent.putExtra(ShortcutHelper.EXTRA_SOURCE, source());
         intent.putExtra(ShortcutHelper.EXTRA_THEME_COLOR, themeColor());
         intent.putExtra(ShortcutHelper.EXTRA_BACKGROUND_COLOR, backgroundColor());
         intent.putExtra(ShortcutHelper.EXTRA_IS_ICON_GENERATED, isIconGenerated());
+        if (webApkPackageName() != null) {
+            intent.putExtra(ShortcutHelper.EXTRA_WEBAPK_PACKAGE_NAME, webApkPackageName());
+        }
+    }
+
+    /**
+     * Returns true if the WebappInfo was created for an Intent fired from a launcher shortcut (as
+     * opposed to an intent from a push notification or other internal source).
+     */
+    public boolean isLaunchedFromHomescreen() {
+        return source() != ShortcutSource.NOTIFICATION;
     }
 }

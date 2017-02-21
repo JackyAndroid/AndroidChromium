@@ -32,8 +32,8 @@ import android.widget.PopupWindow.OnDismissListener;
 import org.chromium.base.AnimationFrameTimeHistogram;
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.SysUtils;
-import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.omaha.UpdateMenuItemHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -293,6 +293,9 @@ public class AppMenu implements OnItemClickListener, OnKeyListener {
      */
     void onItemClick(MenuItem menuItem) {
         if (menuItem.isEnabled()) {
+            if (menuItem.getItemId() == R.id.update_menu_id) {
+                UpdateMenuItemHelper.getInstance().setMenuItemClicked();
+            }
             dismiss();
             mHandler.onOptionsItemSelected(menuItem);
         }
@@ -352,8 +355,7 @@ public class AppMenu implements OnItemClickListener, OnKeyListener {
     /**
      * @return The menu instance inside of this class.
      */
-    @VisibleForTesting
-    public Menu getMenuForTest() {
+    public Menu getMenu() {
         return mMenu;
     }
 
@@ -362,7 +364,7 @@ public class AppMenu implements OnItemClickListener, OnKeyListener {
         assert mPopup.getAnchorView() != null;
         View anchorView = mPopup.getAnchorView();
         int[] anchorViewLocation = new int[2];
-        anchorView.getLocationOnScreen(anchorViewLocation);
+        anchorView.getLocationInWindow(anchorViewLocation);
         anchorViewLocation[1] -= appDimensions.top;
         int anchorViewImpactHeight = mIsByPermanentButton ? anchorView.getHeight() : 0;
 

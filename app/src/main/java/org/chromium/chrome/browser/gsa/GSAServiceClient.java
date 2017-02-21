@@ -4,6 +4,7 @@
 
 package org.chromium.chrome.browser.gsa;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -39,7 +40,8 @@ public class GSAServiceClient {
     public static final String KEY_GSA_PACKAGE_NAME = "ssb_service:ssb_package_name";
 
     /** Messenger to handle incoming messages from the service */
-    private final Messenger mMessenger = new Messenger(new IncomingHandler());
+    private final Messenger mMessenger;
+    private final IncomingHandler mHandler;
     private final GSAServiceConnection mConnection;
     private final GSAHelper mGsaHelper;
     private Context mContext;
@@ -52,6 +54,7 @@ public class GSAServiceClient {
      * Handler of incoming messages from service.
      */
     @SuppressFBWarnings("BC_IMPOSSIBLE_CAST")
+    @SuppressLint("HandlerLeak")
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -71,6 +74,8 @@ public class GSAServiceClient {
      * Constructs an instance of this class.
      */
     public GSAServiceClient(Context context) {
+        mHandler = new IncomingHandler();
+        mMessenger = new Messenger(mHandler);
         mContext = context;
         mConnection = new GSAServiceConnection();
         mGsaHelper = ((ChromeApplication) mContext.getApplicationContext())
@@ -87,7 +92,8 @@ public class GSAServiceClient {
     public boolean connect() {
         if (mService != null) Log.e(TAG, "Already connected.");
         Intent intent = new Intent(GSA_SERVICE).setPackage(GSAState.SEARCH_INTENT_PACKAGE);
-        return mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        return mContext.bindService(
+                intent, mConnection, Context.BIND_AUTO_CREATE | Context.BIND_NOT_FOREGROUND);
     }
 
     /**
@@ -99,6 +105,9 @@ public class GSAServiceClient {
         mContext.unbindService(mConnection);
         mContext = null;
         mService = null;
+
+        // Remove pending handler actions to prevent memory leaks.
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     /**

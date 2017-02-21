@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.compositor.layouts;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,8 +28,10 @@ import org.chromium.chrome.browser.compositor.layouts.eventfilter.EventFilter;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.EventFilterHost;
 import org.chromium.chrome.browser.compositor.scene_layer.SceneLayer;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchManagementDelegate;
+import org.chromium.chrome.browser.dom_distiller.ReaderModeManagerDelegate;
 import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.fullscreen.FullscreenManager;
+import org.chromium.chrome.browser.tabmodel.EmptyTabModelSelectorObserver;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.content.browser.SPenSupport;
@@ -232,16 +235,20 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
      * @param content                  A {@link TabContentManager} instance.
      * @param androidContentContainer  A {@link ViewGroup} for Android views to be bound to.
      * @param contextualSearchDelegate A {@link ContextualSearchDelegate} instance.
+     * @param readerModeDelegate       A {@link ReaderModeManagerDelegate} instance.
      * @param dynamicResourceLoader    A {@link DynamicResourceLoader} instance.
      */
     public void init(TabModelSelector selector, TabCreatorManager creator,
             TabContentManager content, ViewGroup androidContentContainer,
             ContextualSearchManagementDelegate contextualSearchDelegate,
+            ReaderModeManagerDelegate readerModeDelegate,
             DynamicResourceLoader dynamicResourceLoader) {
         mTabModelSelector = selector;
         mContentContainer = androidContentContainer;
 
         if (mNextActiveLayout != null) startShowing(mNextActiveLayout, true);
+
+        updateLayoutForTabModelSelector();
     }
 
     /**
@@ -280,8 +287,8 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
      */
     protected void onViewportChanged(RectF viewportDp) {
         if (getActiveLayout() != null) {
-            getActiveLayout().sizeChanged(viewportDp, mLastVisibleViewportDp,
-                    mLastFullscreenViewportDp, mLastHeightMinusTopControlsDp, getOrientation());
+            getActiveLayout().sizeChanged(mLastVisibleViewportDp, mLastFullscreenViewportDp,
+                    mLastHeightMinusTopControlsDp, getOrientation());
         }
     }
 
@@ -520,6 +527,32 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
             return Orientation.LANDSCAPE;
         } else {
             return Orientation.PORTRAIT;
+        }
+    }
+
+    /**
+     * Updates the Layout for the state of the {@link TabModelSelector} after initialization.
+     * If the TabModelSelector is not yet initialized when this function is called, a
+     * {@link TabModelSelectorObserver} is created to listen for when it is ready.
+     */
+    private void updateLayoutForTabModelSelector() {
+        if (mTabModelSelector.isTabStateInitialized() && getActiveLayout() != null) {
+            getActiveLayout().onTabStateInitialized();
+        } else {
+            mTabModelSelector.addObserver(new EmptyTabModelSelectorObserver() {
+                @Override
+                public void onTabStateInitialized() {
+                    if (getActiveLayout() != null) getActiveLayout().onTabStateInitialized();
+
+                    final EmptyTabModelSelectorObserver observer = this;
+                    new Handler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mTabModelSelector.removeObserver(observer);
+                        }
+                    });
+                }
+            });
         }
     }
 }

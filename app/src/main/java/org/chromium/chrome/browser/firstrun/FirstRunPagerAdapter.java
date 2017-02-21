@@ -55,7 +55,6 @@ class FirstRunPagerAdapter extends FragmentStatePagerAdapter {
 
         Bundle props = new Bundle();
         props.putAll(mFreProperties);
-        FirstRunPage.addProperties(props, position, getCount() - 1);
         result.setArguments(props);
 
         return result;

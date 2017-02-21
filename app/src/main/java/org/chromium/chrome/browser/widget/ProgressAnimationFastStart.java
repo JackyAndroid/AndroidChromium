@@ -16,8 +16,8 @@ class ProgressAnimationFastStart implements ToolbarProgressBar.AnimationLogic {
     private float mProgress;
 
     @Override
-    public void reset() {
-        mProgress = 0.0f;
+    public void reset(float startProgress) {
+        mProgress = startProgress;
     }
 
     @Override

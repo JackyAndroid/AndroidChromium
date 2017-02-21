@@ -17,15 +17,17 @@ public class OverlayContentDelegate {
     /**
      * Called when the panel's ContentViewCore navigates in the main frame.
      * @param url The URL being navigated to.
+     * @param isExternalUrl Whether the URL is different from the initially loaded URL.
      */
-    public void onMainFrameLoadStarted(String url) {}
+    public void onMainFrameLoadStarted(String url, boolean isExternalUrl) {}
 
     /**
      * Called when a page navigation results in an error page.
      * @param url The URL that caused the failure.
-     * @param isFailure If the loaded page is an error page.
+     * @param isExternalUrl Whether the URL is different from the initially loaded URL.
+     * @param isFailure Whether the loaded page is an error page.
      */
-    public void onMainFrameNavigation(String url, boolean isFailure) {}
+    public void onMainFrameNavigation(String url, boolean isExternalUrl, boolean isFailure) {}
 
     /**
      * Called when content started loading in the panel.
@@ -39,6 +41,11 @@ public class OverlayContentDelegate {
     public void onContentLoadFinished() {}
 
     /**
+     * Called when the navigation entry has been committed.
+     */
+    public void onNavigationEntryCommitted() {}
+
+    /**
      * Determine if a particular navigation should be intercepted.
      * @param externalNavHandler External navigation handler for the activity the panel is in.
      * @param navigationParams The navigation params for the current navigation.
@@ -47,6 +54,19 @@ public class OverlayContentDelegate {
     public boolean shouldInterceptNavigation(ExternalNavigationHandler externalNavHandler,
             NavigationParams navigationParams) {
         return true;
+    }
+
+    /**
+     * Allows the delegate to intercept the loading of a URL.
+     * If the loading is intercepted, the OverlayPanelContent will not load the URL when
+     * {@link OverlayPanelContent#loadUrl} is called. Instead, it is up to the delegate to load it.
+     * This allows, for example, passing custom HTTP headers when loading a URL.
+     * @param overlayContentViewCore The Overlay.
+     * @param url The URL to load.
+     * @return Whether the load has been intercepted.
+     */
+    public boolean handleInterceptLoadUrl(ContentViewCore overlayContentViewCore, String url) {
+        return false;
     }
 
     // ============================================================================================

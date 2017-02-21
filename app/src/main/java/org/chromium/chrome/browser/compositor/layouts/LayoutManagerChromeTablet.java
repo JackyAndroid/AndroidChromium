@@ -5,9 +5,9 @@
 package org.chromium.chrome.browser.compositor.layouts;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
@@ -21,6 +21,7 @@ import org.chromium.chrome.browser.compositor.layouts.eventfilter.GestureHandler
 import org.chromium.chrome.browser.compositor.overlays.strip.StripLayoutHelperManager;
 import org.chromium.chrome.browser.compositor.scene_layer.SceneLayer;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchManagementDelegate;
+import org.chromium.chrome.browser.dom_distiller.ReaderModeManagerDelegate;
 import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
@@ -67,9 +68,15 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
         // Set up state
         mDefaultTitle = context.getString(R.string.tab_loading_default_title);
 
-        addGlobalSceneOverlay(mTabStripLayoutHelperManager);
 
         setNextLayout(null);
+    }
+
+    @Override
+    protected void addAllSceneOverlays() {
+        // Add the tab strip overlay before any others.
+        addGlobalSceneOverlay(mTabStripLayoutHelperManager);
+        super.addAllSceneOverlays();
     }
 
     @Override
@@ -117,11 +124,6 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     }
 
     @Override
-    protected void tabClosed(int id, int nextId, boolean incognito) {
-        super.tabClosed(id, nextId, incognito);
-    }
-
-    @Override
     protected void tabClosureCommitted(int id, boolean incognito) {
         super.tabClosureCommitted(id, incognito);
         if (mTitleCache != null) mTitleCache.remove(id);
@@ -137,17 +139,18 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     public void init(TabModelSelector selector, TabCreatorManager creator,
             TabContentManager content, ViewGroup androidContentContainer,
             ContextualSearchManagementDelegate contextualSearchDelegate,
+            ReaderModeManagerDelegate readerModeDelegate,
             DynamicResourceLoader dynamicResourceLoader) {
         if (mTabStripLayoutHelperManager != null) {
-            mTabStripLayoutHelperManager.setTabModelSelector(selector, creator, content);
+            mTabStripLayoutHelperManager.setTabModelSelector(selector, creator);
         }
 
         super.init(selector, creator, content, androidContentContainer, contextualSearchDelegate,
-                dynamicResourceLoader);
+                readerModeDelegate, dynamicResourceLoader);
 
         mTabObserver = new TabModelSelectorTabObserver(selector) {
             @Override
-            public void onFaviconUpdated(Tab tab) {
+            public void onFaviconUpdated(Tab tab, Bitmap icon) {
                 updateTitle(tab);
             }
 
@@ -164,8 +167,7 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
             for (int j = 0; j < model.getCount(); j++) {
                 Tab tab = model.getTabAt(j);
                 if (tab != null && mTitleCache != null) {
-                    mTitleCache.put(tab.getId(), getTitleBitmap(tab), getFaviconBitmap(tab),
-                            tab.isIncognito(), tab.isTitleDirectionRtl());
+                    mTitleCache.getUpdatedTitle(tab, mDefaultTitle);
                 }
             }
         }
@@ -183,13 +185,6 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     }
 
     @Override
-    protected String getTitleForTab(Tab tab) {
-        String title = super.getTitleForTab(tab);
-        if (TextUtils.isEmpty(title)) title = mDefaultTitle;
-        return title;
-    }
-
-    @Override
     public StripLayoutHelperManager getStripLayoutHelperManager() {
         return mTabStripLayoutHelperManager;
     }
@@ -198,17 +193,14 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     public SceneLayer getUpdatedActiveSceneLayer(Rect viewport, Rect contentViewport,
             LayerTitleCache layerTitleCache, TabContentManager tabContentManager,
             ResourceManager resourceManager, ChromeFullscreenManager fullscreenManager) {
-        mTabStripLayoutHelperManager.setBrightness(getActiveLayout().getToolbarBrightness());
         return super.getUpdatedActiveSceneLayer(viewport, contentViewport, layerTitleCache,
                 tabContentManager, resourceManager, fullscreenManager);
     }
 
     private void updateTitle(Tab tab) {
         if (tab != null && mTitleCache != null) {
-            mTitleCache.put(tab.getId(), getTitleBitmap(tab), getFaviconBitmap(tab),
-                    tab.isIncognito(), tab.isTitleDirectionRtl());
-
-            getActiveLayout().tabTitleChanged(tab.getId(), getTitleForTab(tab));
+            String title = mTitleCache.getUpdatedTitle(tab, mDefaultTitle);
+            getActiveLayout().tabTitleChanged(tab.getId(), title);
         }
         requestUpdate();
     }

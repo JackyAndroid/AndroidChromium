@@ -12,13 +12,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.SparseIntArray;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabWebContentsDelegateAndroid;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,6 +31,10 @@ import java.util.Set;
  * Service that creates/destroys the WebRTC notification when media capture starts/stops.
  */
 public class MediaCaptureNotificationService extends Service {
+    private static final String ACTION_MEDIA_CAPTURE_UPDATE =
+            "org.chromium.chrome.browser.media.SCREEN_CAPTURE_UPDATE";
+    private static final String ACTION_SCREEN_CAPTURE_STOP =
+            "org.chromium.chrome.browser.media.SCREEN_CAPTURE_STOP";
 
     private static final String NOTIFICATION_NAMESPACE = "MediaCaptureNotificationService";
 
@@ -38,12 +43,13 @@ public class MediaCaptureNotificationService extends Service {
     private static final String NOTIFICATION_MEDIA_URL_EXTRA = "NotificationMediaUrl";
 
     private static final String WEBRTC_NOTIFICATION_IDS = "WebRTCNotificationIds";
-    private static final String TAG = "cr.MediaCapture";
+    private static final String TAG = "MediaCapture";
 
     private static final int MEDIATYPE_NO_MEDIA = 0;
     private static final int MEDIATYPE_AUDIO_AND_VIDEO = 1;
     private static final int MEDIATYPE_VIDEO_ONLY = 2;
     private static final int MEDIATYPE_AUDIO_ONLY = 3;
+    private static final int MEDIATYPE_SCREEN_CAPTURE = 4;
 
     private NotificationManager mNotificationManager;
     private Context mContext;
@@ -55,7 +61,7 @@ public class MediaCaptureNotificationService extends Service {
         mContext = getApplicationContext();
         mNotificationManager = (NotificationManager) mContext.getSystemService(
                 Context.NOTIFICATION_SERVICE);
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        mSharedPreferences = ContextUtils.getAppSharedPreferences();
         super.onCreate();
     }
 
@@ -83,10 +89,18 @@ public class MediaCaptureNotificationService extends Service {
             cancelPreviousWebRtcNotifications();
             stopSelf();
         } else {
-            updateNotification(
-                    intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID),
-                    intent.getIntExtra(NOTIFICATION_MEDIA_TYPE_EXTRA, MEDIATYPE_NO_MEDIA),
-                    intent.getStringExtra(NOTIFICATION_MEDIA_URL_EXTRA));
+            String action = intent.getAction();
+            int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
+            int mediaType = intent.getIntExtra(NOTIFICATION_MEDIA_TYPE_EXTRA, MEDIATYPE_NO_MEDIA);
+            String url = intent.getStringExtra(NOTIFICATION_MEDIA_URL_EXTRA);
+
+            if (ACTION_MEDIA_CAPTURE_UPDATE.equals(action)) {
+                updateNotification(notificationId, mediaType, url);
+            } else if (ACTION_SCREEN_CAPTURE_STOP.equals(action)) {
+                // Notify native to stop screen capture when the STOP button in notification
+                // is clicked.
+                TabWebContentsDelegateAndroid.notifyStopped(notificationId);
+            }
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -146,35 +160,33 @@ public class MediaCaptureNotificationService extends Service {
      * @param url Url of the current webrtc call.
      */
     private void createNotification(int notificationId, int mediaType, String url) {
-        int notificationContentTextId = 0;
-        int notificationIconId = 0;
-        if (mediaType == MEDIATYPE_AUDIO_AND_VIDEO) {
-            notificationContentTextId = R.string.video_audio_call_notification_text_2;
-            notificationIconId = R.drawable.webrtc_video;
-        } else if (mediaType == MEDIATYPE_VIDEO_ONLY) {
-            notificationContentTextId = R.string.video_call_notification_text_2;
-            notificationIconId = R.drawable.webrtc_video;
-        } else if (mediaType == MEDIATYPE_AUDIO_ONLY) {
-            notificationContentTextId = R.string.audio_call_notification_text_2;
-            notificationIconId = R.drawable.webrtc_audio;
-        }
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(mContext)
+                        .setAutoCancel(false)
+                        .setOngoing(true)
+                        .setContentTitle(mContext.getString(R.string.app_name))
+                        .setSmallIcon(getNotificationIconId(mediaType))
+                        .setLocalOnly(true);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext)
-                .setAutoCancel(false)
-                .setOngoing(true)
-                .setContentTitle(mContext.getString(R.string.app_name))
-                .setSmallIcon(notificationIconId)
-                .setLocalOnly(true);
-
-        StringBuilder contentText = new StringBuilder(
-                mContext.getResources().getString(notificationContentTextId)).append('.');
+        StringBuilder contentText =
+                new StringBuilder(getNotificationContentText(mediaType, url)).append('.');
         Intent tabIntent = Tab.createBringTabToFrontIntent(notificationId);
         if (tabIntent != null) {
             PendingIntent contentIntent = PendingIntent.getActivity(
                     mContext, notificationId, tabIntent, 0);
             builder.setContentIntent(contentIntent);
-            contentText.append(
-                    mContext.getResources().getString(R.string.media_notification_link_text, url));
+            if (mediaType == MEDIATYPE_SCREEN_CAPTURE) {
+                // Add a "Stop" button to the screen capture notification and turn the notification
+                // into a high priority one.
+                builder.setPriority(Notification.PRIORITY_HIGH);
+                builder.setVibrate(new long[0]);
+                builder.addAction(R.drawable.ic_vidcontrol_stop,
+                        mContext.getResources().getString(R.string.accessibility_stop),
+                        buildStopCapturePendingIntent(notificationId));
+            } else {
+                contentText.append(mContext.getResources().getString(
+                        R.string.media_notification_link_text, url));
+            }
         } else {
             contentText.append(" ").append(url);
         }
@@ -185,6 +197,48 @@ public class MediaCaptureNotificationService extends Service {
         mNotificationManager.notify(NOTIFICATION_NAMESPACE, notificationId, notification);
         mNotifications.put(notificationId, mediaType);
         updateSharedPreferencesEntry(notificationId, false);
+    }
+
+    /**
+     * Builds notification content text for the provided mediaType and url.
+     * @param mediaType Media type of the notification.
+     * @param url Url of the current webrtc call.
+     * @return A string builder initialized to the contents of the specified string.
+     */
+    private String getNotificationContentText(int mediaType, String url) {
+        if (mediaType == MEDIATYPE_SCREEN_CAPTURE) {
+            return mContext.getResources().getString(
+                    R.string.screen_capture_notification_text, url);
+        }
+
+        int notificationContentTextId = 0;
+        if (mediaType == MEDIATYPE_AUDIO_AND_VIDEO) {
+            notificationContentTextId = R.string.video_audio_call_notification_text_2;
+        } else if (mediaType == MEDIATYPE_VIDEO_ONLY) {
+            notificationContentTextId = R.string.video_call_notification_text_2;
+        } else if (mediaType == MEDIATYPE_AUDIO_ONLY) {
+            notificationContentTextId = R.string.audio_call_notification_text_2;
+        }
+
+        return mContext.getResources().getString(notificationContentTextId);
+    }
+
+    /**
+     * @param mediaType Media type of the notification.
+     * @return An icon id of the provided mediaType.
+     */
+    private int getNotificationIconId(int mediaType) {
+        int notificationIconId = 0;
+        if (mediaType == MEDIATYPE_AUDIO_AND_VIDEO) {
+            notificationIconId = R.drawable.webrtc_video;
+        } else if (mediaType == MEDIATYPE_VIDEO_ONLY) {
+            notificationIconId = R.drawable.webrtc_video;
+        } else if (mediaType == MEDIATYPE_AUDIO_ONLY) {
+            notificationIconId = R.drawable.webrtc_audio;
+        } else if (mediaType == MEDIATYPE_SCREEN_CAPTURE) {
+            notificationIconId = R.drawable.webrtc_video;
+        }
+        return notificationIconId;
     }
 
     /**
@@ -227,10 +281,13 @@ public class MediaCaptureNotificationService extends Service {
     /**
      * @param audio If audio is being captured.
      * @param video If video is being captured.
+     * @param screen If screen is being captured.
      * @return A constant identify what media is being captured.
      */
-    public static int getMediaType(boolean audio, boolean video) {
-        if (audio && video) {
+    public static int getMediaType(boolean audio, boolean video, boolean screen) {
+        if (screen) {
+            return MEDIATYPE_SCREEN_CAPTURE;
+        } else if (audio && video) {
             return MEDIATYPE_AUDIO_AND_VIDEO;
         } else if (audio) {
             return MEDIATYPE_AUDIO_ONLY;
@@ -244,7 +301,7 @@ public class MediaCaptureNotificationService extends Service {
     private static boolean shouldStartService(Context context, int mediaType, int tabId) {
         if (mediaType != MEDIATYPE_NO_MEDIA) return true;
         SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(context);
+                ContextUtils.getAppSharedPreferences();
         Set<String> notificationIds =
                 sharedPreferences.getStringSet(WEBRTC_NOTIFICATION_IDS, null);
         if (notificationIds != null
@@ -259,22 +316,21 @@ public class MediaCaptureNotificationService extends Service {
      * Send an intent to MediaCaptureNotificationService to either create, update or destroy the
      * notification identified by tabId.
      * @param tabId Unique notification id.
-     * @param audio If audio is being captured.
-     * @param video If video is being captured.
+     * @param mediaType The media type that is being captured.
      * @param fullUrl Url of the current webrtc call.
      */
     public static void updateMediaNotificationForTab(
-            Context context, int tabId, boolean audio, boolean video, String fullUrl) {
-        int mediaType = getMediaType(audio, video);
+            Context context, int tabId, int mediaType, String fullUrl) {
         if (!shouldStartService(context, mediaType, tabId)) return;
         Intent intent = new Intent(context, MediaCaptureNotificationService.class);
+        intent.setAction(ACTION_MEDIA_CAPTURE_UPDATE);
         intent.putExtra(NOTIFICATION_ID_EXTRA, tabId);
         String baseUrl = fullUrl;
         try {
             URL url = new URL(fullUrl);
             baseUrl = url.getProtocol() + "://" + url.getHost();
         } catch (MalformedURLException e) {
-            Log.w(TAG, "Error parsing the webrtc url " + fullUrl);
+            Log.w(TAG, "Error parsing the webrtc url, %s ", fullUrl);
         }
         intent.putExtra(NOTIFICATION_MEDIA_URL_EXTRA, baseUrl);
         intent.putExtra(NOTIFICATION_MEDIA_TYPE_EXTRA, mediaType);
@@ -286,11 +342,22 @@ public class MediaCaptureNotificationService extends Service {
      */
     public static void clearMediaNotifications(Context context) {
         SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(context);
+                ContextUtils.getAppSharedPreferences();
         Set<String> notificationIds =
                 sharedPreferences.getStringSet(WEBRTC_NOTIFICATION_IDS, null);
         if (notificationIds == null || notificationIds.isEmpty()) return;
 
         context.startService(new Intent(context, MediaCaptureNotificationService.class));
+    }
+
+    /**
+     * Build PendingIntent for the actions of screen capture notification.
+     */
+    private PendingIntent buildStopCapturePendingIntent(int notificationId) {
+        Intent intent = new Intent(this, MediaCaptureNotificationService.class);
+        intent.setAction(ACTION_SCREEN_CAPTURE_STOP);
+        intent.putExtra(NOTIFICATION_ID_EXTRA, notificationId);
+        return PendingIntent.getService(
+                mContext, notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 }

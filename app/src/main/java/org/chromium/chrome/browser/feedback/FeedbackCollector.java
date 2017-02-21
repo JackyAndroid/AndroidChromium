@@ -12,8 +12,12 @@ import android.text.TextUtils;
 
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.base.metrics.StatisticsRecorderAndroid;
+import org.chromium.blimp_public.BlimpClientContext;
+import org.chromium.chrome.browser.blimp.BlimpClientContextFactory;
 import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.components.variations.VariationsAssociatedData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +71,11 @@ public class FeedbackCollector
      * An optional screenshot for the feedback report.
      */
     private Bitmap mScreenshot;
+
+    /**
+     * All the registered histograms as JSON text.
+     */
+    private String mHistograms;
 
     /**
      * A flag indicating whether gathering connection data has finished.
@@ -125,6 +134,9 @@ public class FeedbackCollector
         postTimeoutTask();
         mConnectivityTask = ConnectivityTask.create(mProfile, CONNECTIVITY_CHECK_TIMEOUT_MS, this);
         ScreenshotTask.create(activity, this);
+        if (!mProfile.isOffTheRecord()) {
+            mHistograms = StatisticsRecorderAndroid.toJson();
+        }
     }
 
     /**
@@ -143,10 +155,10 @@ public class FeedbackCollector
      * {@link ScreenshotTask.ScreenshotTaskCallback} implementation.
      */
     @Override
-    public void onGotBitmap(@Nullable Bitmap bitmap, boolean success) {
+    public void onGotBitmap(@Nullable Bitmap bitmap) {
         ThreadUtils.assertOnUiThread();
         mScreenshotTaskFinished = true;
-        if (success) mScreenshot = bitmap;
+        mScreenshot = bitmap;
         maybePostResult();
     }
 
@@ -230,6 +242,13 @@ public class FeedbackCollector
     }
 
     /**
+     * @return All the registered histograms as JSON text.
+     */
+    public String getHistograms() {
+        return mHistograms;
+    }
+
+    /**
      * @return the collected data as a {@link Bundle}.
      */
     @VisibleForTesting
@@ -238,6 +257,8 @@ public class FeedbackCollector
         addUrl();
         addConnectivityData();
         addDataReductionProxyData();
+        addVariationsData();
+        addBlimpData();
         return asBundle();
     }
 
@@ -258,6 +279,19 @@ public class FeedbackCollector
         Map<String, String> dataReductionProxyMap =
                 DataReductionProxySettings.getInstance().toFeedbackMap();
         mData.putAll(dataReductionProxyMap);
+    }
+
+    private void addVariationsData() {
+        if (mProfile.isOffTheRecord()) return;
+        mData.putAll(VariationsAssociatedData.getFeedbackMap());
+    }
+
+    private void addBlimpData() {
+        if (mProfile.isOffTheRecord()) return;
+
+        BlimpClientContext blimpClientContext =
+                BlimpClientContextFactory.getBlimpClientContextForProfile(mProfile);
+        mData.putAll(blimpClientContext.getFeedbackMap());
     }
 
     private Bundle asBundle() {

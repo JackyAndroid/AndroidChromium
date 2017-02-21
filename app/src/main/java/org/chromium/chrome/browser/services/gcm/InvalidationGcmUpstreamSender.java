@@ -5,16 +5,20 @@
 package org.chromium.chrome.browser.services.gcm;
 
 import android.accounts.Account;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.ipc.invalidation.ticl.android2.channel.GcmUpstreamSenderService;
 
 import org.chromium.chrome.browser.signin.OAuth2TokenService;
-import org.chromium.sync.SyncConstants;
-import org.chromium.sync.signin.AccountManagerHelper;
-import org.chromium.sync.signin.ChromeSigninController;
+import org.chromium.components.signin.AccountManagerHelper;
+import org.chromium.components.signin.ChromeSigninController;
+import org.chromium.components.sync.SyncConstants;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -41,13 +45,22 @@ public class InvalidationGcmUpstreamSender extends GcmUpstreamSenderService {
             return;
         }
 
+        final Bundle dataToSend = createDeepCopy(data);
+        final Context applicationContext = getApplicationContext();
+
         // Attempt to retrieve a token for the user.
-        OAuth2TokenService.getOAuth2AccessToken(this, null, account,
+        OAuth2TokenService.getOAuth2AccessToken(this, account,
                 SyncConstants.CHROME_SYNC_OAUTH2_SCOPE,
                 new AccountManagerHelper.GetAuthTokenCallback() {
                     @Override
-                    public void tokenAvailable(String token) {
-                        sendUpstreamMessage(to, data, token);
+                    public void tokenAvailable(final String token) {
+                        new AsyncTask<Void, Void, Void>() {
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                sendUpstreamMessage(to, dataToSend, token, applicationContext);
+                                return null;
+                            }
+                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     }
 
                     @Override
@@ -58,12 +71,14 @@ public class InvalidationGcmUpstreamSender extends GcmUpstreamSenderService {
                 });
     }
 
-    private void sendUpstreamMessage(String to, Bundle data, String token) {
+    /*
+     * This function runs on a thread from the AsyncTask.THREAD_POOL_EXECUTOR.
+     */
+    private void sendUpstreamMessage(String to, Bundle data, String token, Context context) {
         // Add the OAuth2 token to the bundle. The token should have the prefix Bearer added to it.
         data.putString("Authorization", "Bearer " + token);
         if (!isMessageWithinLimit(data)) {
-            GcmUma.recordGcmUpstreamHistogram(
-                    getApplicationContext(), GcmUma.UMA_UPSTREAM_SIZE_LIMIT_EXCEEDED);
+            GcmUma.recordGcmUpstreamHistogram(context, GcmUma.UMA_UPSTREAM_SIZE_LIMIT_EXCEEDED);
             return;
         }
         String msgId = UUID.randomUUID().toString();
@@ -71,8 +86,7 @@ public class InvalidationGcmUpstreamSender extends GcmUpstreamSenderService {
             GoogleCloudMessaging.getInstance(getApplicationContext()).send(to, msgId, 1, data);
         } catch (IOException | IllegalArgumentException exception) {
             Log.w(TAG, "Send message failed");
-            GcmUma.recordGcmUpstreamHistogram(getApplicationContext(),
-                    GcmUma.UMA_UPSTREAM_SEND_FAILED);
+            GcmUma.recordGcmUpstreamHistogram(context, GcmUma.UMA_UPSTREAM_SEND_FAILED);
         }
     }
 
@@ -85,5 +99,19 @@ public class InvalidationGcmUpstreamSender extends GcmUpstreamSenderService {
             return false;
         }
         return true;
+    }
+
+    /*
+     * Creates and returns a deep copy of the original Bundle.
+     */
+    // TODO(crbug.com/635567): Fix this properly.
+    @SuppressLint("ParcelClassLoader")
+    private Bundle createDeepCopy(Bundle original) {
+        Parcel temp = Parcel.obtain();
+        original.writeToParcel(temp, 0);
+        temp.setDataPosition(0);
+        Bundle copy = temp.readBundle();
+        temp.recycle();
+        return copy;
     }
 }

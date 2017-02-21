@@ -4,9 +4,11 @@
 
 package org.chromium.chrome.browser.media.router.cast;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 
+import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
@@ -17,7 +19,7 @@ import com.google.android.gms.common.api.Status;
 
 import org.chromium.base.Log;
 import org.chromium.chrome.browser.media.router.ChromeMediaRouter;
-import org.chromium.chrome.browser.media.router.RouteDelegate;
+import org.chromium.chrome.browser.media.router.MediaRoute;
 
 /**
  * Establishes a {@link MediaRoute} by starting a Cast application represented by the given
@@ -28,7 +30,7 @@ import org.chromium.chrome.browser.media.router.RouteDelegate;
 public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         ResultCallback<Cast.ApplicationConnectionResult> {
-    private static final String TAG = "cr.MediaRouter";
+    private static final String TAG = "MediaRouter";
 
     private static final int STATE_IDLE = 0;
     private static final int STATE_CONNECTING_TO_API = 1;
@@ -37,19 +39,12 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
     private static final int STATE_LAUNCH_SUCCEEDED = 4;
     private static final int STATE_TERMINATED = 5;
 
-    private static final String ERROR_NEW_ROUTE_LAUNCH_APPLICATION_FAILED =
-            "Launch application failed: %s, %s";
-    private static final String ERROR_NEW_ROUTE_LAUNCH_APPLICATION_FAILED_STATUS =
-            "Launch application failed with status: %s, %d, %s";
-    private static final String ERROR_NEW_ROUTE_CLIENT_CONNECTION_FAILED =
-            "GoogleApiClient connection failed: %d, %b";
-
     private class CastListener extends Cast.Listener {
-        private CastRouteController mSession;
+        private CastSession mSession;
 
         CastListener() {}
 
-        void setSession(CastRouteController session) {
+        void setSession(CastSession session) {
             mSession = session;
         }
 
@@ -61,6 +56,15 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
         }
 
         @Override
+        public void onApplicationMetadataChanged(ApplicationMetadata metadata) {
+            if (mSession == null) return;
+
+            mSession.updateSessionStatus();
+        }
+
+        @Override
+        // TODO(crbug.com/635567): Fix this properly.
+        @SuppressLint("DefaultLocale")
         public void onApplicationDisconnected(int errorCode) {
             if (errorCode != CastStatusCodes.SUCCESS) {
                 Log.e(TAG, String.format(
@@ -70,7 +74,7 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
             // This callback can be called more than once if the application is stopped from Chrome.
             if (mSession == null) return;
 
-            mSession.close();
+            mSession.stopApplication();
             mSession = null;
         }
 
@@ -84,11 +88,12 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
 
     private final MediaSource mSource;
     private final MediaSink mSink;
-    private final String mRouteId;
+    private final String mPresentationId;
     private final String mOrigin;
     private final int mTabId;
+    private final boolean mIsIncognito;
     private final int mRequestId;
-    private final RouteDelegate mDelegate;
+    private final CastMediaRouteProvider mRouteProvider;
     private final CastListener mCastListener = new CastListener();
 
     private GoogleApiClient mApiClient;
@@ -96,33 +101,64 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
 
     /**
      * Initializes the request.
-     * @param source The {@link MediaSource} defining the application to launch on the Cast device
-     * @param sink The {@link MediaSink} identifying the selected Cast device
-     * @param routeId The id assigned to the route by {@link ChromeMediaRouter}
+     * @param source The {@link MediaSource} defining the application to launch on the Cast device.
+     * @param sink The {@link MediaSink} identifying the selected Cast device.
+     * @param presentationId The presentation id assigned to the route by {@link ChromeMediaRouter}.
      * @param origin The origin of the frame requesting the route.
-     * @param tabId the id of the tab containing the frame requesting the route.
+     * @param tabId The id of the tab containing the frame requesting the route.
+     * @param isIncognito Whether the route is being requested from an Incognito profile.
      * @param requestId The id of the route creation request for tracking by
-     * {@link ChromeMediaRouter}
-     * @param delegate The instance of {@link RouteDelegate} handling the request
+     * {@link ChromeMediaRouter}.
+     * @param routeProvider The instance of {@link CastMediaRouteProvider} handling the request.
      */
     public CreateRouteRequest(
             MediaSource source,
             MediaSink sink,
-            String routeId,
+            String presentationId,
             String origin,
             int tabId,
+            boolean isIncognito,
             int requestId,
-            RouteDelegate delegate) {
+            CastMediaRouteProvider routeProvider) {
         assert source != null;
         assert sink != null;
 
         mSource = source;
         mSink = sink;
-        mRouteId = routeId;
+        mPresentationId = presentationId;
         mOrigin = origin;
         mTabId = tabId;
+        mIsIncognito = isIncognito;
         mRequestId = requestId;
-        mDelegate = delegate;
+        mRouteProvider = routeProvider;
+    }
+
+    public MediaSource getSource() {
+        return mSource;
+    }
+
+    public MediaSink getSink() {
+        return mSink;
+    }
+
+    public String getPresentationId() {
+        return mPresentationId;
+    }
+
+    public String getOrigin() {
+        return mOrigin;
+    }
+
+    public int getTabId() {
+        return mTabId;
+    }
+
+    public boolean isIncognito() {
+        return mIsIncognito;
+    }
+
+    public int getNativeRequestId() {
+        return mRequestId;
     }
 
     /**
@@ -151,12 +187,12 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
         if (mState == STATE_API_CONNECTION_SUSPENDED) return;
 
         try {
-            launchApplication(mApiClient, mSource.getApplicationId(), false)
+            launchApplication(mApiClient, mSource.getApplicationId(), true)
                     .setResultCallback(this);
             mState = STATE_LAUNCHING_APPLICATION;
         } catch (Exception e) {
-            reportError(String.format(ERROR_NEW_ROUTE_LAUNCH_APPLICATION_FAILED,
-                    mSource.getApplicationId(), e));
+            Log.e(TAG, "Launch application failed: %s", mSource.getApplicationId(), e);
+            reportError();
         }
     }
 
@@ -169,15 +205,16 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onResult(Cast.ApplicationConnectionResult result) {
-        if (mState != STATE_LAUNCHING_APPLICATION) throwInvalidState();
+        if (mState != STATE_LAUNCHING_APPLICATION
+                && mState != STATE_API_CONNECTION_SUSPENDED) {
+            throwInvalidState();
+        }
 
         Status status = result.getStatus();
         if (!status.isSuccess()) {
-            reportError(String.format(
-                    ERROR_NEW_ROUTE_LAUNCH_APPLICATION_FAILED_STATUS,
-                    mSource.getApplicationId(),
-                    status.getStatusCode(),
-                    status.getStatusMessage()));
+            Log.e(TAG, "Launch application failed with status: %s, %d, %s",
+                    mSource.getApplicationId(), status.getStatusCode(), status.getStatusMessage());
+            reportError();
         }
 
         mState = STATE_LAUNCH_SUCCEEDED;
@@ -190,10 +227,9 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
     public void onConnectionFailed(ConnectionResult result) {
         if (mState != STATE_CONNECTING_TO_API) throwInvalidState();
 
-        reportError(String.format(
-                ERROR_NEW_ROUTE_CLIENT_CONNECTION_FAILED,
-                result.getErrorCode(),
-                result.hasResolution()));
+        Log.e(TAG, "GoogleApiClient connection failed: %d, %b",
+                result.getErrorCode(), result.hasResolution());
+        reportError();
     }
 
     private GoogleApiClient createApiClient(Cast.Listener listener, Context context) {
@@ -216,6 +252,8 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
         return Cast.CastApi.launchApplication(apiClient, appId, relaunchIfRunning);
     }
 
+    // TODO(crbug.com/635567): Fix this properly.
+    @SuppressLint("DefaultLocale")
     private void throwInvalidState() {
         throw new RuntimeException(String.format("Invalid state: %d", mState));
     }
@@ -223,28 +261,28 @@ public class CreateRouteRequest implements GoogleApiClient.ConnectionCallbacks,
     private void reportSuccess(Cast.ApplicationConnectionResult result) {
         if (mState != STATE_LAUNCH_SUCCEEDED) throwInvalidState();
 
-        CastRouteController session = new CastRouteController(
+        CastSession session = new CastSessionImpl(
                 mApiClient,
                 result.getSessionId(),
                 result.getApplicationMetadata(),
                 result.getApplicationStatus(),
                 mSink.getDevice(),
-                mRouteId,
                 mOrigin,
                 mTabId,
+                mIsIncognito,
                 mSource,
-                mDelegate);
+                mRouteProvider);
         mCastListener.setSession(session);
-        mDelegate.onRouteCreated(mRequestId, session, result.getWasLaunched());
+        mRouteProvider.onSessionCreated(session);
 
         terminate();
     }
 
-    private void reportError(String message) {
+    private void reportError() {
         if (mState == STATE_TERMINATED) throwInvalidState();
 
-        assert mDelegate != null;
-        mDelegate.onRouteRequestError(message, mRequestId);
+        assert mRouteProvider != null;
+        mRouteProvider.onLaunchError();
 
         terminate();
     }

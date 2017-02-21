@@ -29,6 +29,11 @@ public interface ContextMenuItemDelegate {
     boolean isIncognitoSupported();
 
     /**
+     * @return Whether the "Open in other window" context menu item should be shown.
+     */
+    boolean isOpenInOtherWindowSupported();
+
+    /**
      * Returns whether or not the Data Reduction Proxy is enabled for input url.
      * @param url Input url to check for the Data Reduction Proxy setting.
      * @return true if the Data Reduction Proxy is enabled for the url.
@@ -42,6 +47,13 @@ public interface ContextMenuItemDelegate {
      * @return       Whether or not a download should actually be started.
      */
     boolean startDownload(String url, boolean isLink);
+
+    /**
+     * Called when the {@code url} should be opened in the other window with the same incognito
+     * state as the current {@link Tab}.
+     * @param url The URL to open.
+     */
+    void onOpenInOtherWindow(String url, Referrer referrer);
 
     /**
      * Called when the {@code url} should be opened in a new tab with the same incognito state as
@@ -63,9 +75,15 @@ public interface ContextMenuItemDelegate {
     void onOpenImageUrl(String url, Referrer referrer);
 
     /**
-     * Called when the page should be reloaded with Lo-Fi disabled.
+     * Called when the {@code url} is of an image and should be opened in a new tab.
+     * @param url The image URL to open.
      */
-    void onReloadDisableLoFi();
+    void onOpenImageInNewTab(String url, Referrer referrer);
+
+    /**
+     *  Reloads all the Lo-Fi images in a Tab.
+     */
+    void onReloadLoFiImages();
 
     /**
      * Called when the original image should be loaded.
@@ -90,4 +108,9 @@ public interface ContextMenuItemDelegate {
      * @param pageUrl URL of the current page.
      */
     void onOpenInChrome(String linkUrl, String pageUrl);
+
+    /**
+     * Called to queue a task to sometime later make an offline page for this url.
+     */
+    void onSavePageLater(String linkUrl);
 }

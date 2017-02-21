@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#FAFAFA" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:padding="20dp" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/search_sogou" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:text="@string/search_with_sogou"
+            android:textColor="@color/default_text_color"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:lineSpacingMultiplier="1.3"
+            android:textColor="#646464"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:gravity="end"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/keep_google_button"
+                style="@style/ButtonCompatBorderless"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:minHeight="40dp"
+                android:text="@string/keep_google"
+                android:textAllCaps="true"
+                android:textColor="@color/light_active_color"
+                android:textSize="13sp" />
+
+            <org.chromium.ui.widget.ButtonCompat
+                android:id="@+id/ok_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:elevation="0dp"
+                android:minHeight="30dp"
+                android:text="@string/ok"
+                android:textAllCaps="true"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                chrome:buttonColor="@color/light_active_color"
+                chrome:buttonRaised="false" />
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

@@ -20,7 +20,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileDownloader;
 import org.chromium.chrome.browser.profiles.ProfileDownloader.Observer;
-import org.chromium.sync.signin.AccountManagerHelper;
+import org.chromium.components.signin.AccountManagerHelper;
 import org.chromium.ui.gfx.DeviceDisplayInfo;
 
 import java.util.HashMap;
@@ -142,7 +142,7 @@ public class ProfileDataCache implements Observer {
             Bitmap bitmap) {
         bitmap = getCroppedBitmap(bitmap);
         mCacheEntries.put(accountId, new CacheEntry(bitmap, fullName, givenName));
-        if (mObserver != null) mObserver.onProfileDownloaded(accountId, givenName, fullName,
+        if (mObserver != null) mObserver.onProfileDownloaded(accountId, fullName, givenName,
                 bitmap);
     }
 

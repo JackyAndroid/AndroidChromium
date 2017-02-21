@@ -11,11 +11,6 @@
     <LinearLayout
         android:orientation="vertical"
         style="@style/AlertDialogContent">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="25dp"
-            android:text="@string/sync_custom_passphrase"/>
         <org.chromium.chrome.browser.widget.AlertDialogEditText
             android:id="@+id/passphrase"
             android:hint="@string/sync_enter_custom_passphrase_hint"
@@ -32,5 +27,12 @@
             android:inputType="textPassword"
             android:singleLine="true"
             android:imeOptions="actionDone" />
+        <org.chromium.ui.widget.TextViewWithClickableSpans
+            android:id="@+id/custom_passphrase_instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:layout_marginTop="25dp"
+            android:text="@string/sync_custom_passphrase" />
     </LinearLayout>
 </ScrollView>

@@ -183,12 +183,15 @@ public class MinidumpPreparationCallable implements Callable<Boolean> {
     @Override
     public Boolean call() throws IOException {
         // By default set the basic minidump to be uploaded. That way, even if
-        // there are errors augmenting the minidump with logcat data something
-        // can still upload something.
+        // there are errors augmenting the minidump with logcat data, the service
+        // can still upload the unaugmented minidump.
         List<String> logcat = getLogcatAsList();
         boolean success = true;
         if (!logcat.isEmpty()) {
             success = augmentTargetFile(logcat);
+            if (success && !mLogcatFile.delete()) {
+                Log.w(TAG, "Failed to delete logcat file: " + mLogcatFile.getName());
+            }
         }
         if (mRedirectIntent != null) {
             mContext.startService(mRedirectIntent);

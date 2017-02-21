@@ -40,7 +40,6 @@ public class PreferencesLauncher {
         }
         if (fragmentName != null) {
             intent.putExtra(Preferences.EXTRA_SHOW_FRAGMENT, fragmentName);
-            intent.putExtra(Preferences.EXTRA_DISPLAY_HOME_AS_UP, false);
         }
         return intent;
     }

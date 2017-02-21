@@ -104,6 +104,12 @@ public class ChromeMediaRouterDialogController implements MediaRouteDialogDelega
 
     @Override
     public void onDialogCancelled() {
+        // For MediaRouteControllerDialog this method will be called in case the route is closed
+        // since it only call onDismiss() and there's no way to distinguish between the two.
+        // Here we can figure it out: if mDialogManager is null, onRouteClosed() was called and
+        // there's no need to tell the native controller the dialog has been cancelled.
+        if (mDialogManager == null) return;
+
         mDialogManager = null;
         nativeOnDialogCancelled(mNativeDialogController);
     }

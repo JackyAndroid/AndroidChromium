@@ -83,6 +83,11 @@ public class IncognitoToggleButtonTablet extends ImageButton {
                 public void willCloseTab(Tab tab, boolean animate) {
                     updateButtonVisibility();
                 }
+
+                @Override
+                public void tabRemoved(Tab tab) {
+                    updateButtonVisibility();
+                }
             };
             for (TabModel model : mTabModelSelector.getModels()) {
                 model.addObserver(mTabModelObserver);

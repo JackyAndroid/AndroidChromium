@@ -11,13 +11,15 @@
               android:layout_height="wrap_content"
               android:orientation="horizontal"
               android:paddingStart="@dimen/contextual_search_peek_promo_padding"
-              android:paddingEnd="@dimen/contextual_search_peek_promo_padding">
+              android:paddingEnd="@dimen/contextual_search_peek_promo_padding"
+              android:visibility="invisible">
     <TextView
         android:id="@+id/contextual_search_peek_promo_new"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/contextual_search_peek_promo_padding"
         android:background="@drawable/contextual_search_peek_promo_new_background"
+        android:fontFamily="sans-serif-medium"
         android:text="@string/contextual_search_peek_promo_new"
         android:textAllCaps="true"
         android:textColor="@color/light_active_color"
@@ -28,6 +30,7 @@
         android:id="@+id/contextual_search_peek_promo_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
         android:text="@string/contextual_search_peek_promo_text"
         android:textColor="#FFF"
         android:textSize="14sp"

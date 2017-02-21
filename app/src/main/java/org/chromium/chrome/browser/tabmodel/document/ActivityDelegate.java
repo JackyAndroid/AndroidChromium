@@ -4,19 +4,28 @@
 
 package org.chromium.chrome.browser.tabmodel.document;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.chrome.browser.ChromeActivity;
+import org.chromium.chrome.browser.IntentHandler;
 import org.chromium.chrome.browser.UrlConstants;
 import org.chromium.chrome.browser.document.DocumentActivity;
+import org.chromium.chrome.browser.document.DocumentUtils;
 import org.chromium.chrome.browser.externalnav.ExternalNavigationDelegateImpl;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tabmodel.AsyncTabParamsManager;
 import org.chromium.chrome.browser.tabmodel.document.DocumentTabModel.Entry;
+import org.chromium.chrome.browser.util.IntentUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -74,6 +83,23 @@ public abstract class ActivityDelegate {
     }
 
     /**
+     * Finishes all DocumentActivities that appear in Android's Recents.
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void finishAllDocumentActivities() {
+        Context context = ContextUtils.getApplicationContext();
+        ActivityManager activityManager =
+                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+
+        for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
+            Intent intent = DocumentUtils.getBaseIntentFromTask(task);
+            if (isValidActivity(false, intent) || isValidActivity(true, intent)) {
+                task.finishAndRemoveTask();
+            }
+        }
+    }
+
+    /**
      * Get a map of the Chrome tasks displayed by Android's Recents.
      * @param isIncognito Whether or not the TabList is managing incognito tabs.
      */
@@ -122,6 +148,12 @@ public abstract class ActivityDelegate {
      */
     public static int getTabIdFromIntent(Intent intent) {
         if (intent == null || intent.getData() == null) return Tab.INVALID_TAB_ID;
+
+        // Avoid AsyncTabCreationParams related flows early returning here.
+        if (AsyncTabParamsManager.hasParamsWithTabToReparent()) {
+            return IntentUtils.safeGetIntExtra(
+                    intent, IntentHandler.EXTRA_TAB_ID, Tab.INVALID_TAB_ID);
+        }
 
         Uri data = intent.getData();
         if (!TextUtils.equals(data.getScheme(), UrlConstants.DOCUMENT_SCHEME)) {

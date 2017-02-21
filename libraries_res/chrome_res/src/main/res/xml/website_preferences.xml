@@ -19,6 +19,12 @@
         android:title="@string/allow_third_party_cookies_title"
         android:summary="@string/allow_third_party_cookies_summary"
         android:defaultValue="true" />
+    <!-- A toggle for enabling vibration in notifications. -->
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="notifications_vibrate"
+        android:title="@string/enable_notifications_vibrate_title"
+        android:summary="@string/enable_notifications_vibrate_summary"
+        android:defaultValue="true" />
     <!-- An hyperlink to explain more about Protected Media content settings. -->
     <org.chromium.chrome.browser.preferences.LearnMorePreference
         android:key="protected_content_learn_more"

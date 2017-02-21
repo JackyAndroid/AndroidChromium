@@ -23,13 +23,15 @@ public class PolicyAuditor {
         AUTOFILL_SELECTED
     }
 
+
     /**
      * Make it non-obvious to accidentally instantiate this outside of ChromeApplication.
      */
     protected PolicyAuditor() {}
 
-    public void notifyAuditEvent(final Context context, final AuditEvent event, final String url,
-            final String message) {}
+    public void notifyAuditEvent(Context context, AuditEvent event, String url, String message) {}
 
-    public void notifyCertificateFailure(final WebContents webContents, final Context context) {}
+    public void notifyCertificateFailure(int certificateFailure, Context context) {}
+
+    public static native int nativeGetCertificateFailure(WebContents webContents);
 }

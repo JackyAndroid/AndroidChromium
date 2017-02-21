@@ -144,6 +144,7 @@ class FindResultBar extends View {
     /** Dismisses this results bar by removing it from the view hierarchy. */
     public void dismiss() {
         mDismissing = true;
+        mFindInPageBridge = null;
         if (mVisibilityAnimation != null && mVisibilityAnimation.isRunning()) {
             mVisibilityAnimation.cancel();
         }

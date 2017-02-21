@@ -79,7 +79,7 @@ public class AssistStatusHandler {
     /**
      * Trigger an update of the assist state.
      */
-    protected final void updateAssistState() {
+    public final void updateAssistState() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;
 
         boolean isAssistSupported = isAssistSupported();

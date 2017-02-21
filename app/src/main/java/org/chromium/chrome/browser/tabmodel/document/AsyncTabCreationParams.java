@@ -4,10 +4,14 @@
 
 package org.chromium.chrome.browser.tabmodel.document;
 
+import android.content.ComponentName;
 import android.content.Intent;
 
+import org.chromium.chrome.browser.ServiceTabLauncher;
 import org.chromium.chrome.browser.document.ChromeLauncherActivity;
-import org.chromium.chrome.browser.document.DocumentMetricIds;
+import org.chromium.chrome.browser.offlinepages.downloads.OfflinePageDownloadBridge;
+import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tabmodel.AsyncTabParams;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 
@@ -15,7 +19,7 @@ import org.chromium.content_public.browser.WebContents;
  * Data that will be used later when a Tab is opened via an intent. Often only the necessary
  * subset of the data will be set. All data is removed once the Tab finishes initializing.
  */
-public class AsyncTabCreationParams {
+public class AsyncTabCreationParams implements AsyncTabParams {
     /** Parameters used for opening a URL in the new Tab. */
     private final LoadUrlParams mLoadUrlParams;
 
@@ -25,93 +29,98 @@ public class AsyncTabCreationParams {
     /** WebContents object to initialize the Tab with. Set only by the {@link TabDelegate}. */
     private final WebContents mWebContents;
 
-    /** The tab launch request ID from the {@link ChromeServiceTabLauncher}. **/
+    /** The tab launch request ID from the {@link ServiceTabLauncher}. **/
     private final Integer mRequestId;
 
-    /** How to start a {@link DocumentTab}. */
-    private int mDocumentLaunchMode = ChromeLauncherActivity.LAUNCH_MODE_FOREGROUND;
-
-    /** What caused a {@link DocumentTab} to be created. */
-    private int mDocumentStartedBy = DocumentMetricIds.STARTED_BY_UNKNOWN;
-
-    /** Whether or not the {@link WebContents} should be initially hidden. */
-    private boolean mIsInitiallyHidden;
+    /** Specifies which component to fire the Intent at. */
+    private final ComponentName mComponentName;
 
     /** Create parameters for creating a Tab asynchronously. */
     public AsyncTabCreationParams(LoadUrlParams loadUrlParams) {
-        this(loadUrlParams, null, null, null);
+        this(loadUrlParams, null, null, null, null);
     }
 
-    /** Called by {@see ChromeLauncherActivity} when clobbering DocumentTabs. */
+    /** Called by {@link ChromeLauncherActivity} when clobbering DocumentTabs. */
     public AsyncTabCreationParams(LoadUrlParams loadUrlParams, Intent originalIntent) {
-        this(loadUrlParams, originalIntent, null, null);
+        this(loadUrlParams, originalIntent, null, null, null);
         assert originalIntent != null;
     }
 
-    /** Called by {@see TabDelegate} for creating new a Tab with a pre-existing WebContents. */
+    /** Called by {@link TabDelegate} for creating new a Tab with a pre-existing WebContents. */
     public AsyncTabCreationParams(LoadUrlParams loadUrlParams, WebContents webContents) {
-        this(loadUrlParams, null, webContents, null);
+        this(loadUrlParams, null, webContents, null, null);
         assert webContents != null;
     }
 
-    /** Called by {@see ChromeServiceTabLauncher} to create tabs via service workers. */
+    /** Called by {@link ServiceTabLauncher} to create tabs via service workers. */
     public AsyncTabCreationParams(LoadUrlParams loadUrlParams, Integer requestId) {
-        this(loadUrlParams, null, null, requestId);
+        this(loadUrlParams, null, null, requestId, null);
         assert requestId != null;
     }
 
-    public void setDocumentLaunchMode(int launchMode) {
-        mDocumentLaunchMode = launchMode;
+    /** Called by {@link OfflinePageDownloadBridge} to create tabs for Offline Pages. */
+    public AsyncTabCreationParams(LoadUrlParams loadUrlParams, ComponentName name) {
+        this(loadUrlParams, null, null, null, name);
+        assert name != null;
     }
 
-    public void setDocumentStartedBy(int startedBy) {
-        mDocumentStartedBy = startedBy;
-    }
-
-    public int getDocumentLaunchMode() {
-        return mDocumentLaunchMode;
-    }
-
-    public int getDocumentStartedBy() {
-        return mDocumentStartedBy;
-    }
-
+    @Override
     public LoadUrlParams getLoadUrlParams() {
         return mLoadUrlParams;
     }
 
+    @Override
     public Intent getOriginalIntent() {
         return mOriginalIntent;
     }
 
+    @Override
     public Integer getRequestId() {
         return mRequestId;
     }
 
+    @Override
     public WebContents getWebContents() {
         return mWebContents;
     }
 
-    public void setIsInitiallyHidden(boolean initiallyHidden) {
-        mIsInitiallyHidden = initiallyHidden;
-    }
-
-    public boolean isInitiallyHidden() {
-        return mIsInitiallyHidden;
+    @Override
+    public ComponentName getComponentName() {
+        return mComponentName;
     }
 
     private AsyncTabCreationParams(LoadUrlParams loadUrlParams, Intent originalIntent,
-            WebContents webContents, Integer requestId) {
+            WebContents webContents, Integer requestId, ComponentName componentName) {
         assert loadUrlParams != null;
 
         // These parameters are set in very, very specific and exclusive circumstances.
-        if (originalIntent != null) assert webContents == null && requestId == null;
-        if (webContents != null) assert originalIntent == null && requestId == null;
-        if (requestId != null) assert originalIntent == null && webContents == null;
+        if (originalIntent != null) {
+            assert webContents == null && requestId == null && componentName == null;
+        }
+        if (webContents != null) {
+            assert originalIntent == null && requestId == null && componentName == null;
+        }
+        if (requestId != null) {
+            assert originalIntent == null && webContents == null && componentName == null;
+        }
+        if (componentName != null) {
+            assert originalIntent == null && webContents == null && requestId == null;
+        }
 
         mLoadUrlParams = loadUrlParams;
         mRequestId = requestId;
         mWebContents = webContents;
         mOriginalIntent = originalIntent;
+        mComponentName = componentName;
+    }
+
+    @Override
+    public Tab getTabToReparent() {
+        return null;
+    }
+
+    @Override
+    public void destroy() {
+        if (mWebContents != null) mWebContents.destroy();
     }
 }

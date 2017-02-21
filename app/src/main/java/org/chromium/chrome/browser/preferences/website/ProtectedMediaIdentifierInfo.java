@@ -21,8 +21,8 @@ public class ProtectedMediaIdentifierInfo extends PermissionInfo {
 
     @Override
     protected void setNativePreferenceValue(
-            String origin, String embedder, int value, boolean isIncognito) {
+            String origin, String embedder, ContentSetting value, boolean isIncognito) {
         WebsitePreferenceBridge.nativeSetProtectedMediaIdentifierSettingForOrigin(
-                origin, embedder, value, isIncognito);
+                origin, embedder, value.toInt(), isIncognito);
     }
 }

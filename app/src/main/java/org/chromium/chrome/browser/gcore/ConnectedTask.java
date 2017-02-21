@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @param <T> type of {@link ChromeGoogleApiClient} to use for the tasks
  */
 public abstract class ConnectedTask<T extends ChromeGoogleApiClient> implements Runnable {
-    private static final String TAG = "cr.GCore";
+    private static final String TAG = "GCore";
 
     public static final long CONNECTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
     public static final long CONNECTION_RETRY_TIME_MS = TimeUnit.SECONDS.toMillis(10);

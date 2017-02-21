@@ -50,9 +50,9 @@ public class GoogleServiceAuthError {
         // prior to completion.
         REQUEST_CANCELED(9, R.string.sync_error_generic),
 
-        // The user has provided a HOSTED account, when this service requires
-        // a GOOGLE account.
-        HOSTED_NOT_ALLOWED(10, R.string.sync_error_domain);
+        // HOSTED accounts are deprecated; left in enumeration to match
+        // GoogleServiceAuthError enum in histograms.xml.
+        HOSTED_NOT_ALLOWED_DEPRECATED(10, R.string.sync_error_generic);
 
         private final int mCode;
         private final int mMessage;

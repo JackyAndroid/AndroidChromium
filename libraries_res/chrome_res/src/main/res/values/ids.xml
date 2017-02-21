@@ -8,7 +8,7 @@
 
 <resources>
     <item name="background_drawable" type="id"/>
-    <item name="eb_page" type="id"/>
+    <item name="bookmark_page" type="id"/>
     <item name="foreground_drawable" type="id"/>
     <item name="fre_pager" type="id"/>
     <item name="menu_item_enter_anim_id" type="id" />
@@ -17,4 +17,57 @@
     <item name="refine_view_id" type="id"/>
     <item name="tabswitcher_multiple_drawable" type="id"/>
     <item name="tabswitcher_single_drawable" type="id"/>
+    <item name="custom_tab_bottom_bar_wrapper" type="id"/>
+
+    <!-- InfoBar constants -->
+    <item type="id" name="button_primary" />
+    <item type="id" name="button_secondary" />
+    <item type="id" name="infobar_close_button" />
+    <item type="id" name="infobar_extra_check" />
+    <item type="id" name="infobar_message" />
+    <item type="id" name="permission_infobar_persist_toggle" />
+    <item type="id" name="translate_infobar_always_toggle" />
+    <item type="id" name="translate_infobar_source_spinner" />
+    <item type="id" name="translate_infobar_target_spinner" />
+
+    <!-- Menu items IDs in Settings -->
+    <item type="id" name="menu_id_close" />
+    <item type="id" name="menu_id_general_help" />
+    <item type="id" name="menu_id_targeted_help" />
+    <item type="id" name="menu_id_reset" />
+    <item type="id" name="menu_id_refresh" />
+    <item type="id" name="menu_id_settings" />
+
+    <!-- Menu item IDs for FullscreenActivities -->
+    <item type="id" name="menu_id_open_in_chrome" />
+
+    <!-- Cast notification -->
+    <item type="id" name="remote_notification" />
+
+    <!-- Media playback notification -->
+    <item type="id" name="media_playback_notification" />
+
+    <!-- Presentation API notification -->
+    <item type="id" name="presentation_notification" />
+
+    <!-- Sync UI constants -->
+    <item type="id" name="passphrase_type_list" />
+
+    <!-- Keyboard shortcuts -->
+    <item type="id" name="print_id" />
+    <item type="id" name="focus_url_bar" />
+    <item type="id" name="show_menu" />
+    <item type="id" name="open_recently_closed_tab" />
+
+    <!-- PaymentRequest -->
+    <item type="id" name="payments_section" />
+    <item type="id" name="payments_left_summary_label" />
+    <item type="id" name="payments_first_radio_button" />
+    <item type="id" name="payments_add_option_button" />
+    <item type="id" name="payments_edit_cancel_button" />
+    <item type="id" name="payments_edit_done_button" />
+    <item type="id" name="payments_edit_checkbox" />
+    
+    <!-- Password update prompt -->
+    <item type="id" name="password_infobar_accounts_spinner" />
 </resources>

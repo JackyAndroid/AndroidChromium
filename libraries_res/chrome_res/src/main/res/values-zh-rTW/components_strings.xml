@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="autofill_clear_local_copy_button">"清除複本"</string>
+<string name="autofill_cc_amex">"American Express"</string>
+<string name="autofill_cc_diners">"Diners Club"</string>
+<string name="autofill_cc_discover">"Discover"</string>
+<string name="autofill_cc_jcb">"JCB"</string>
+<string name="autofill_cc_mastercard">"MasterCard"</string>
+<string name="autofill_cc_union_pay">"中國銀聯"</string>
+<string name="autofill_cc_visa">"Visa"</string>
+<string name="autofill_scan_credit_card">"掃描新信用卡"</string>
+<string name="autofill_card_unmask_prompt_storage_checkbox">"在這個裝置上保留這張信用卡的複本"</string>
+<string name="autofill_card_unmask_prompt_storage_tooltip">"勾選後，Chromium 會將您的信用卡資料儲存在這個裝置上，以加快表單填寫速度。"</string>
+<string name="autofill_card_unmask_verification_in_progress">"正在驗證信用卡"</string>
+<string name="autofill_card_unmask_verification_success">"您的信用卡已通過驗證"</string>
+<string name="autofill_card_unmask_expiration_date_separator">"/"</string>
+<string name="autofill_card_unmask_new_card_link">"新信用卡？"</string>
+<string name="http_post_warning">"您尋找的網頁使用了您輸入的資料。返回該頁會重複您剛才的行動。您確定要繼續嗎？"</string>
+<string name="http_post_warning_resend">"繼續"</string>
+<string name="login_dialog_title">"需要驗證"</string>
+<string name="login_dialog_username_field">"使用者名稱："</string>
+<string name="login_dialog_password_field">"密碼："</string>
+<string name="login_dialog_ok_button_label">"登入"</string>
+<string name="sad_tab_title">"糟糕！"</string>
+<string name="sad_tab_message">"顯示這個網頁時發生錯誤。"</string>
+<string name="sad_tab_oom_message">"Chromium 嘗試顯示這個網頁時用盡了記憶體。"</string>
+<string name="sad_tab_reload_label">"重新載入"</string>
+<string name="snippets_disabled_signed_out_instructions">"如要取得個人化的 Google 推薦內容，請登入 Chrome。"</string>
+<string name="snippets_disabled_generic_prompt">"取得推薦內容"</string>
+<string name="ntp_status_card_title_no_suggestions">"暫時沒有最新內容"</string>
+<string name="ntp_status_card_no_bookmarks">"這裡會顯示你最近造訪過的書籤。"</string>
+<string name="ntp_status_card_no_articles">"系統會適時顯示更多文章。"</string>
+</resources>

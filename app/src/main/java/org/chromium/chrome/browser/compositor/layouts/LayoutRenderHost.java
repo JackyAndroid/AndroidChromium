@@ -40,21 +40,6 @@ public interface LayoutRenderHost {
     void onPhysicalBackingSizeChanged(int width, int height);
 
     /**
-     * Indicates that the amount the surface is overdrawing on the bottom has changed.
-     *
-     * This occurs when the surface is larger than the window viewport.
-     *
-     * @param overdrawHeight The overdraw amount.
-     */
-    void onOverdrawBottomHeightChanged(int overdrawHeight);
-
-    /**
-     * @see #onOverdrawBottomHeightChanged(int)
-     * @return The overdraw bottom height of the last frame rendered by the current tab.
-     */
-    int getCurrentOverdrawBottomHeight();
-
-    /**
      * @return The number of actually drawn {@link LayoutTab}.
      */
     int getLayoutTabsDrawnCount();

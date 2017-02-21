@@ -39,6 +39,7 @@ public class ContextMenuParams {
     private final boolean mIsAnchor;
     private final boolean mIsImage;
     private final boolean mIsVideo;
+    private final boolean mCanSavemedia;
 
     /**
      * @return The URL associated with the main frame of the page that triggered the context menu.
@@ -117,9 +118,13 @@ public class ContextMenuParams {
         return mIsVideo;
     }
 
+    public boolean canSaveMedia() {
+        return mCanSavemedia;
+    }
+
     private ContextMenuParams(int mediaType, String pageUrl, String linkUrl, String linkText,
             String unfilteredLinkUrl, String srcUrl, String titleText, boolean imageWasFetchedLoFi,
-            Referrer referrer) {
+            Referrer referrer, boolean canSavemedia) {
         mPageUrl = pageUrl;
         mLinkUrl = linkUrl;
         mLinkText = linkText;
@@ -132,15 +137,17 @@ public class ContextMenuParams {
         mIsAnchor = !TextUtils.isEmpty(linkUrl);
         mIsImage = mediaType == MediaType.MEDIA_TYPE_IMAGE;
         mIsVideo = mediaType == MediaType.MEDIA_TYPE_VIDEO;
+        mCanSavemedia = canSavemedia;
     }
 
     @CalledByNative
     private static ContextMenuParams create(int mediaType, String pageUrl, String linkUrl,
             String linkText, String unfilteredLinkUrl, String srcUrl, String titleText,
-            boolean imageWasFetchedLoFi, String sanitizedReferrer, int referrerPolicy) {
+            boolean imageWasFetchedLoFi, String sanitizedReferrer, int referrerPolicy,
+            boolean canSavemedia) {
         Referrer referrer = TextUtils.isEmpty(sanitizedReferrer)
                 ? null : new Referrer(sanitizedReferrer, referrerPolicy);
         return new ContextMenuParams(mediaType, pageUrl, linkUrl, linkText, unfilteredLinkUrl,
-                srcUrl, titleText, imageWasFetchedLoFi, referrer);
+                srcUrl, titleText, imageWasFetchedLoFi, referrer, canSavemedia);
     }
 }

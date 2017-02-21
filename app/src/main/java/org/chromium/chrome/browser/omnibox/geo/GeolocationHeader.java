@@ -9,13 +9,15 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Process;
 import android.util.Base64;
 
+import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.chrome.browser.UrlUtilities;
 import org.chromium.chrome.browser.preferences.website.ContentSetting;
 import org.chromium.chrome.browser.preferences.website.GeolocationInfo;
+import org.chromium.chrome.browser.util.UrlUtilities;
 
 import java.util.Locale;
 
@@ -145,9 +147,25 @@ public class GeolocationHeader {
     }
 
     static boolean hasGeolocationPermission(Context context) {
-        return context.checkPermission(
-                Manifest.permission.ACCESS_COARSE_LOCATION, Process.myPid(), Process.myUid())
-                        == PackageManager.PERMISSION_GRANTED;
+        int pid = Process.myPid();
+        int uid = Process.myUid();
+        if (ApiCompatibilityUtils.checkPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION, pid, uid)
+                != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+
+        // Work around a bug in OnePlus2 devices running Lollipop, where the NETWORK_PROVIDER
+        // incorrectly requires FINE_LOCATION permission (it should only require COARSE_LOCATION
+        // permission). http://crbug.com/580733
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                && ApiCompatibilityUtils.checkPermission(
+                        context, Manifest.permission.ACCESS_FINE_LOCATION, pid, uid)
+                        != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

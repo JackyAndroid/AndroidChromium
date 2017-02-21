@@ -15,7 +15,7 @@ import android.view.View;
 public class FadingShadowView extends View {
     private FadingShadow mFadingShadow;
     private int mPosition;
-    private float mStrength;
+    private float mStrength = 1f;
 
     /**
      * Constructor for inflating from XML.

@@ -4,98 +4,96 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file.
 -->
-<org.chromium.chrome.browser.firstrun.DataReductionProxyView
+<org.chromium.chrome.browser.firstrun.FirstRunView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="57dp"
-        android:fillViewport="true"
-        android:scrollbarStyle="outsideOverlay" >
+        android:layout_marginBottom="@dimen/fre_button_bar_height"
+        android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/fre_main_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/fre_margin"
-                android:gravity="center"
-                android:lineSpacingMultiplier="1.4"
+                android:id="@+id/title"
                 android:text="@string/data_reduction_promo_title"
-                android:textColor="@color/fre_title_color"
-                android:textSize="@dimen/fre_title_text_size" />
-
+                style="@style/FreTitle"/>
+            
+            <!-- The orientation of this view is changed dynamically to give a nicer layout when in
+            landscape mode on devices with small screens. -->
             <LinearLayout
-                android:id="@+id/fre_content"
+                android:id="@+id/fre_image_and_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/fre_margin"
-                android:gravity="center_horizontal" >
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="@dimen/fre_vertical_spacing">
 
                 <ImageView
+                    android:id="@+id/image"
                     android:layout_width="wrap_content"
-                    android:layout_height="@dimen/fre_image_carousel_height"
-                    android:layout_marginBottom="@dimen/fre_margin"
+                    android:layout_height="@dimen/fre_image_height"
                     android:contentDescription="@null"
                     android:src="@drawable/data_reduction_illustration" />
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/fre_margin"
-                    android:orientation="vertical"
-                    android:gravity="center_horizontal"
-                    android:paddingEnd="24dp"
-                    android:paddingStart="24dp" >
+                    android:id="@+id/fre_content_wrapper"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/fre_vertical_spacing"
+                    android:layout_marginEnd="@dimen/fre_content_margin"
+                    android:layout_marginStart="@dimen/fre_content_margin"
+                    android:orientation="vertical" >
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/fre_margin"
+                        android:layout_marginBottom="@dimen/fre_vertical_spacing"
                         android:gravity="start"
                         android:lineSpacingMultiplier="1.4"
                         android:text="@string/data_reduction_promo_summary"
                         android:textColor="@color/fre_text_color"
                         android:textSize="@dimen/fre_normal_text_size" />
 
-                    <Switch
+                    <android.support.v7.widget.SwitchCompat
                         android:id="@+id/enable_data_saver_switch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="start"
                         android:lineSpacingMultiplier="1.4"
                         android:showText="false"
                         android:text="@string/data_reduction_enabled_switch"
                         android:textColor="@color/fre_text_color"
                         android:textSize="@dimen/fre_normal_text_size"
                         android:fontFamily="sans-serif-medium" />
+                    
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
-    <View
-        style="@style/ButtonBarTopDivider"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="56dp" />
-
-    <Button
+    <!-- fre_button_bar_height = 52dp = layout_height + layout_marginBottom -->
+    <org.chromium.ui.widget.ButtonCompat
         android:id="@+id/next_button"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:background="?attr/listChoiceBackgroundIndicator"
-        android:padding="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:paddingStart="@dimen/fre_button_padding"
+        android:paddingEnd="@dimen/fre_button_padding"
         android:text="@string/next"
         android:textAllCaps="true"
-        android:textColor="@color/light_active_color"
-        android:textSize="@dimen/fre_button_text_size" />
-
-</org.chromium.chrome.browser.firstrun.DataReductionProxyView>
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/fre_button_text_size"
+        chrome:buttonColor="@color/light_active_color"
+        chrome:buttonRaised="false"/>
+</org.chromium.chrome.browser.firstrun.FirstRunView>

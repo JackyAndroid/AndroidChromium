@@ -23,16 +23,19 @@ import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.Log;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.metrics.RecordHistogram;
+import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.browser.externalauth.ExternalAuthUtils;
 import org.chromium.chrome.browser.externalnav.ExternalNavigationDelegateImpl;
 import org.chromium.chrome.browser.externalnav.IntentWithGesturesHandler;
 import org.chromium.chrome.browser.omnibox.AutocompleteController;
+import org.chromium.chrome.browser.rappor.RapporServiceBridge;
 import org.chromium.chrome.browser.search_engines.TemplateUrlService;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.document.ActivityDelegate;
 import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.common.Referrer;
+import org.chromium.ui.base.PageTransition;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -43,7 +46,7 @@ import java.util.Locale;
  * Handles all browser-related Intents.
  */
 public class IntentHandler {
-    private static final String TAG = "cr.IntentHandler";
+    private static final String TAG = "IntentHandler";
 
     /**
      * Document mode: If true, Chrome is launched into the same Task.
@@ -84,6 +87,13 @@ public class IntentHandler {
     public static final String EXTRA_PARENT_INTENT = "com.android.chrome.parent_intent";
 
     /**
+     * ComponentName of the parent Activity. Can be used by an Activity launched on top of another
+     * Activity (e.g. BookmarkActivity) to intent back into the Activity it sits on top of.
+     */
+    public static final String EXTRA_PARENT_COMPONENT =
+            "org.chromium.chrome.browser.parent_component";
+
+    /**
      * Transition type is only set internally by a first-party app and has to be signed.
      */
     public static final String EXTRA_PAGE_TRANSITION_TYPE = "com.google.chrome.transition_type";
@@ -98,6 +108,12 @@ public class IntentHandler {
      * flow.
      */
     public static final String EXTRA_INVOKED_FROM_FRE = "com.android.chrome.invoked_from_fre";
+
+    /**
+     * An extra to indicate that the intent was triggered from a launcher shortcut.
+     */
+    public static final String EXTRA_INVOKED_FROM_SHORTCUT =
+            "com.android.chrome.invoked_from_shortcut";
 
     /**
      * Intent extra used to identify the sending application.
@@ -120,6 +136,22 @@ public class IntentHandler {
     private static final String EXTRA_TIMESTAMP_MS = "org.chromium.chrome.browser.timestamp";
 
     /**
+     * For multi-window, passes the id of the window.
+     */
+    public static final String EXTRA_WINDOW_ID = "org.chromium.chrome.browser.window_id";
+
+    /**
+     * Records package names of other applications in the system that could have handled
+     * this intent.
+     */
+    public static final String EXTRA_EXTERNAL_NAV_PACKAGES = "org.chromium.chrome.browser.eenp";
+
+    /**
+     * A hash code for the URL to verify intent data hasn't been modified.
+     */
+    public static final String EXTRA_DATA_HASH_CODE = "org.chromium.chrome.browser.data_hash";
+
+    /**
      * Fake ComponentName used in constructing TRUSTED_APPLICATION_CODE_EXTRA.
      */
     private static ComponentName sFakeComponentName = null;
@@ -128,14 +160,15 @@ public class IntentHandler {
 
     private static Pair<Integer, String> sPendingReferrer;
     private static int sReferrerId;
+    private static String sPendingIncognitoUrl;
 
+    private static final String PACKAGE_GSA = "com.google.android.googlequicksearchbox";
     private static final String PACKAGE_GMAIL = "com.google.android.gm";
     private static final String PACKAGE_PLUS = "com.google.android.apps.plus";
     private static final String PACKAGE_HANGOUTS = "com.google.android.talk";
     private static final String PACKAGE_MESSENGER = "com.google.android.apps.messaging";
     private static final String PACKAGE_LINE = "jp.naver.line.android";
     private static final String PACKAGE_WHATSAPP = "com.whatsapp";
-    private static final String PACKAGE_GSA = "com.google.android.googlequicksearchbox";
     private static final String FACEBOOK_LINK_PREFIX = "http://m.facebook.com/l.php?";
     private static final String TWITTER_LINK_PREFIX = "http://t.co/";
     private static final String NEWS_LINK_PREFIX = "http://news.google.com/news/url?";
@@ -168,9 +201,6 @@ public class IntentHandler {
 
         return sFakeComponentName;
     }
-
-    // Intent extra used by QSB to send extra HTTP headers.
-    private static final String EXTRA_BROWSER_HEADERS = "com.android.browser.headers";
 
     /** Intent extra to open an incognito tab. */
     public static final String EXTRA_OPEN_NEW_INCOGNITO_TAB =
@@ -277,6 +307,28 @@ public class IntentHandler {
         ExternalAppId externalId = determineExternalIntentSource(mPackageName, intent);
         RecordHistogram.recordEnumeratedHistogram("MobileIntent.PageLoadDueToExternalApp",
                 externalId.ordinal(), ExternalAppId.INDEX_BOUNDARY.ordinal());
+        if (externalId == ExternalAppId.OTHER) {
+            String appId = IntentUtils.safeGetStringExtra(intent, Browser.EXTRA_APPLICATION_ID);
+            if (!TextUtils.isEmpty(appId)) {
+                RapporServiceBridge.sampleString("Android.PageLoadDueToExternalApp", appId);
+            }
+        }
+    }
+
+    /**
+     * Records an action when a user chose to handle a URL in Chrome that could have been handled
+     * by an application installed on the phone. Also records the name of that application.
+     * This doesn't include generic URL handlers, such as browsers.
+     */
+    private void recordAppHandlersForIntent(Intent intent) {
+        List<String> packages = IntentUtils.safeGetStringArrayListExtra(intent,
+                IntentHandler.EXTRA_EXTERNAL_NAV_PACKAGES);
+        if (packages != null && packages.size() > 0) {
+            RecordUserAction.record("MobileExternalNavigationReceived");
+            for (String name : packages) {
+                RapporServiceBridge.sampleString("Android.ExternalNavigationNotChosen", name);
+            }
+        }
     }
 
     /**
@@ -306,6 +358,7 @@ public class IntentHandler {
                 IntentUtils.safeGetStringExtra(intent, Browser.EXTRA_APPLICATION_ID),
                 tabIdToBringToFront, hasUserGesture, intent);
         recordExternalIntentSourceUMA(intent);
+        recordAppHandlersForIntent(intent);
         return true;
     }
 
@@ -315,11 +368,11 @@ public class IntentHandler {
      * @return The referrer Uri.
      */
     private static Uri getReferrer(Intent intent) {
-        Uri referrer = intent.getParcelableExtra(Intent.EXTRA_REFERRER);
+        Uri referrer = IntentUtils.safeGetParcelableExtra(intent, Intent.EXTRA_REFERRER);
         if (referrer != null) {
             return referrer;
         }
-        String referrerName = intent.getStringExtra(Intent.EXTRA_REFERRER_NAME);
+        String referrerName = IntentUtils.safeGetStringExtra(intent, Intent.EXTRA_REFERRER_NAME);
         if (referrerName != null) {
             return Uri.parse(referrerName);
         }
@@ -442,7 +495,7 @@ public class IntentHandler {
         return url;
     }
 
-    boolean handleWebSearchIntent(Intent intent) {
+    public boolean handleWebSearchIntent(Intent intent) {
         if (intent == null) return false;
 
         String query = null;
@@ -595,7 +648,9 @@ public class IntentHandler {
             // "Open new incognito tab" is currently limited to Chrome or first parties.
             if (!isInternal
                     && IntentUtils.safeGetBooleanExtra(
-                               intent, EXTRA_OPEN_NEW_INCOGNITO_TAB, false)) {
+                            intent, EXTRA_OPEN_NEW_INCOGNITO_TAB, false)
+                    && (getPendingIncognitoUrl() == null
+                            || !getPendingIncognitoUrl().equals(intent.getDataString()))) {
                 return true;
             }
 
@@ -700,7 +755,7 @@ public class IntentHandler {
             return true;
         }
         if (ExternalAuthUtils.getInstance().isGoogleSigned(
-                    context.getPackageManager(), ApiCompatibilityUtils.getCreatorPackage(token))) {
+                    context, ApiCompatibilityUtils.getCreatorPackage(token))) {
             return true;
         }
         return false;
@@ -805,6 +860,7 @@ public class IntentHandler {
 
         String url = getUrlFromVoiceSearchResult(intent);
         if (url == null) url = ActivityDelegate.getInitialUrlForDocument(intent);
+        if (url == null) url = getUrlForCustomTab(intent);
         if (url == null) url = intent.getDataString();
         if (url == null) return null;
 
@@ -813,6 +869,13 @@ public class IntentHandler {
             url = getUrlFromGoogleChromeSchemeUrl(url);
         }
         return TextUtils.isEmpty(url) ? null : url;
+    }
+
+    private static String getUrlForCustomTab(Intent intent) {
+        if (intent == null || intent.getData() == null) return null;
+        Uri data = intent.getData();
+        return TextUtils.equals(data.getScheme(), UrlConstants.CUSTOM_TAB_SCHEME)
+                ? data.getQuery() : null;
     }
 
     /**
@@ -839,6 +902,9 @@ public class IntentHandler {
         String urlScheme = Uri.parse(url).getScheme();
         return urlScheme != null && urlScheme.equals(GOOGLECHROME_SCHEME);
     }
+
+    // TODO(mariakhomenko): pending referrer and pending incognito intent could potentially
+    // not work correctly in multi-window. Store per-window information instead.
 
     /**
      * Records a pending referrer URL that we may be sending to ourselves through an intent.
@@ -868,5 +934,54 @@ public class IntentHandler {
             return sPendingReferrer.second;
         }
         return null;
+    }
+
+    /**
+     * Keeps track of pending incognito URL to be loaded and ensures we allow to load it if it
+     * comes back to us. This is a method for dispatching incognito URL intents from Chrome that
+     * may or may not end up in Chrome.
+     * @param intent The intent that will be sent.
+     */
+    public static void setPendingIncognitoUrl(Intent intent) {
+        if (intent.getData() != null) {
+            intent.putExtra(IntentHandler.EXTRA_OPEN_NEW_INCOGNITO_TAB, true);
+            sPendingIncognitoUrl = intent.getDataString();
+        }
+    }
+
+    /**
+     * Clears the pending incognito URL.
+     */
+    public static void clearPendingIncognitoUrl() {
+        sPendingIncognitoUrl = null;
+    }
+
+    /**
+     * @return Pending incognito URL that is allowed to be loaded without system token.
+     */
+    public static String getPendingIncognitoUrl() {
+        return sPendingIncognitoUrl;
+    }
+
+    /**
+     * Some applications may request to load the URL with a particular transition type.
+     * @param context The application context.
+     * @param intent Intent causing the URL load, may be null.
+     * @param defaultTransition The transition to return if none specified in the intent.
+     * @return The transition type to use for loading the URL.
+     */
+    public static int getTransitionTypeFromIntent(Context context, Intent intent,
+            int defaultTransition) {
+        if (intent == null) return defaultTransition;
+        int transitionType = IntentUtils.safeGetIntExtra(
+                intent, IntentHandler.EXTRA_PAGE_TRANSITION_TYPE, PageTransition.LINK);
+        if (transitionType == PageTransition.TYPED) {
+            return transitionType;
+        } else if (transitionType != PageTransition.LINK
+                && isIntentChromeOrFirstParty(intent, context)) {
+            // 1st party applications may specify any transition type.
+            return transitionType;
+        }
+        return defaultTransition;
     }
 }

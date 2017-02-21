@@ -9,6 +9,7 @@ import static org.chromium.chrome.browser.compositor.layouts.ChromeAnimation.Ani
 import android.content.Context;
 import android.graphics.RectF;
 
+import org.chromium.base.ObserverList;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.layouts.ChromeAnimation;
@@ -33,6 +34,13 @@ import java.util.List;
  */
 public class StripLayoutTab
         implements ChromeAnimation.Animatable<StripLayoutTab.Property>, VirtualView {
+
+    /** An observer interface for StripLayoutTab. */
+    public interface Observer {
+        /** @param visible Whether the StripLayoutTab is visible. */
+        public void onVisibilityChanged(boolean visible);
+    }
+
     /**
      * Animatable properties that can be used with a {@link ChromeAnimation.Animatable} on a
      * {@link StripLayoutTab}.
@@ -89,6 +97,8 @@ public class StripLayoutTab
     // Preallocated
     private final RectF mClosePlacement = new RectF();
 
+    private ObserverList<Observer> mObservers = new ObserverList<>();
+
     /**
      * Create a {@link StripLayoutTab} that represents the {@link Tab} with an id of
      * {@code id}.
@@ -98,7 +108,7 @@ public class StripLayoutTab
      * @param loadTrackerCallback The {@link TabLoadTrackerCallback} to be notified of loading state
      *                            changes.
      * @param renderHost The {@link LayoutRenderHost}.
-     * @param incogntio Whether or not this layout tab is icognito.
+     * @param incognito Whether or not this layout tab is incognito.
      */
     public StripLayoutTab(Context context, int id, TabLoadTrackerCallback loadTrackerCallback,
             LayoutRenderHost renderHost, boolean incognito) {
@@ -117,14 +127,25 @@ public class StripLayoutTab
         mCloseButton.setAccessibilityDescription(description, description);
     }
 
+    /** @param observer The observer to add. */
+    @VisibleForTesting
+    public void addObserver(Observer observer) {
+        mObservers.addObserver(observer);
+    }
+
+    /** @param observer The observer to remove. */
+    public void removeObserver(Observer observer) {
+        mObservers.removeObserver(observer);
+    }
+
     /**
      * Get a list of virtual views for accessibility events.
      *
      * @param views     A List to populate with virtual views.
      */
     public void getVirtualViews(List<VirtualView> views) {
-        if (mShowingCloseButton) views.add(mCloseButton);
         views.add(this);
+        if (mShowingCloseButton) views.add(mCloseButton);
     }
 
     /**
@@ -146,6 +167,9 @@ public class StripLayoutTab
 
     @Override
     public boolean checkClicked(float x, float y) {
+        // Since both the close button as well as the tab inhabit the same coordinates, the tab
+        // should not consider itself hit if the close button is also hit, since it is on top.
+        if (mShowingCloseButton && mCloseButton.checkClicked(x, y)) return false;
         return mTouchTarget.contains(x, y);
     }
 
@@ -173,6 +197,9 @@ public class StripLayoutTab
      */
     public void setVisible(boolean visible) {
         mVisible = visible;
+        for (Observer observer : mObservers) {
+            observer.onVisibilityChanged(mVisible);
+        }
     }
 
     /**
@@ -503,6 +530,9 @@ public class StripLayoutTab
                 break;
         }
     }
+
+    @Override
+    public void onPropertyAnimationFinished(Property prop) {}
 
     private void resetCloseRect() {
         RectF closeRect = getCloseRect();

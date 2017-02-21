@@ -60,6 +60,14 @@ public class ExpandablePreferenceGroup extends PreferenceGroup {
                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
+        // Color the first part of the title blue.
+        ForegroundColorSpan blueSpan = new ForegroundColorSpan(
+                ApiCompatibilityUtils.getColor(getContext().getResources(),
+                        R.color.pref_accent_color));
+        spannable.setSpan(blueSpan, 0, spannable.length() - prefCount.length(),
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // Gray out the total count of items.
         int gray = ApiCompatibilityUtils.getColor(getContext().getResources(),
                 R.color.expandable_group_dark_gray);
         spannable.setSpan(new ForegroundColorSpan(gray),

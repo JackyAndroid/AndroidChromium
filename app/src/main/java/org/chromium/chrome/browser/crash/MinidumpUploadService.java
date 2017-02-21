@@ -7,47 +7,68 @@ package org.chromium.chrome.browser.crash;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.os.StrictMode;
-import android.preference.PreferenceManager;
+import android.support.annotation.StringDef;
 
 import org.chromium.base.Log;
+import org.chromium.base.StreamUtil;
 import org.chromium.base.VisibleForTesting;
-import org.chromium.base.metrics.RecordUserAction;
+import org.chromium.base.annotations.CalledByNative;
+import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.preferences.ChromePreferenceManager;
-import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * Service that is responsible for uploading crash minidumps to the Google crash server.
  */
 public class MinidumpUploadService extends IntentService {
-
     private static final String TAG = "MinidmpUploadService";
-
     // Intent actions
     private static final String ACTION_FIND_LAST =
             "com.google.android.apps.chrome.crash.ACTION_FIND_LAST";
+
     @VisibleForTesting
-    static final String ACTION_FIND_ALL =
-            "com.google.android.apps.chrome.crash.ACTION_FIND_ALL";
+    static final String ACTION_FIND_ALL = "com.google.android.apps.chrome.crash.ACTION_FIND_ALL";
+
     @VisibleForTesting
-    static final String ACTION_UPLOAD =
-            "com.google.android.apps.chrome.crash.ACTION_UPLOAD";
+    static final String ACTION_UPLOAD = "com.google.android.apps.chrome.crash.ACTION_UPLOAD";
+
+    @VisibleForTesting
+    static final String ACTION_FORCE_UPLOAD =
+            "com.google.android.apps.chrome.crash.ACTION_FORCE_UPLOAD";
 
     // Intent bundle keys
     @VisibleForTesting
     static final String FILE_TO_UPLOAD_KEY = "minidump_file";
     static final String UPLOAD_LOG_KEY = "upload_log";
     static final String FINISHED_LOGCAT_EXTRACTION_KEY = "upload_extraction_completed";
+    static final String LOCAL_CRASH_ID_KEY = "local_id";
 
     /**
      * The number of times we will try to upload a crash.
      */
     @VisibleForTesting
     static final int MAX_TRIES_ALLOWED = 3;
+
+    /**
+     * Histogram related constants.
+     */
+    private static final String HISTOGRAM_NAME_PREFIX = "Tab.AndroidCrashUpload_";
+    private static final int HISTOGRAM_MAX = 2;
+    private static final int FAILURE = 0;
+    private static final int SUCCESS = 1;
+
+    @StringDef({BROWSER, RENDERER, GPU, OTHER})
+    public @interface ProcessType {}
+    static final String BROWSER = "Browser";
+    static final String RENDERER = "Renderer";
+    static final String GPU = "GPU";
+    static final String OTHER = "Other";
+
+    static final String[] TYPES = {BROWSER, RENDERER, GPU, OTHER};
 
     public MinidumpUploadService() {
         super(TAG);
@@ -60,7 +81,6 @@ public class MinidumpUploadService extends IntentService {
      */
     private void tryPopulateLogcat(Intent redirectAction) {
         redirectAction.putExtra(FINISHED_LOGCAT_EXTRACTION_KEY, true);
-
         Context context = getApplicationContext();
         CrashFileManager fileManager = new CrashFileManager(context.getCacheDir());
         File[] dumps = fileManager.getMinidumpWithoutLogcat();
@@ -71,32 +91,6 @@ public class MinidumpUploadService extends IntentService {
         }
         context.startService(LogcatExtractionService.createLogcatExtractionTask(
                 context, dumps, redirectAction));
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        if (isMinidumpCleanNeeded()) {
-            // Temporarily allowing disk access while fixing. TODO: http://crbug.com/527429
-            StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
-            try {
-                final CrashFileManager crashFileManager =
-                        new CrashFileManager(getApplicationContext().getCacheDir());
-                // Cleaning minidumps in a background not to block the Ui thread.
-                // NOTE: {@link CrashFileManager#cleanAllMiniDumps()} is not thread-safe and can
-                // possibly result in race condition by calling from multiple threads. However, this
-                // should only result in warning messages in logs.
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        crashFileManager.cleanAllMiniDumps();
-                        return null;
-                    }
-                }.execute();
-            } finally {
-                StrictMode.setThreadPolicy(oldPolicy);
-            }
-        }
     }
 
     @Override
@@ -113,6 +107,8 @@ public class MinidumpUploadService extends IntentService {
             handleFindAndUploadAllCrashes();
         } else if (ACTION_UPLOAD.equals(intent.getAction())) {
             handleUploadCrash(intent);
+        } else if (ACTION_FORCE_UPLOAD.equals(intent.getAction())) {
+            handleForceUploadCrash(intent);
         } else {
             Log.w(TAG, "Got unknown action from intent: " + intent.getAction());
         }
@@ -133,19 +129,25 @@ public class MinidumpUploadService extends IntentService {
 
     /**
      * Stores the successes and failures from uploading crash to UMA,
-     * and clears them from breakpad.
      */
     public static void storeBreakpadUploadStatsInUma(ChromePreferenceManager pref) {
-        for (int success = pref.getBreakpadUploadSuccessCount(); success > 0; success--) {
-            RecordUserAction.record("MobileBreakpadUploadSuccess");
-        }
+        for (String type : TYPES) {
+            for (int success = pref.getCrashSuccessUploadCount(type); success > 0; success--) {
+                RecordHistogram.recordEnumeratedHistogram(
+                        HISTOGRAM_NAME_PREFIX + type,
+                        SUCCESS,
+                        HISTOGRAM_MAX);
+            }
+            for (int fail = pref.getCrashFailureUploadCount(type); fail > 0; fail--) {
+                RecordHistogram.recordEnumeratedHistogram(
+                        HISTOGRAM_NAME_PREFIX + type,
+                        FAILURE,
+                        HISTOGRAM_MAX);
+            }
 
-        for (int fail = pref.getBreakpadUploadFailCount(); fail > 0; fail--) {
-            RecordUserAction.record("MobileBreakpadUploadFail");
+            pref.setCrashSuccessUploadCount(type, 0);
+            pref.setCrashFailureUploadCount(type, 0);
         }
-
-        pref.setBreakpadUploadSuccessCount(0);
-        pref.setBreakpadUploadFailCount(0);
     }
 
     private void handleFindAndUploadLastCrash(Intent intent) {
@@ -239,7 +241,7 @@ public class MinidumpUploadService extends IntentService {
 
         if (uploadStatus == MinidumpUploadCallable.UPLOAD_SUCCESS) {
             // Only update UMA stats if an intended and successful upload.
-            ChromePreferenceManager.getInstance(this).incrementBreakpadUploadSuccessCount();
+            incrementCrashSuccessUploadCount(getNewNameAfterSuccessfulUpload(minidumpFileName));
         } else if (uploadStatus == MinidumpUploadCallable.UPLOAD_FAILURE) {
             // Unable to upload minidump. Incrementing try number and restarting.
 
@@ -252,7 +254,7 @@ public class MinidumpUploadService extends IntentService {
                     MinidumpUploadRetry.scheduleRetry(getApplicationContext());
                 } else {
                     // Only record failure to UMA after we have maxed out the allotted tries.
-                    ChromePreferenceManager.getInstance(this).incrementBreakpadUploadFailCount();
+                    incrementCrashFailureUploadCount(newName);
                     Log.d(TAG, "Giving up on trying to upload " + minidumpFileName + "after "
                             + tries + " number of tries.");
                 }
@@ -260,6 +262,65 @@ public class MinidumpUploadService extends IntentService {
                 Log.w(TAG, "Failed to rename minidump " + minidumpFileName);
             }
         }
+    }
+
+    private static String getNewNameAfterSuccessfulUpload(String fileName) {
+        return fileName.replace("dmp", "up");
+    }
+
+    @ProcessType
+    @VisibleForTesting
+    protected static String getCrashType(String fileName) {
+        // Read file and get the line containing name="ptype".
+        BufferedReader fileReader = null;
+        try {
+            fileReader = new BufferedReader(new FileReader(fileName));
+            String line;
+            while ((line = fileReader.readLine()) != null) {
+                if (line.equals("Content-Disposition: form-data; name=\"ptype\"")) {
+                    // Crash type is on the line after the next line.
+                    fileReader.readLine();
+                    String crashType = fileReader.readLine();
+                    if (crashType == null) {
+                        return OTHER;
+                    }
+
+                    if (crashType.equals("browser")) {
+                        return BROWSER;
+                    }
+
+                    if (crashType.equals("renderer")) {
+                        return RENDERER;
+                    }
+
+                    if (crashType.equals("gpu-process")) {
+                        return GPU;
+                    }
+
+                    return OTHER;
+                }
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "Error while reading crash file.", e.toString());
+        } finally {
+            StreamUtil.closeQuietly(fileReader);
+        }
+        return OTHER;
+    }
+
+    /**
+     * Increment the count of success/failure by 1 and distinguish between different types of
+     * crashes by looking into the file.
+     * @param fileName is the name of a minidump file that contains the type of crash.
+     */
+    private void incrementCrashSuccessUploadCount(String fileName) {
+        ChromePreferenceManager.getInstance(this)
+            .incrementCrashSuccessUploadCount(getCrashType(fileName));
+    }
+
+    private void incrementCrashFailureUploadCount(String fileName) {
+        ChromePreferenceManager.getInstance(this)
+            .incrementCrashFailureUploadCount(getCrashType(fileName));
     }
 
     /**
@@ -277,7 +338,7 @@ public class MinidumpUploadService extends IntentService {
     }
 
     /**
-     * Attempts to upload all minidump files  using the given {@link android.content.Context}.
+     * Attempts to upload all minidump files using the given {@link android.content.Context}.
      *
      * Note that this method is asynchronous. All that is guaranteed is that
      * upload attempts will be enqueued.
@@ -292,25 +353,52 @@ public class MinidumpUploadService extends IntentService {
     }
 
     /**
-     * Checks whether it is the first time restrictions for cellular uploads should apply. Is used
-     * to determine whether unsent crash uploads should be deleted which should happen only once.
+     * Attempts to upload the crash report with the given local ID.
+     *
+     * Note that this method is asynchronous. All that is guaranteed is that
+     * upload attempts will be enqueued.
+     *
+     * This method is safe to call from the UI thread.
+     *
+     * @param context the context to use for the intent.
+     * @param localId The local ID of the crash report.
      */
-    @VisibleForTesting
-    protected boolean isMinidumpCleanNeeded() {
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    @CalledByNative
+    public static void tryUploadCrashDumpWithLocalId(Context context, String localId) {
+        Intent intent = new Intent(context, MinidumpUploadService.class);
+        intent.setAction(ACTION_FORCE_UPLOAD);
+        intent.putExtra(LOCAL_CRASH_ID_KEY, localId);
+        context.startService(intent);
+    }
 
-        // If cellular upload logic is enabled and the preference used for that is not initialized
-        // then this is the first time that logic is enabled.
-        boolean cleanNeeded =
-                !sharedPreferences.contains(MinidumpUploadCallable.PREF_LAST_UPLOAD_DAY)
-                && PrivacyPreferencesManager.getInstance(getApplicationContext()).isUploadLimited();
-
-        // Initialize the preference with default value to make sure the above check works only
-        // once.
-        if (cleanNeeded) {
-            sharedPreferences.edit().putInt(MinidumpUploadCallable.PREF_LAST_UPLOAD_DAY, 0).apply();
+    private void handleForceUploadCrash(Intent intent) {
+        String localId = intent.getStringExtra(LOCAL_CRASH_ID_KEY);
+        if (localId == null || localId.isEmpty()) {
+            Log.w(TAG, "Cannot force crash upload since local crash id is absent.");
+            return;
         }
-        return cleanNeeded;
+
+        Context context = getApplicationContext();
+        CrashFileManager fileManager = new CrashFileManager(context.getCacheDir());
+        File minidumpFile = fileManager.getCrashFileWithLocalId(localId);
+        if (minidumpFile == null) {
+            Log.w(TAG, "Could not find a crash dump with local ID " + localId);
+            return;
+        }
+        File renamedMinidumpFile = fileManager.trySetForcedUpload(minidumpFile);
+        if (renamedMinidumpFile == null) {
+            Log.w(TAG, "Could not rename the file " + minidumpFile.getName() + " for re-upload");
+            return;
+        }
+        File logfile = fileManager.getCrashUploadLogFile();
+        Intent uploadIntent = createUploadIntent(context, renamedMinidumpFile, logfile);
+
+        // This method is intended to be used for manually triggering an attempt to upload an
+        // already existing crash dump. Such a crash dump should already have had a chance to attach
+        // the logcat to the minidump. Moreover, it's almost certainly too late to try to extract
+        // the logcat now, since typically some time has passed between the crash and the user's
+        // manual upload attempt.
+        uploadIntent.putExtra(FINISHED_LOGCAT_EXTRACTION_KEY, true);
+        startService(uploadIntent);
     }
 }

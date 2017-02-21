@@ -14,12 +14,12 @@ import jp.tomorrowkey.android.gifplayer.BaseGifImage;
 /**
  * Provides access to the search provider's logo via the C++ LogoService.
  */
-class LogoBridge {
+public class LogoBridge {
 
     /**
      * A logo for a search provider (e.g. the Yahoo! logo or Google doodle).
      */
-    static class Logo {
+    public static class Logo {
         /**
          * The logo image. Non-null.
          */
@@ -51,7 +51,7 @@ class LogoBridge {
     /**
      * Observer for receiving the logo when it's available.
      */
-    interface LogoObserver {
+    public interface LogoObserver {
         /**
          * Called when the cached or fresh logo is available. This may be called up to two times,
          * once with the cached logo and once with a freshly downloaded logo.
@@ -66,7 +66,7 @@ class LogoBridge {
     /**
      * A callback that is called when the animated logo is successfully downloaded.
      */
-    interface AnimatedLogoCallback {
+    public interface AnimatedLogoCallback {
 
         /**
          * Called when the animated GIF logo is successfully downloaded.
@@ -84,7 +84,7 @@ class LogoBridge {
      *
      * @param profile Profile of the tab that will show the logo.
      */
-    LogoBridge(Profile profile) {
+    public LogoBridge(Profile profile) {
         mNativeLogoBridge = nativeInit(profile);
     }
 

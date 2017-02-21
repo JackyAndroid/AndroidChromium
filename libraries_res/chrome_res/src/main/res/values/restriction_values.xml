@@ -1,0 +1,321 @@
+<?xml version="1.0" ?>
+<!--DO NOT MODIFY THIS FILE DIRECTLY!
+IT IS GENERATED FROM policy_templates.json.-->
+<resources>
+  <string name="AllowedDomainsForAppsTitle">Define domains allowed to access Google Apps</string>
+  <string name="AllowedDomainsForAppsDesc">Enables Chromium\'s</string>
+  <string name="AlternateErrorPagesEnabledTitle">Enable alternate error pages</string>
+  <string name="AlternateErrorPagesEnabledDesc">Enables the use of alternate error pages that are built into Chromium (such as \'page not found\') and prevents users from changing this setting.</string>
+  <string name="AuthAndroidNegotiateAccountTypeTitle">Account type for HTTP Negotiate authentication</string>
+  <string name="AuthAndroidNegotiateAccountTypeDesc">Specifies the account type of the accounts provided by the Android authentication app that supports HTTP Negotiate authentication (e.g. Kerberos authentication). This information should be available from the supplier of the authentication app. For more details see https://goo.gl/hajyfN.</string>
+  <string name="AuthNegotiateDelegateWhitelistTitle">Kerberos delegation server whitelist</string>
+  <string name="AuthNegotiateDelegateWhitelistDesc">Servers that Chromium may delegate to.</string>
+  <string name="AuthSchemesTitle">Supported authentication schemes</string>
+  <string name="AuthSchemesDesc">Specifies which HTTP authentication schemes are supported by Chromium.</string>
+  <string name="AuthServerWhitelistTitle">Authentication server whitelist</string>
+  <string name="AuthServerWhitelistDesc">Specifies which servers should be whitelisted for integrated authentication. Integrated authentication is only enabled when Chromium receives an authentication challenge from a proxy or from a server which is in this permitted list.</string>
+  <string name="AutoFillEnabledTitle">Enable AutoFill</string>
+  <string name="AutoFillEnabledDesc">Enables Chromium\'s AutoFill feature and allows users to auto complete web forms using previously stored information such as address or credit card information.</string>
+  <string name="CertificateTransparencyEnforcementDisabledForUrlsTitle">Disable Certificate Transparency enforcement for a list of URLs</string>
+  <string name="CertificateTransparencyEnforcementDisabledForUrlsDesc">Disables enforcing Certificate Transparency requirements to the listed URLs.</string>
+  <string name="ContextualSearchEnabledTitle">Enable Touch to Search</string>
+  <string name="ContextualSearchEnabledDesc">Enables the availability of Touch to Search in Chromium\'s content view.</string>
+  <string name="CookiesAllowedForUrlsTitle">Allow cookies on these sites</string>
+  <string name="CookiesAllowedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to set cookies.</string>
+  <string name="CookiesBlockedForUrlsTitle">Block cookies on these sites</string>
+  <string name="CookiesBlockedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are not allowed to set cookies.</string>
+  <string name="CookiesSessionOnlyForUrlsTitle">Allow session only cookies on these sites</string>
+  <string name="CookiesSessionOnlyForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to set session only cookies.</string>
+  <string name="DHEEnabledTitle">Whether DHE cipher suites in TLS are enabled</string>
+  <string name="DHEEnabledDesc">Warning: DHE will be completely removed from Chromium after version 57 (around March 2017) and this policy will stop working then.</string>
+  <string name="DataCompressionProxyEnabledTitle">Enable the data compression proxy feature</string>
+  <string name="DataCompressionProxyEnabledDesc">Enable or disable the data compression proxy and prevents users from changing this setting.</string>
+  <string name="DefaultCookiesSettingTitle">Default cookies setting</string>
+  <string name="DefaultCookiesSettingDesc">Allows you to set whether websites are allowed to set local data. Setting local data can be either allowed for all websites or denied for all websites.</string>
+  <string-array name="DefaultCookiesSettingEntries">
+    <item>Allow all sites to set local data</item>
+    <item>Do not allow any site to set local data</item>
+    <item>Keep cookies for the duration of the session</item>
+  </string-array>
+  <string-array name="DefaultCookiesSettingValues">
+    <item>1</item>
+    <item>2</item>
+    <item>4</item>
+  </string-array>
+  <string name="DefaultGeolocationSettingTitle">Default geolocation setting</string>
+  <string name="DefaultGeolocationSettingDesc">Allows you to set whether websites are allowed to track the users\' physical location. Tracking the users\' physical location can be allowed by default, denied by default or the user can be asked every time a website requests the physical location.</string>
+  <string-array name="DefaultGeolocationSettingEntries">
+    <item>Allow sites to track the users\' physical location</item>
+    <item>Do not allow any site to track the users\' physical location</item>
+    <item>Ask whenever a site wants to track the users\' physical location</item>
+  </string-array>
+  <string-array name="DefaultGeolocationSettingValues">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </string-array>
+  <string name="DefaultImagesSettingTitle">Default images setting</string>
+  <string name="DefaultImagesSettingDesc">Allows you to set whether websites are allowed to display images. Displaying images can be either allowed for all websites or denied for all websites.</string>
+  <string-array name="DefaultImagesSettingEntries">
+    <item>Allow all sites to show all images</item>
+    <item>Do not allow any site to show images</item>
+  </string-array>
+  <string-array name="DefaultImagesSettingValues">
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="DefaultJavaScriptSettingTitle">Default JavaScript setting</string>
+  <string name="DefaultJavaScriptSettingDesc">Allows you to set whether websites are allowed to run JavaScript. Running JavaScript can be either allowed for all websites or denied for all websites.</string>
+  <string-array name="DefaultJavaScriptSettingEntries">
+    <item>Allow all sites to run JavaScript</item>
+    <item>Do not allow any site to run JavaScript</item>
+  </string-array>
+  <string-array name="DefaultJavaScriptSettingValues">
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="DefaultKeygenSettingTitle">Default key generation setting</string>
+  <string name="DefaultKeygenSettingDesc">Allows you to set whether websites are allowed to use key generation. Using key generation can be either allowed for all websites or denied for all websites.</string>
+  <string-array name="DefaultKeygenSettingEntries">
+    <item>Allow all sites to use key generation</item>
+    <item>Do not allow any site to use key generation</item>
+  </string-array>
+  <string-array name="DefaultKeygenSettingValues">
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="DefaultPopupsSettingTitle">Default popups setting</string>
+  <string name="DefaultPopupsSettingDesc">Allows you to set whether websites are allowed to show pop-ups. Showing popups can be either allowed for all websites or denied for all websites.</string>
+  <string-array name="DefaultPopupsSettingEntries">
+    <item>Allow all sites to show pop-ups</item>
+    <item>Do not allow any site to show popups</item>
+  </string-array>
+  <string-array name="DefaultPopupsSettingValues">
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="DefaultSearchProviderAlternateURLsTitle">List of alternate URLs for the default search provider</string>
+  <string name="DefaultSearchProviderAlternateURLsDesc">Specifies a list of alternate URLs that can be used to extract search terms from the search engine. The URLs should contain the string \'{searchTerms}\', which will be used to extract the search terms.</string>
+  <string name="DefaultSearchProviderEnabledTitle">Enable the default search provider</string>
+  <string name="DefaultSearchProviderEnabledDesc">Enables the use of a default search provider.</string>
+  <string name="DefaultSearchProviderEncodingsTitle">Default search provider encodings</string>
+  <string name="DefaultSearchProviderEncodingsDesc">Specifies the character encodings supported by the search provider. Encodings are code page names like UTF-8, GB2312, and ISO-8859-1. They are tried in the order provided.</string>
+  <string name="DefaultSearchProviderIconURLTitle">Default search provider icon</string>
+  <string name="DefaultSearchProviderIconURLDesc">Specifies the favorite icon URL of the default search provider.</string>
+  <string name="DefaultSearchProviderImageURLTitle">Parameter providing search-by-image feature for the default search provider</string>
+  <string name="DefaultSearchProviderImageURLDesc">Specifies the URL of the search engine used to provide image search. Search requests will be sent using the GET method. If the DefaultSearchProviderImageURLPostParams policy is set then image search requests will use the POST method instead.</string>
+  <string name="DefaultSearchProviderImageURLPostParamsTitle">Parameters for image URL which uses POST</string>
+  <string name="DefaultSearchProviderImageURLPostParamsDesc">Specifies the parameters used when doing image search with POST. It consists of comma-separated name/value pairs. If a value is a template parameter, like {imageThumbnail} in above example, it will be replaced with real image thumbnail data.</string>
+  <string name="DefaultSearchProviderInstantURLTitle">Default search provider instant URL</string>
+  <string name="DefaultSearchProviderInstantURLDesc">Specifies the URL of the search engine used to provide instant results. The URL should contain the string \'{searchTerms}\', which will be replaced at query time by the text the user has entered so far.</string>
+  <string name="DefaultSearchProviderInstantURLPostParamsTitle">Parameters for instant URL which uses POST</string>
+  <string name="DefaultSearchProviderInstantURLPostParamsDesc">Specifies the parameters used when doing instant search with POST. It consists of comma-separated name/value pairs. If a value is a template parameter, like {searchTerms} in above example, it will be replaced with real search terms data.</string>
+  <string name="DefaultSearchProviderKeywordTitle">Default search provider keyword</string>
+  <string name="DefaultSearchProviderKeywordDesc">Specifies the keyword, which is the shortcut used in the omnibox to trigger the search for this provider.</string>
+  <string name="DefaultSearchProviderNameTitle">Default search provider name</string>
+  <string name="DefaultSearchProviderNameDesc">Specifies the name of the default search provider. If left empty or not set, the host name specified by the search URL will be used.</string>
+  <string name="DefaultSearchProviderNewTabURLTitle">Default search provider new tab page URL</string>
+  <string name="DefaultSearchProviderNewTabURLDesc">Specifies the URL that a search engine uses to provide a new tab page.</string>
+  <string name="DefaultSearchProviderSearchTermsReplacementKeyTitle">Parameter controlling search term placement for the default search provider</string>
+  <string name="DefaultSearchProviderSearchTermsReplacementKeyDesc">If this policy is set and a search URL suggested from the omnibox contains this parameter in the query string or in the fragment identifier, then the suggestion will show the search terms and search provider instead of the raw search URL.</string>
+  <string name="DefaultSearchProviderSearchURLTitle">Default search provider search URL</string>
+  <string name="DefaultSearchProviderSearchURLDesc">Specifies the URL of the search engine used when doing a default search. The URL should contain the string \'{searchTerms}\', which will be replaced at query time by the terms the user is searching for.</string>
+  <string name="DefaultSearchProviderSearchURLPostParamsTitle">Parameters for search URL which uses POST</string>
+  <string name="DefaultSearchProviderSearchURLPostParamsDesc">Specifies the parameters used when searching a URL with POST. It consists of comma-separated name/value pairs. If a value is a template parameter, like {searchTerms} in above example, it will be replaced with real search terms data.</string>
+  <string name="DefaultSearchProviderSuggestURLTitle">Default search provider suggest URL</string>
+  <string name="DefaultSearchProviderSuggestURLDesc">Specifies the URL of the search engine used to provide search suggestions. The URL should contain the string \'{searchTerms}\', which will be replaced at query time by the text the user has entered so far.</string>
+  <string name="DefaultSearchProviderSuggestURLPostParamsTitle">Parameters for suggest URL which uses POST</string>
+  <string name="DefaultSearchProviderSuggestURLPostParamsDesc">Specifies the parameters used when doing suggestion search with POST. It consists of comma-separated name/value pairs. If a value is a template parameter, like {searchTerms} in above example, it will be replaced with real search terms data.</string>
+  <string name="DefaultWebBluetoothGuardSettingTitle">Control use of the Web Bluetooth API</string>
+  <string name="DefaultWebBluetoothGuardSettingDesc">Allows you to set whether websites are allowed to get access to nearby Bluetooth devices. Access can be completely blocked, or the user can be asked every time a website wants to get access to nearby Bluetooth devices.</string>
+  <string-array name="DefaultWebBluetoothGuardSettingEntries">
+    <item>Do not allow any site to request access to Bluetooth devices via the Web Bluetooth API</item>
+    <item>Allow sites to ask the user to grant access to a nearby Bluetooth device</item>
+  </string-array>
+  <string-array name="DefaultWebBluetoothGuardSettingValues">
+    <item>2</item>
+    <item>3</item>
+  </string-array>
+  <string name="DisableAuthNegotiateCnameLookupTitle">Disable CNAME lookup when negotiating Kerberos authentication</string>
+  <string name="DisableAuthNegotiateCnameLookupDesc">Specifies whether the generated Kerberos SPN is based on the canonical DNS name or the original name entered.</string>
+  <string name="DisableSafeBrowsingProceedAnywayTitle">Disable proceeding from the Safe Browsing warning page</string>
+  <string name="DisableSafeBrowsingProceedAnywayDesc">The Safe Browsing service shows a warning page when users navigate to sites that are flagged as potentially malicious. Enabling this setting prevents users from proceeding anyway from the warning page to the malicious site.</string>
+  <string name="DisableSpdyTitle">Disable SPDY protocol</string>
+  <string name="DisableSpdyDesc">This policy is deprecated in M53 and removed in M54, because SPDY/3.1 support is removed.</string>
+  <string name="DnsPrefetchingEnabledTitle">Enable network prediction</string>
+  <string name="DnsPrefetchingEnabledDesc">This policy is deprecated in M48 in favor of NetworkPredictionOptions, and removed in M54.</string>
+  <string name="EditBookmarksEnabledTitle">Enables or disables bookmark editing</string>
+  <string name="EditBookmarksEnabledDesc">Enables or disables editing bookmarks in Chromium.</string>
+  <string name="EnableDeprecatedWebPlatformFeaturesTitle">Enable deprecated web platform features for a limited time</string>
+  <string name="EnableDeprecatedWebPlatformFeaturesDesc">Specify a list of deprecated web platform features to re-enable temporarily.</string>
+  <string-array name="EnableDeprecatedWebPlatformFeaturesEntries">
+    <item>Enable ExampleDeprecatedFeature API through 2008/09/02</item>
+  </string-array>
+  <string-array name="EnableDeprecatedWebPlatformFeaturesValues">
+    <item>ExampleDeprecatedFeature_EffectiveUntil20080902</item>
+  </string-array>
+  <string name="EnableMediaRouterTitle">Enables cast</string>
+  <string name="EnableMediaRouterDesc">If this is set to true or is not set, users will be able to cast tabs, sites or the desktop from the browser. If set to false, this option will be disabled.</string>
+  <string name="EnableSha1ForLocalAnchorsTitle">Whether SHA-1 signed certificates issued by local trust anchors are allowed</string>
+  <string name="EnableSha1ForLocalAnchorsDesc">When this setting is enabled, Chromium allows SHA-1 signed certificates as long as they successfully validate and chain to a locally-installed CA certificates.</string>
+  <string name="ForceGoogleSafeSearchTitle">Force Google SafeSearch</string>
+  <string name="ForceGoogleSafeSearchDesc">Forces queries in Google Web Search to be done with SafeSearch set to active and prevents users from changing this setting.</string>
+  <string name="ForceSafeSearchTitle">Force SafeSearch</string>
+  <string name="ForceSafeSearchDesc">This policy is deprecated, please use ForceGoogleSafeSearch and ForceYouTubeRestrict instead. This policy is ignored if either the ForceGoogleSafeSearch, the ForceYouTubeRestrict or the (deprecated) ForceYouTubeSafetyMode policies are set.</string>
+  <string name="ForceYouTubeRestrictTitle">Force minimum YouTube Restricted Mode</string>
+  <string name="ForceYouTubeRestrictDesc">Enforces a minimum Restricted Mode on YouTube and prevents users from</string>
+  <string-array name="ForceYouTubeRestrictEntries">
+    <item>Do not enforce Restricted Mode on YouTube</item>
+    <item>Enforce at least Moderate Restricted Mode on YouTube</item>
+    <item>Enforce Strict Restricted Mode for YouTube</item>
+  </string-array>
+  <string-array name="ForceYouTubeRestrictValues">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="ForceYouTubeSafetyModeTitle">Force YouTube Safety Mode</string>
+  <string name="ForceYouTubeSafetyModeDesc">This policy is deprecated. Consider using ForceYouTubeRestrict, which overrides this policy and allows more fine-grained tuning.</string>
+  <string name="ImagesAllowedForUrlsTitle">Allow images on these sites</string>
+  <string name="ImagesAllowedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to display images.</string>
+  <string name="ImagesBlockedForUrlsTitle">Block images on these sites</string>
+  <string name="ImagesBlockedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are not allowed to display images.</string>
+  <string name="IncognitoEnabledTitle">Enable Incognito mode</string>
+  <string name="IncognitoEnabledDesc">This policy is deprecated. Please, use IncognitoModeAvailability instead.</string>
+  <string name="IncognitoModeAvailabilityTitle">Incognito mode availability</string>
+  <string name="IncognitoModeAvailabilityDesc">Specifies whether the user may open pages in Incognito mode in Chromium.</string>
+  <string-array name="IncognitoModeAvailabilityEntries">
+    <item>Incognito mode available</item>
+    <item>Incognito mode disabled</item>
+    <item>Incognito mode forced</item>
+  </string-array>
+  <string-array name="IncognitoModeAvailabilityValues">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="JavaScriptAllowedForUrlsTitle">Allow JavaScript on these sites</string>
+  <string name="JavaScriptAllowedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to run JavaScript.</string>
+  <string name="JavaScriptBlockedForUrlsTitle">Block JavaScript on these sites</string>
+  <string name="JavaScriptBlockedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are not allowed to run JavaScript.</string>
+  <string name="JavascriptEnabledTitle">Enable JavaScript</string>
+  <string name="JavascriptEnabledDesc">This policy is deprecated, please use DefaultJavaScriptSetting instead.</string>
+  <string name="KeygenAllowedForUrlsTitle">Allow key generation on these sites</string>
+  <string name="KeygenAllowedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to use key generation. If a url pattern is in \'KeygenBlockedForUrls\', that overrides these exceptions.</string>
+  <string name="KeygenBlockedForUrlsTitle">Block key generation on these sites</string>
+  <string name="KeygenBlockedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are not allowed to use key generation. If a url pattern is in \'KeygenAllowedForUrls\', this policy overrides these exceptions.</string>
+  <string name="ManagedBookmarksTitle">Managed Bookmarks</string>
+  <string name="ManagedBookmarksDesc">Configures a list of managed bookmarks.</string>
+  <string name="NTPContentSuggestionsEnabledTitle">Show content suggestions on the New Tab page</string>
+  <string name="NTPContentSuggestionsEnabledDesc">If this is set to true or not set, the New Tab page may show content suggestions based on the user\'s browsing history, interests, or location.</string>
+  <string name="NetworkPredictionOptionsTitle">Enable network prediction</string>
+  <string name="NetworkPredictionOptionsDesc">Enables network prediction in Chromium and prevents users from changing this setting.</string>
+  <string-array name="NetworkPredictionOptionsEntries">
+    <item>Predict network actions on any network connection</item>
+    <item>Predict network actions on any network that is not cellular.
+(Deprecated in 50, removed in 52. After 52, if value 1 is set, it will be treated as 0 - predict network actions on any network connection.)</item>
+    <item>Do not predict network actions on any network connection</item>
+  </string-array>
+  <string-array name="NetworkPredictionOptionsValues">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <string name="PasswordManagerEnabledTitle">Enable saving passwords to the password manager</string>
+  <string name="PasswordManagerEnabledDesc">
+  </string>
+  <string name="PopupsAllowedForUrlsTitle">Allow popups on these sites</string>
+  <string name="PopupsAllowedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are allowed to open popups.</string>
+  <string name="PopupsBlockedForUrlsTitle">Block popups on these sites</string>
+  <string name="PopupsBlockedForUrlsDesc">Allows you to set a list of url patterns that specify sites which are not allowed to open popups.</string>
+  <string name="PrintingEnabledTitle">Enable printing</string>
+  <string name="PrintingEnabledDesc">Enables printing in Chromium and prevents users from changing this setting.</string>
+  <string name="ProxyBypassListTitle">Proxy bypass rules</string>
+  <string name="ProxyBypassListDesc">Chromium will bypass any proxy for the list of hosts given here.</string>
+  <string name="ProxyModeTitle">Choose how to specify proxy server settings</string>
+  <string name="ProxyModeDesc">Allows you to specify the proxy server used by Chromium and prevents users from changing proxy settings.</string>
+  <string-array name="ProxyModeEntries">
+    <item>Never use a proxy</item>
+    <item>Auto detect proxy settings</item>
+    <item>Use a .pac proxy script</item>
+    <item>Use fixed proxy servers</item>
+    <item>Use system proxy settings</item>
+  </string-array>
+  <string-array name="ProxyModeValues">
+    <item>direct</item>
+    <item>auto_detect</item>
+    <item>pac_script</item>
+    <item>fixed_servers</item>
+    <item>system</item>
+  </string-array>
+  <string name="ProxyPacUrlTitle">URL to a proxy .pac file</string>
+  <string name="ProxyPacUrlDesc">You can specify a URL to a proxy .pac file here.</string>
+  <string name="ProxyServerTitle">Address or URL of proxy server</string>
+  <string name="ProxyServerDesc">You can specify the URL of the proxy server here.</string>
+  <string name="ProxyServerModeTitle">Choose how to specify proxy server settings</string>
+  <string name="ProxyServerModeDesc">This policy is deprecated, use ProxyMode instead.</string>
+  <string-array name="ProxyServerModeEntries">
+    <item>Never use a proxy</item>
+    <item>Auto detect proxy settings</item>
+    <item>Manually specify proxy settings</item>
+    <item>Use system proxy settings</item>
+  </string-array>
+  <string-array name="ProxyServerModeValues">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </string-array>
+  <string name="ProxySettingsTitle">Proxy settings</string>
+  <string name="ProxySettingsDesc">Configures the proxy settings for Chromium. These proxy settings will be available for ARC-apps too.</string>
+  <string name="RC4EnabledTitle">Whether RC4 cipher suites in TLS are enabled</string>
+  <string name="RC4EnabledDesc">Warning: RC4 will be completely removed from Chromium after version 52 (around September 2016) and this policy will stop working then.</string>
+  <string name="SSLErrorOverrideAllowedTitle">Allow proceeding from the SSL warning page</string>
+  <string name="SSLErrorOverrideAllowedDesc">Chrome shows a warning page when users navigate to sites that have SSL errors. By default or when this policy is set to true, users are allowed to click through these warning pages.</string>
+  <string name="SSLVersionFallbackMinTitle">Minimum TLS version to fallback to</string>
+  <string name="SSLVersionFallbackMinDesc">Warning: The TLS version fallback will be removed from Chromium after version 52 (around September 2016) and this policy will stop working then.</string>
+  <string-array name="SSLVersionFallbackMinEntries">
+    <item>TLS 1.1</item>
+    <item>TLS 1.2</item>
+  </string-array>
+  <string-array name="SSLVersionFallbackMinValues">
+    <item>tls1.1</item>
+    <item>tls1.2</item>
+  </string-array>
+  <string name="SSLVersionMinTitle">Minimum SSL version enabled</string>
+  <string name="SSLVersionMinDesc">Warning: SSLv3 support will be entirely removed from Chromium after version 43 (around July 2015) and this policy will be removed at the same time.</string>
+  <string-array name="SSLVersionMinEntries">
+    <item>SSL 3.0</item>
+    <item>TLS 1.0</item>
+    <item>TLS 1.1</item>
+    <item>TLS 1.2</item>
+  </string-array>
+  <string-array name="SSLVersionMinValues">
+    <item>ssl3</item>
+    <item>tls1</item>
+    <item>tls1.1</item>
+    <item>tls1.2</item>
+  </string-array>
+  <string name="SafeBrowsingEnabledTitle">Enable Safe Browsing</string>
+  <string name="SafeBrowsingEnabledDesc">Enables Chromium\'s Safe Browsing feature and prevents users from changing this setting.</string>
+  <string name="SavingBrowserHistoryDisabledTitle">Disable saving browser history</string>
+  <string name="SavingBrowserHistoryDisabledDesc">Disables saving browser history in Chromium and prevents users from changing this setting.</string>
+  <string name="SearchSuggestEnabledTitle">Enable search suggestions</string>
+  <string name="SearchSuggestEnabledDesc">Enables search suggestions in Chromium\'s omnibox and prevents users from changing this setting.</string>
+  <string name="SigninAllowedTitle">Allows sign in to Chromium</string>
+  <string name="SigninAllowedDesc">This policy is deprecated, consider using SyncDisabled instead.</string>
+  <string name="SupervisedUserContentProviderEnabledTitle">Enable the supervised user content provider</string>
+  <string name="SupervisedUserContentProviderEnabledDesc">If true and the user is a supervised user then other Android apps can query the user\'s web restrictions through a content provider.</string>
+  <string name="TranslateEnabledTitle">Enable Translate</string>
+  <string name="TranslateEnabledDesc">Enables the integrated Google Translate service on Chromium.</string>
+  <string name="URLBlacklistTitle">Block access to a list of URLs</string>
+  <string name="URLBlacklistDesc">Blocks access to the listed URLs.</string>
+  <string name="URLWhitelistTitle">Allows access to a list of URLs</string>
+  <string name="URLWhitelistDesc">Allows access to the listed URLs, as exceptions to the URL blacklist.</string>
+  <string name="VariationsRestrictParameterTitle">Set the restriction on the fetching of the Variations seed</string>
+  <string name="VariationsRestrictParameterDesc">Add a parameter to the fetching of the Variations seed in Chromium.</string>
+  <string name="WebRestrictionsAuthorityTitle">Set an external source of URL restrictions</string>
+  <string name="WebRestrictionsAuthorityDesc">When this policy is set to a non-empty string the WebView will read URL restrictions from the content provider with the given authority name.</string>
+  <string name="WebRtcUdpPortRangeTitle">Restrict the range of local UDP ports used by WebRTC</string>
+  <string name="WebRtcUdpPortRangeDesc">If the policy is set, the UDP port range used by WebRTC is restricted to the specified port interval (endpoints included).</string>
+</resources>

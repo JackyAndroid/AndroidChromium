@@ -6,7 +6,6 @@ package org.chromium.chrome.browser.compositor.layouts.phone.stack;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.RectF;
@@ -229,7 +228,7 @@ public class Stack {
 
     // Running set of animations applied to tabs.
     private ChromeAnimation<?> mTabAnimations;
-    private AnimatorSet mViewAnimations;
+    private Animator mViewAnimations;
 
     // The parent Layout
     private final StackLayout mLayout;
@@ -240,6 +239,8 @@ public class Stack {
     // TODO(dtrainor): Expose 9-patch padding from resource manager.
     private float mBorderTopPadding;
     private float mBorderLeftPadding;
+
+    private boolean mIsStackForCurrentTabModel;
 
     private final AnimatorListenerAdapter mViewAnimatorListener = new AnimatorListenerAdapter() {
         @Override
@@ -445,8 +446,11 @@ public class Stack {
     /**
      * show is called to set up the initial variables, and must always be called before
      * displaying the stack.
+     * @param isStackForCurrentTabModel Whether this {@link Stack} is for the current tab model.
      */
-    public void show() {
+    public void show(boolean isStackForCurrentTabModel) {
+        mIsStackForCurrentTabModel = isStackForCurrentTabModel;
+
         mDiscardDirection = getDefaultDiscardDirection();
 
         // Reinitialize the roll over counter for each tabswitcher session.
@@ -513,7 +517,7 @@ public class Stack {
 
             // First try to build a View animation.  Then fallback to the compositor animation if
             // one isn't created.
-            mViewAnimations = mViewAnimationFactory.createAnimatorSetForType(
+            mViewAnimations = mViewAnimationFactory.createAnimatorForType(
                     type, mStackTabs, mLayout.getViewContainer(), mTabModel, focusIndex);
 
             if (mViewAnimations != null) {
@@ -1990,7 +1994,8 @@ public class Stack {
                 layoutTab.setInsetBorderVertical(true);
                 layoutTab.setShowToolbar(true);
                 layoutTab.setToolbarAlpha(0.f);
-                layoutTab.setAnonymizeToolbar(mTabModel.index() != i);
+                layoutTab.setAnonymizeToolbar(!mIsStackForCurrentTabModel
+                        || mTabModel.index() != i);
 
                 if (mStackTabs[i] == null) {
                     mStackTabs[i] = new StackTab(layoutTab);

@@ -6,4 +6,5 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- The application name displayed to the user. -->
     <string name="app_name" translatable="false">Chromium</string>
+    <string name="bookmark_widget_title" translatable="false">Chromium bookmarks</string>
 </resources>

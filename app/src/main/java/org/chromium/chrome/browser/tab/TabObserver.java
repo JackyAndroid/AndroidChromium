@@ -4,6 +4,7 @@
 
 package org.chromium.chrome.browser.tab;
 
+import android.graphics.Bitmap;
 import android.view.ContextMenu;
 
 import org.chromium.chrome.browser.TabLoadStatus;
@@ -47,20 +48,6 @@ public interface TabObserver {
      * @param tab The notifying {@link Tab}.
      */
     void onContentChanged(Tab tab);
-
-    /**
-     * Called when a {@link ContentViewCore} overlay is attached to {@code tab}.
-     * @param tab     The notifying {@link Tab}.
-     * @param content The {@link ContentViewCore} being added.
-     */
-    void onOverlayContentViewCoreAdded(Tab tab, ContentViewCore content);
-
-    /**
-     * Called when a {@link ContentViewCore} overlay is detached from {@code tab}.
-     * @param tab     The notifying {@link Tab}.
-     * @param content The {@link ContentViewCore} being removed.
-     */
-    void onOverlayContentViewCoreRemoved(Tab tab, ContentViewCore content);
 
     /**
      * Called when loadUrl is triggered on a a {@link Tab}.
@@ -108,8 +95,9 @@ public interface TabObserver {
     /**
      * Called when the favicon of a {@link Tab} has been updated.
      * @param tab The notifying {@link Tab}.
+     * @param icon The favicon that was received.
      */
-    void onFaviconUpdated(Tab tab);
+    void onFaviconUpdated(Tab tab, Bitmap icon);
 
     /**
      * Called when the title of a {@link Tab} changes.
@@ -314,4 +302,10 @@ public interface TabObserver {
      */
     public void webContentsCreated(Tab tab, WebContents sourceWebContents, long openerRenderFrameId,
             String frameName, String targetUrl, WebContents newWebContents);
+
+    /**
+     * Called when the tab reparenting process has finished.
+     * @param tab The notifying {@link Tab}.
+     */
+    public void onReparentingFinished(Tab tab);
 }

@@ -5,14 +5,19 @@
 package org.chromium.chrome.browser.firstrun;
 
 import android.content.Context;
-import android.preference.PreferenceManager;
+
+import org.chromium.base.ContextUtils;
 
 /**
  * Gets and sets preferences related to the status of the first run experience.
  */
 public class FirstRunStatus {
 
-    private static final String FIRST_RUN_FLOW_COMPLETE = "first_run_flow";
+    // Needed by ChromeBackupAgent
+    public static final String FIRST_RUN_FLOW_COMPLETE = "first_run_flow";
+    public static final String LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE = "lightweight_first_run_flow";
+
+    private static final String SKIP_WELCOME_PAGE = "skip_welcome_page";
 
     /**
      * Sets the "main First Run Experience flow complete" preference.
@@ -20,7 +25,7 @@ public class FirstRunStatus {
      * @param isComplete Whether the main First Run Experience flow is complete
      */
     public static void setFirstRunFlowComplete(Context context, boolean isComplete) {
-        PreferenceManager.getDefaultSharedPreferences(context)
+        ContextUtils.getAppSharedPreferences()
                 .edit()
                 .putBoolean(FIRST_RUN_FLOW_COMPLETE, isComplete)
                 .apply();
@@ -33,8 +38,44 @@ public class FirstRunStatus {
      * @param context Any context
      */
     public static boolean getFirstRunFlowComplete(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context)
+        return ContextUtils.getAppSharedPreferences()
                 .getBoolean(FIRST_RUN_FLOW_COMPLETE, false);
     }
 
+    /**
+    * Sets the preference to skip the welcome page from the main First Run Experience.
+    * @param context Any context
+    * @param isSkip Whether the welcome page should be skpped
+    */
+    public static void setSkipWelcomePage(Context context, boolean isSkip) {
+        ContextUtils.getAppSharedPreferences().edit().putBoolean(SKIP_WELCOME_PAGE, isSkip).apply();
+    }
+
+    /**
+    * Checks whether the welcome page should be skipped from the main First Run Experience.
+    */
+    public static boolean shouldSkipWelcomePage(Context context) {
+        return ContextUtils.getAppSharedPreferences().getBoolean(SKIP_WELCOME_PAGE, false);
+    }
+
+    /**
+     * Sets the "lightweight First Run Experience flow complete" preference.
+     * @param context Any context
+     * @param isComplete Whether the lightweight First Run Experience flow is complete
+     */
+    public static void setLightweightFirstRunFlowComplete(Context context, boolean isComplete) {
+        ContextUtils.getAppSharedPreferences()
+                .edit()
+                .putBoolean(LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE, isComplete)
+                .apply();
+    }
+
+    /**
+     * Returns whether the "lightweight First Run Experience flow" is complete.
+     * @param context Any context
+     */
+    public static boolean getLightweightFirstRunFlowComplete(Context context) {
+        return ContextUtils.getAppSharedPreferences().getBoolean(
+                LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE, false);
+    }
 }

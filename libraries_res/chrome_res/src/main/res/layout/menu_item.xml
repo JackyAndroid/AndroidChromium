@@ -6,11 +6,9 @@
 -->
 <!-- Layout for each item in the menu popup -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/AppMenuItem"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/listPreferredItemHeightSmall"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:background="?attr/listChoiceBackgroundIndicator">
+    android:layout_height="?android:attr/listPreferredItemHeightSmall" >
     <TextView
         android:id="@+id/menu_item_text"
         android:textAppearance="?android:attr/textAppearanceLargePopupMenu"
@@ -21,8 +19,7 @@
         android:gravity="center_vertical"
         android:singleLine="true"
         android:paddingEnd="9dp" />
-    <view
-        class="org.chromium.chrome.browser.appmenu.AppMenuItemIcon"
+    <org.chromium.chrome.browser.appmenu.AppMenuItemIcon
         android:id="@+id/menu_item_icon"
         android:layout_weight="0"
         android:layout_width="wrap_content"

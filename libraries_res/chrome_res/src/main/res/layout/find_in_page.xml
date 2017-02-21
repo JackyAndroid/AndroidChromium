@@ -46,13 +46,13 @@
         android:id="@+id/find_prev_button"
         style="@style/ToolbarButton"
         android:layout_height="match_parent"
-        android:src="@drawable/ic_collapse"
+        android:src="@drawable/ic_collapsed"
         android:contentDescription="@string/accessibility_find_toolbar_btn_prev" />
     <org.chromium.chrome.browser.widget.TintedImageButton
         android:id="@+id/find_next_button"
         style="@style/ToolbarButton"
         android:layout_height="match_parent"
-        android:src="@drawable/ic_expand"
+        android:src="@drawable/ic_expanded"
         android:contentDescription="@string/accessibility_find_toolbar_btn_next" />
     <org.chromium.chrome.browser.widget.TintedImageButton
         android:id="@+id/close_find_button"

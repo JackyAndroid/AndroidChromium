@@ -13,7 +13,9 @@ import org.chromium.chrome.browser.util.NonThreadSafe;
 
 /**
  * This class provides a base class implementation and may be overridden on operating systems that
- * provide more useful APIs. This class is not thread safe.
+ * provide more useful APIs. All method calls from native code will happen on the thread where
+ * this object is constructed, but calls from subclasses (specifically,
+ * {@link #notifyExternalEstimateProviderAndroidUpdate()} can happen on other threads.
  */
 @JNINamespace("chrome::android")
 public class ExternalEstimateProviderAndroid {
@@ -21,30 +23,29 @@ public class ExternalEstimateProviderAndroid {
      * Value to return if a valid value is unavailable.
      */
     protected static final int NO_VALUE = -1;
-    private static final Object LOCK = new Object();
-    private static NonThreadSafe sThreadCheck = null;
-    private static ExternalEstimateProviderAndroid sExternalEstimateProviderAndroid;
+    private NonThreadSafe mThreadCheck = new NonThreadSafe();
+    private final Object mLock = new Object();
+
+    private long mNativePtr;
 
     @CalledByNative
     private static ExternalEstimateProviderAndroid create(Context context, long nativePtr) {
-        synchronized (LOCK) {
-            if (sExternalEstimateProviderAndroid == null) {
-                assert sThreadCheck == null;
-                assert sExternalEstimateProviderAndroid == null;
-                sThreadCheck = new NonThreadSafe();
-                sExternalEstimateProviderAndroid =
-                        ((ChromeApplication) context)
-                                .createExternalEstimateProviderAndroid(nativePtr);
-            }
-        }
-        return sExternalEstimateProviderAndroid;
+        return ((ChromeApplication) context)
+                .createExternalEstimateProviderAndroid(nativePtr);
     }
 
     /**
-     * Creates an instance of |@link #ExternalEstimateProviderAndroid}.
+     * Creates an instance of {@link ExternalEstimateProviderAndroid}.
      */
-    public ExternalEstimateProviderAndroid() {
-        assert sThreadCheck.calledOnValidThread();
+    protected ExternalEstimateProviderAndroid(long nativePtr) {
+        mNativePtr = nativePtr;
+    }
+
+    @CalledByNative
+    private void destroy() {
+        synchronized (mLock) {
+            mNativePtr = 0;
+        }
     }
 
     /**
@@ -52,7 +53,7 @@ public class ExternalEstimateProviderAndroid {
      */
     @CalledByNative
     protected void requestUpdate() {
-        assert sThreadCheck.calledOnValidThread();
+        assert mThreadCheck.calledOnValidThread();
     }
 
     /**
@@ -61,7 +62,7 @@ public class ExternalEstimateProviderAndroid {
      */
     @CalledByNative
     protected int getRTTMilliseconds() {
-        assert sThreadCheck.calledOnValidThread();
+        assert mThreadCheck.calledOnValidThread();
         return NO_VALUE;
     }
 
@@ -71,7 +72,7 @@ public class ExternalEstimateProviderAndroid {
      */
     @CalledByNative
     protected long getDownstreamThroughputKbps() {
-        assert sThreadCheck.calledOnValidThread();
+        assert mThreadCheck.calledOnValidThread();
         return NO_VALUE;
     }
 
@@ -81,7 +82,7 @@ public class ExternalEstimateProviderAndroid {
      */
     @CalledByNative
     protected long getUpstreamThroughputKbps() {
-        assert sThreadCheck.calledOnValidThread();
+        assert mThreadCheck.calledOnValidThread();
         return NO_VALUE;
     }
 
@@ -90,16 +91,25 @@ public class ExternalEstimateProviderAndroid {
      */
     @CalledByNative
     protected long getTimeSinceLastUpdateSeconds() {
-        assert sThreadCheck.calledOnValidThread();
+        assert mThreadCheck.calledOnValidThread();
         return NO_VALUE;
     }
 
     @CalledByNative
     private static int getNoValue() {
-        assert sThreadCheck.calledOnValidThread();
         return NO_VALUE;
     }
 
-    public native void nativeNotifyExternalEstimateProviderAndroidUpdate(
+    protected final void notifyExternalEstimateProviderAndroidUpdate() {
+        synchronized (mLock) {
+            if (mNativePtr == 0) return;
+
+            // It's important to call this inside the critical section, to ensure the native object
+            // isn't destroyed on its origin thread in the meantime.
+            nativeNotifyExternalEstimateProviderAndroidUpdate(mNativePtr);
+        }
+    }
+
+    private native void nativeNotifyExternalEstimateProviderAndroidUpdate(
             long nativeExternalEstimateProviderAndroid);
 }

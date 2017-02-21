@@ -16,9 +16,9 @@ import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.UrlConstants;
-import org.chromium.chrome.browser.UrlUtilities;
 import org.chromium.chrome.browser.feedback.FeedbackCollector;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.util.UrlUtilities;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

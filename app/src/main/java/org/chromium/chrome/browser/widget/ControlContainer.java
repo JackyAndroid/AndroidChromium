@@ -32,4 +32,9 @@ public interface ControlContainer {
      * @param handler The swipe handler to be notified of swipe events on this container.
      */
     void setSwipeHandler(EdgeSwipeHandler handler);
+
+    /**
+     * @return The {@link View} associated with this container.
+     */
+    View getView();
 }

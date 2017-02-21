@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+                android:oneshot="false">
+    <item android:drawable="@drawable/physical_web_logo" android:duration="750"/>
+    <item android:drawable="@drawable/physical_web_logo_anim1" android:duration="750"/>
+    <item android:drawable="@drawable/physical_web_logo_anim2" android:duration="750"/>
+</animation-list>

@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v4.view.MarginLayoutParamsCompat;
@@ -34,6 +35,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 
 import java.util.Calendar;
@@ -43,10 +45,11 @@ import java.util.Calendar;
  */
 public class CardUnmaskPrompt
         implements DialogInterface.OnDismissListener, TextWatcher, OnClickListener {
+    private static CardUnmaskObserverForTest sObserverForTest;
+
     private final CardUnmaskPromptDelegate mDelegate;
     private final AlertDialog mDialog;
     private boolean mShouldRequestExpirationDate;
-    private final int mThisYear;
 
     private final View mMainView;
     private final TextView mInstructions;
@@ -64,6 +67,11 @@ public class CardUnmaskPrompt
     private final View mVerificationOverlay;
     private final ProgressBar mVerificationProgressBar;
     private final TextView mVerificationView;
+    private final long mSuccessMessageDurationMilliseconds;
+
+    private int mThisYear;
+    private int mThisMonth;
+    private boolean mValidationWaitsForCalendarTask;
 
     /**
      * An interface to handle the interaction with an CardUnmaskPrompt object.
@@ -97,9 +105,25 @@ public class CardUnmaskPrompt
         void onNewCardLinkClicked();
     }
 
+    /**
+     * A test-only observer for the unmasking prompt.
+     */
+    public interface CardUnmaskObserverForTest {
+        /**
+         * Called when typing the CVC input is possible.
+         */
+        void onCardUnmaskPromptReadyForInput(CardUnmaskPrompt prompt);
+
+        /**
+         * Called when clicking "Verify" or "Continue" (the positive button) is possible.
+         */
+        void onCardUnmaskPromptReadyToUnmask(CardUnmaskPrompt prompt);
+    }
+
     public CardUnmaskPrompt(Context context, CardUnmaskPromptDelegate delegate, String title,
-            String instructions, int drawableId, boolean shouldRequestExpirationDate,
-            boolean canStoreLocally, boolean defaultToStoringLocally) {
+            String instructions, String confirmButtonLabel, int drawableId,
+            boolean shouldRequestExpirationDate, boolean canStoreLocally,
+            boolean defaultToStoringLocally, long successMessageDurationMilliseconds) {
         mDelegate = delegate;
 
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -125,18 +149,38 @@ public class CardUnmaskPrompt
         mVerificationOverlay = v.findViewById(R.id.verification_overlay);
         mVerificationProgressBar = (ProgressBar) v.findViewById(R.id.verification_progress_bar);
         mVerificationView = (TextView) v.findViewById(R.id.verification_message);
+        mSuccessMessageDurationMilliseconds = successMessageDurationMilliseconds;
         ((ImageView) v.findViewById(R.id.cvc_hint_image)).setImageResource(drawableId);
 
         mDialog = new AlertDialog.Builder(context, R.style.AlertDialogTheme)
                 .setTitle(title)
                 .setView(v)
                 .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.autofill_card_unmask_confirm_button, null)
+                .setPositiveButton(confirmButtonLabel, null)
                 .create();
         mDialog.setOnDismissListener(this);
 
         mShouldRequestExpirationDate = shouldRequestExpirationDate;
-        mThisYear = Calendar.getInstance().get(Calendar.YEAR);
+        mThisYear = -1;
+        mThisMonth = -1;
+        if (mShouldRequestExpirationDate) new CalendarTask().execute();
+    }
+
+    /**
+     * Avoids disk reads for timezone when getting the default instance of Calendar.
+     */
+    private class CalendarTask extends AsyncTask<Void, Void, Calendar> {
+        @Override
+        protected Calendar doInBackground(Void... unused) {
+            return Calendar.getInstance();
+        }
+
+        @Override
+        protected void onPostExecute(Calendar result) {
+            mThisYear = result.get(Calendar.YEAR);
+            mThisMonth = result.get(Calendar.MONTH) + 1;
+            if (mValidationWaitsForCalendarTask) validate();
+        }
     }
 
     public void show() {
@@ -202,17 +246,21 @@ public class CardUnmaskPrompt
                 setNoRetryError(errorMessage);
             }
         } else {
-            mVerificationProgressBar.setVisibility(View.GONE);
-            mDialog.findViewById(R.id.verification_success).setVisibility(View.VISIBLE);
-            mVerificationView.setText(
-                    R.string.autofill_card_unmask_verification_success);
-            Handler h = new Handler();
-            h.postDelayed(new Runnable() {
+            Runnable dismissRunnable = new Runnable() {
                 @Override
                 public void run() {
                     dismiss();
                 }
-            }, 1000);
+            };
+            if (mSuccessMessageDurationMilliseconds > 0) {
+                mVerificationProgressBar.setVisibility(View.GONE);
+                mDialog.findViewById(R.id.verification_success).setVisibility(View.VISIBLE);
+                mVerificationView.setText(R.string.autofill_card_unmask_verification_success);
+                mVerificationView.announceForAccessibility(mVerificationView.getText());
+                new Handler().postDelayed(dismissRunnable, mSuccessMessageDurationMilliseconds);
+            } else {
+                new Handler().post(dismissRunnable);
+            }
         }
     }
 
@@ -223,7 +271,15 @@ public class CardUnmaskPrompt
 
     @Override
     public void afterTextChanged(Editable s) {
-        mDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(areInputsValid());
+        validate();
+    }
+
+    private void validate() {
+        Button positiveButton = mDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        positiveButton.setEnabled(areInputsValid());
+        if (positiveButton.isEnabled() && sObserverForTest != null) {
+            sObserverForTest.onCardUnmaskPromptReadyToUnmask(this);
+        }
     }
 
     @Override
@@ -316,12 +372,21 @@ public class CardUnmaskPrompt
         View view = mShouldRequestExpirationDate ? mMonthInput : mCardUnmaskInput;
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
         view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        if (sObserverForTest != null) {
+            sObserverForTest.onCardUnmaskPromptReadyForInput(this);
+        }
     }
 
     private boolean areInputsValid() {
         if (mShouldRequestExpirationDate) {
+            if (mThisYear == -1 || mThisMonth == -1) {
+                mValidationWaitsForCalendarTask = true;
+                return false;
+            }
+
+            int month = -1;
             try {
-                int month = Integer.parseInt(mMonthInput.getText().toString());
+                month = Integer.parseInt(mMonthInput.getText().toString());
                 if (month < 1 || month > 12) return false;
             } catch (NumberFormatException e) {
                 return false;
@@ -329,6 +394,8 @@ public class CardUnmaskPrompt
 
             int year = getFourDigitYear();
             if (year < mThisYear || year > mThisYear + 10) return false;
+
+            if (year == mThisYear && month < mThisMonth) return false;
         }
         return mDelegate.checkUserInputValidity(mCardUnmaskInput.getText().toString());
     }
@@ -432,5 +499,15 @@ public class CardUnmaskPrompt
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    @VisibleForTesting
+    public static void setObserverForTest(CardUnmaskObserverForTest observerForTest) {
+        sObserverForTest = observerForTest;
+    }
+
+    @VisibleForTesting
+    public AlertDialog getDialogForTest() {
+        return mDialog;
     }
 }

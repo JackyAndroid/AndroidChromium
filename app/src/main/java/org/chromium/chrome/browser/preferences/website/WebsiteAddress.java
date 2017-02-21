@@ -6,7 +6,7 @@ package org.chromium.chrome.browser.preferences.website;
 
 import android.net.Uri;
 
-import org.chromium.chrome.browser.UrlUtilities;
+import org.chromium.chrome.browser.util.UrlUtilities;
 
 import java.io.Serializable;
 

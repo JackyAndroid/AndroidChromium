@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- The location bar verbose status. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+     <TextView android:id="@+id/location_bar_verbose_status"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingEnd="8dp"
+        android:gravity="center_vertical"
+        android:textAlignment="viewStart"
+        android:textAppearance="@android:style/TextAppearance.Medium"
+        android:textColor="@color/locationbar_status_color"
+        android:textSize="@dimen/location_bar_url_text_size"
+        android:text="@string/location_bar_verbose_status_offline"
+        android:visibility="gone" />
+
+    <!-- Separator is going to be shown or hidden together with the status defined above. -->
+    <View android:id="@+id/location_bar_verbose_status_separator"
+        android:layout_width="@dimen/location_bar_status_separator_width"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:background="#1f000000"
+        android:visibility="gone" />
+
+    <!-- This space follows the verbose status and compliments the space that follows
+         the status. -->
+    <Space android:id="@+id/location_bar_verbose_status_extra_space"
+        android:layout_width="8dp"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+</merge>

@@ -6,13 +6,9 @@ package org.chromium.chrome.browser.tabmodel;
 
 import android.util.Log;
 
-import org.chromium.base.StreamUtil;
 import org.chromium.chrome.browser.TabState;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Interacts with the file system to persist Tab and TabModel data.
@@ -43,20 +39,12 @@ public abstract class TabPersister {
     public boolean saveTabState(int tabId, boolean encrypted, TabState state) {
         if (state == null) return false;
 
-        FileOutputStream stream = null;
         try {
-            stream = openTabStateOutputStream(tabId, encrypted);
-            TabState.saveState(stream, state, encrypted);
+            TabState.saveState(getTabStateFile(tabId, encrypted), state, encrypted);
             return true;
-        } catch (FileNotFoundException exception) {
-            Log.w(TAG, "FileNotFoundException while attempt to TabState.");
-        } catch (IOException exception) {
-            Log.w(TAG, "IO Exception while attempting to save tab state.");
         } catch (OutOfMemoryError e) {
             Log.w(TAG, "Out of memory error while attempting to save tab state.  Erasing.");
             deleteTabState(tabId, encrypted);
-        } finally {
-            StreamUtil.closeQuietly(stream);
         }
 
         return false;
@@ -69,10 +57,5 @@ public abstract class TabPersister {
      */
     public void deleteTabState(int id, boolean encrypted) {
         TabState.deleteTabState(getStateDirectory(), id, encrypted);
-    }
-
-    protected FileOutputStream openTabStateOutputStream(int id, boolean encrypted)
-            throws IOException {
-        return new FileOutputStream(getTabStateFile(id, encrypted));
     }
 }

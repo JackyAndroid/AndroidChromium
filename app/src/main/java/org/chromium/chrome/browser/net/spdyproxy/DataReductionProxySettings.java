@@ -5,8 +5,11 @@
 package org.chromium.chrome.browser.net.spdyproxy;
 
 import android.content.Context;
-import android.preference.PreferenceManager;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.webkit.URLUtil;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
@@ -55,6 +58,10 @@ public class DataReductionProxySettings {
 
     private static final String DATA_REDUCTION_ENABLED_PREF = "BANDWIDTH_REDUCTION_PROXY_ENABLED";
 
+    private static final String WEBLITE_HOSTNAME = "googleweblight.com";
+
+    private static final String WEBLITE_QUERY_PARAM = "lite_url";
+
     /**
      * Returns whether the data reduction proxy is enabled.
      *
@@ -73,7 +80,7 @@ public class DataReductionProxySettings {
     public static boolean isEnabledBeforeNativeLoad(Context context) {
         // TODO(lizeb): Add a listener for the native preference change to keep
         // both in sync and avoid the false-positives and false-negatives.
-        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+        return ContextUtils.getAppSharedPreferences().getBoolean(
             DATA_REDUCTION_ENABLED_PREF, false);
     }
 
@@ -92,7 +99,7 @@ public class DataReductionProxySettings {
     public static void reconcileDataReductionProxyEnabledState(Context context) {
         ThreadUtils.assertOnUiThread();
         boolean enabled = getInstance().isDataReductionProxyEnabled();
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
+        ContextUtils.getAppSharedPreferences().edit()
                 .putBoolean(DATA_REDUCTION_ENABLED_PREF, enabled).apply();
     }
 
@@ -128,17 +135,12 @@ public class DataReductionProxySettings {
         return nativeIsDataReductionProxyPromoAllowed(mNativeDataReductionProxySettings);
     }
 
-    /** Returns true if proxy alternative field trial is running. */
-    public boolean isIncludedInAltFieldTrial() {
-        return nativeIsIncludedInAltFieldTrial(mNativeDataReductionProxySettings);
-    }
-
     /**
      * Sets the preference on whether to enable/disable the SPDY proxy. This will zero out the
      * data reduction statistics if this is the first time the SPDY proxy has been enabled.
      */
     public void setDataReductionProxyEnabled(Context context, boolean enabled) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
+        ContextUtils.getAppSharedPreferences().edit()
                 .putBoolean(DATA_REDUCTION_ENABLED_PREF, enabled).apply();
         nativeSetDataReductionProxyEnabled(mNativeDataReductionProxySettings, enabled);
     }
@@ -178,22 +180,6 @@ public class DataReductionProxySettings {
      */
     public void setLoFiLoadImageRequested() {
         nativeSetLoFiLoadImageRequested(mNativeDataReductionProxySettings);
-    }
-
-    /**
-     * Counts the number of times the Lo-Fi snackbar has been shown.
-     *  */
-    public void incrementLoFiSnackbarShown() {
-        nativeIncrementLoFiSnackbarShown(mNativeDataReductionProxySettings);
-    }
-
-    /**
-     * Counts the number of requests to reload the page with images from the Lo-Fi snackbar. If the
-     * user requests the page with images a certain number of times, then Lo-Fi is disabled for the
-     * session.
-     *  */
-    public void incrementLoFiUserRequestsForImages() {
-        nativeIncrementLoFiUserRequestsForImages(mNativeDataReductionProxySettings);
     }
 
     /** Returns true if the SPDY proxy is managed by an administrator's policy. */
@@ -262,19 +248,48 @@ public class DataReductionProxySettings {
         map.put(DATA_REDUCTION_PROXY_ENABLED_KEY, String.valueOf(isDataReductionProxyEnabled()));
         map.put("Data Reduction Proxy HTTP Proxies",
                 nativeGetHttpProxyList(mNativeDataReductionProxySettings));
-        map.put("Data Reduction Proxy HTTPS Proxies",
-                nativeGetHttpsProxyList(mNativeDataReductionProxySettings));
         map.put("Data Reduction Proxy Last Bypass",
                 nativeGetLastBypassEvent(mNativeDataReductionProxySettings));
         return map;
+    }
+
+    /**
+     * If the given URL is a WebLite URL and should be overridden because the Data
+     * Reduction Proxy is on, the user is in the Lo-Fi previews experiment, and the scheme of the
+     * lite_url param is HTTP, returns the URL contained in the lite_url param. Otherwise returns
+     * the given URL.
+     *
+     * @param url The URL to evaluate.
+     * @return The URL to be used. Returns null if the URL param is null.
+     */
+    public String maybeRewriteWebliteUrl(String url) {
+        if (url == null || !URLUtil.isValidUrl(url) || !areLoFiPreviewsEnabled()
+                || !isDataReductionProxyEnabled()) {
+            return url;
+        }
+        String rewritten = extractUrlFromWebliteQueryParams(url);
+        if (rewritten == null
+                || !TextUtils.equals(Uri.parse(rewritten).getScheme(), "http")) {
+            return url;
+        }
+
+        return rewritten;
+    }
+
+    private String extractUrlFromWebliteQueryParams(String url) {
+        Uri uri = Uri.parse(url);
+        if (!TextUtils.equals(uri.getHost(), WEBLITE_HOSTNAME)) return null;
+        return uri.getQueryParameter(WEBLITE_QUERY_PARAM);
+    }
+
+    private boolean areLoFiPreviewsEnabled() {
+        return nativeAreLoFiPreviewsEnabled(mNativeDataReductionProxySettings);
     }
 
     private native long nativeInit();
     private native boolean nativeIsDataReductionProxyAllowed(
             long nativeDataReductionProxySettingsAndroid);
     private native boolean nativeIsDataReductionProxyPromoAllowed(
-            long nativeDataReductionProxySettingsAndroid);
-    private native boolean nativeIsIncludedInAltFieldTrial(
             long nativeDataReductionProxySettingsAndroid);
     private native boolean nativeIsDataReductionProxyEnabled(
             long nativeDataReductionProxySettingsAndroid);
@@ -285,10 +300,6 @@ public class DataReductionProxySettings {
     private native boolean nativeWasLoFiLoadImageRequestedBefore(
             long nativeDataReductionProxySettingsAndroid);
     private native void nativeSetLoFiLoadImageRequested(
-            long nativeDataReductionProxySettingsAndroid);
-    private native void nativeIncrementLoFiSnackbarShown(
-            long nativeDataReductionProxySettingsAndroid);
-    private native void nativeIncrementLoFiUserRequestsForImages(
             long nativeDataReductionProxySettingsAndroid);
     private native boolean nativeIsDataReductionProxyManaged(
             long nativeDataReductionProxySettingsAndroid);
@@ -304,7 +315,8 @@ public class DataReductionProxySettings {
             long nativeDataReductionProxySettingsAndroid);
     private native boolean nativeIsDataReductionProxyUnreachable(
             long nativeDataReductionProxySettingsAndroid);
+    private native boolean nativeAreLoFiPreviewsEnabled(
+            long nativeDataReductionProxySettingsAndroid);
     private native String nativeGetHttpProxyList(long nativeDataReductionProxySettingsAndroid);
-    private native String nativeGetHttpsProxyList(long nativeDataReductionProxySettingsAndroid);
     private native String nativeGetLastBypassEvent(long nativeDataReductionProxySettingsAndroid);
 }

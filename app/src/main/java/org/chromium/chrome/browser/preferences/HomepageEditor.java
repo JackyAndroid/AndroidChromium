@@ -15,10 +15,10 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.UrlUtilities;
 import org.chromium.chrome.browser.partnercustomizations.HomepageManager;
 import org.chromium.chrome.browser.partnercustomizations.PartnerBrowserCustomizations;
 import org.chromium.chrome.browser.widget.FloatLabelLayout;
+import org.chromium.components.url_formatter.UrlFormatter;
 
 /**
  * Provides the Java-UI for editing the homepage preference.
@@ -82,8 +82,8 @@ public class HomepageEditor extends Fragment implements TextWatcher {
         mSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mHomepageManager.setPrefHomepageCustomUri(UrlUtilities.fixupUrl(
-                        mHomepageUrlEdit.getText().toString()));
+                mHomepageManager.setPrefHomepageCustomUri(
+                        UrlFormatter.fixupUrl(mHomepageUrlEdit.getText().toString()));
                 mHomepageManager.setPrefHomepageUseDefaultUri(false);
                 getActivity().finish();
             }

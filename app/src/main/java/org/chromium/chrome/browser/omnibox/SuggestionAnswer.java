@@ -38,6 +38,7 @@ public class SuggestionAnswer {
     private static final String ANSWERS_JSON_TEXT_TYPE = "tt";
     private static final String ANSWERS_JSON_IMAGE = "i";
     private static final String ANSWERS_JSON_IMAGE_DATA = "d";
+    private static final String ANSWERS_JSON_NUMBER_OF_LINES = "ln";
 
     private SuggestionAnswer() {
     }
@@ -175,10 +176,14 @@ public class SuggestionAnswer {
     public static class TextField {
         private final int mType;
         private final String mText;
+        private final int mNumLines;
 
         TextField(JSONObject jsonTextField) throws JSONException {
             mType = jsonTextField.getInt(ANSWERS_JSON_TEXT_TYPE);
             mText = jsonTextField.getString(ANSWERS_JSON_TEXT);
+            mNumLines = jsonTextField.has(ANSWERS_JSON_NUMBER_OF_LINES)
+                    ? jsonTextField.getInt(ANSWERS_JSON_NUMBER_OF_LINES)
+                    : -1;
         }
 
         public int getType() {
@@ -187,6 +192,14 @@ public class SuggestionAnswer {
 
         public String getText() {
             return mText;
+        }
+
+        public boolean hasNumLines() {
+            return mNumLines != -1;
+        }
+
+        public int getNumLines() {
+            return mNumLines;
         }
     }
 }

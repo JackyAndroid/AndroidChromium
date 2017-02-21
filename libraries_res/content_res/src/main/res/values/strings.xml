@@ -13,6 +13,4 @@
     See http://www.chromium.org/developers/design-documents/ui-localization
 -->
 
-<resources>
-    <string name="app_name">content_res</string>
-</resources>
+<resources/>

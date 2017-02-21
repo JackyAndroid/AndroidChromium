@@ -19,7 +19,6 @@ import org.chromium.chrome.R;
  */
 public class TintedImageButton extends ImageButton {
     private ColorStateList mTint;
-    private PorterDuff.Mode mColorFilterMode = PorterDuff.Mode.SRC_IN;
 
     public TintedImageButton(Context context) {
         super(context);
@@ -58,22 +57,12 @@ public class TintedImageButton extends ImageButton {
         updateTintColor();
     }
 
-    /**
-     * Sets the Porter-Duff mode to use when tinting the image.
-     * @param mode The porterduff mode to use to set color filter.
-     */
-    public void setColorFilterMode(PorterDuff.Mode mode) {
-        if (mColorFilterMode == mode) return;
-        mColorFilterMode = mode;
-        updateTintColor();
-    }
-
     private void setTintInternal(ColorStateList tint) {
         mTint = tint;
     }
 
     private void updateTintColor() {
         if (mTint == null) return;
-        setColorFilter(mTint.getColorForState(getDrawableState(), 0), mColorFilterMode);
+        setColorFilter(mTint.getColorForState(getDrawableState(), 0), PorterDuff.Mode.SRC_IN);
     }
 }

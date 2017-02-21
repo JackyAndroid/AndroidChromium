@@ -11,12 +11,13 @@ import android.widget.TextView;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelTextViewInflater;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
 
 /**
  * Controls the Search Term View that is used as a dynamic resource.
  */
-public class ContextualSearchTermControl extends ContextualSearchInflater {
+public class ContextualSearchTermControl extends OverlayPanelTextViewInflater {
     /**
      * The search term View.
      */
@@ -48,11 +49,24 @@ public class ContextualSearchTermControl extends ContextualSearchInflater {
         invalidate();
     }
 
+    //========================================================================================
+    // OverlayPanelInflater overrides
+    //========================================================================================
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
 
         View view = getView();
         mSearchTerm = (TextView) view.findViewById(R.id.contextual_search_term);
+    }
+
+    //========================================================================================
+    // OverlayPanelTextViewInflater overrides
+    //========================================================================================
+
+    @Override
+    protected TextView getTextView() {
+        return mSearchTerm;
     }
 }

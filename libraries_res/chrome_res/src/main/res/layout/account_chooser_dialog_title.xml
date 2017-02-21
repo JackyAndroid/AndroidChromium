@@ -7,12 +7,25 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="8dp"
-    android:orientation="vertical" >
+    android:padding="@dimen/account_chooser_dialog_margin"
+    android:orientation="vertical">
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        android:textAppearance="?android:attr/textAppearanceLarge"/>
+        android:lineSpacingExtra="4dp"
+        android:fontFamily="sans-serif"
+        android:textSize="@dimen/account_chooser_dialog_title_main_text_size"
+        android:textColor="@color/default_text_color"/>
+    <TextView
+        android:id="@+id/origin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:paddingTop="8dp"
+        android:fontFamily="sans-serif"
+        android:textSize="@dimen/account_chooser_dialog_title_descriptive_text_size"
+        android:textColor="@color/descriptive_text_color"/>
+
 </LinearLayout>

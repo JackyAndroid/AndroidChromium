@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.offlinepages.OfflinePageBridge;
 import org.chromium.chrome.browser.widget.TintedDrawable;
 
 /**
@@ -41,10 +40,14 @@ public class NewTabPageToolbar extends LinearLayout {
 
     @Override
     protected void onFinishInflate() {
+        super.onFinishInflate();
         mBookmarksButton = initButton(R.id.bookmarks_button, R.drawable.btn_star);
         mRecentTabsButton = initButton(R.id.recent_tabs_button, R.drawable.btn_recents);
-        ((TextView) mBookmarksButton.getChildAt(0)).setText(OfflinePageBridge.isEnabled()
-                ? R.string.offline_pages_ntp_button_name : R.string.ntp_bookmarks);
+        ((TextView) mBookmarksButton.getChildAt(0)).setText(R.string.ntp_bookmarks);
+        ((TextView) mBookmarksButton.getChildAt(0)).setContentDescription(getResources().getString(
+                R.string.accessibility_ntp_toolbar_btn_bookmarks));
+
+        setBackgroundColor(NtpStyleUtils.getToolbarBackgroundColorResource(getResources()));
     }
 
     private ViewGroup initButton(int buttonId, int drawableId) {

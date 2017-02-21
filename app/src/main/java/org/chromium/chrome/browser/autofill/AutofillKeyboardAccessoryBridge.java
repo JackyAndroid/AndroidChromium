@@ -12,10 +12,10 @@ import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ResourceId;
+import org.chromium.components.autofill.AutofillDelegate;
+import org.chromium.components.autofill.AutofillKeyboardAccessory;
+import org.chromium.components.autofill.AutofillSuggestion;
 import org.chromium.ui.DropdownItem;
-import org.chromium.ui.autofill.AutofillDelegate;
-import org.chromium.ui.autofill.AutofillKeyboardAccessory;
-import org.chromium.ui.autofill.AutofillSuggestion;
 import org.chromium.ui.base.WindowAndroid;
 
 /**
@@ -149,7 +149,8 @@ public class AutofillKeyboardAccessoryBridge
     private static void addToAutofillSuggestionArray(AutofillSuggestion[] array, int index,
             String label, String sublabel, int iconId, int suggestionId, boolean deletable) {
         int drawableId = iconId == 0 ? DropdownItem.NO_ICON : ResourceId.mapToDrawableId(iconId);
-        array[index] = new AutofillSuggestion(label, sublabel, drawableId, suggestionId, deletable);
+        array[index] =
+                new AutofillSuggestion(label, sublabel, drawableId, suggestionId, deletable, false);
     }
 
     private native void nativeViewDismissed(long nativeAutofillKeyboardAccessoryView);

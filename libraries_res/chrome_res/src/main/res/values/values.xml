@@ -3,14 +3,16 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- InfoBar constants -->
-    <item type="id" name="infobar_message" />
-    <item type="id" name="infobar_close_button" />
-    <item type="id" name="button_primary" />
-    <item type="id" name="button_secondary" />
-    <item type="id" name="button_tertiary" />
-    <item type="id" name="infobar_extra_check" />
+<resources
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
+
+    <!-- Font to use when a spec asks for "Roboto Medium".
+         Bolding the text makes it look almost, but not quite, entirely unlike Roboto Medium,
+         which doesn't exist pre-L. -->
+    <string name="roboto_medium_typeface">sans-serif</string>
+    <integer name="roboto_medium_textstyle">1</integer>
 
     <!-- Menu Animation Constants -->
     <item type="fraction" format="fraction" name="menu_animation_pivot_x">95%</item>
@@ -33,33 +35,31 @@
     <!-- Compositor Tab Title Text -->
     <bool name="compositor_tab_title_fake_bold_text">true</bool>
 
-    <!-- The maximum indent depth of folders when selecting bookmarks. -->
-    <integer name="select_bookmark_folder_max_depth_indent">5</integer>
     <!-- TabSwitcher - Maximum amount to tilt tabs in over scroll in degrees. -->
     <integer name="over_scroll_angle">15</integer>
 
-    <!-- Menu items IDs in Settings -->
-    <item type="id" name="menu_id_help_general" />
-    <item type="id" name="menu_id_translate_help" />
-    <item type="id" name="menu_id_help_privacy" />
+    <!-- Help and Feedback
+         These constants should be in sync with the context names on go/mobilehelprecs.
+         If the context ID cannot be found, the default help page will be shown to the user.-->
+    <string name="help_context_new_tab">mobile_new_tab</string>
+    <string name="help_context_search_results">mobile_search_results</string>
+    <string name="help_context_webpage">mobile_webpage</string>
+    <string name="help_context_settings">mobile_settings</string>
+    <string name="help_context_incognito">mobile_incognito</string>
+    <string name="help_context_bookmarks">mobile_bookmarks</string>
+    <string name="help_context_history">mobile_history</string>
+    <string name="help_context_privacy">mobile_privacy</string>
+    <string name="help_context_translate">mobile_translate</string>
+    <string name="help_context_general">mobile_general</string>
+    <string name="help_context_protected_content">protected_content</string>
+    <string name="help_context_data_reduction">reduce_data_usage</string>
+    <string name="help_context_incognito_learn_more">chrome_incognito</string>
+    <string name="help_context_usage_reports">send_crash_report</string>
+    <string name="help_context_sad_tab">mobile_awsnap</string>
+    <string name="help_context_physical_web">physical_web</string>
+    <string name="help_context_clear_browsing_data">clear_browsing_data</string>
+    <string name="help_context_change_sync_passphrase">change_sync_passphrase</string>
 
-    <!-- Menu item IDs for FullscreenActivities -->
-    <item type="id" name="menu_id_open_in_chrome" />
-
-    <!-- Cast notification -->
-    <item type="id" name="remote_notification" />
-
-    <!-- Media playback notification -->
-    <item type="id" name="media_playback_notification" />
-
-    <!-- Presentation API notification -->
-    <item type="id" name="presentation_notification" />
-
-    <!-- Sync UI constants -->
-    <item type="id" name="passphrase_type_list" />
-
-    <!-- Keyboard shortcuts -->
-    <item type="id" name="focus_url_bar" />
-    <item type="id" name="show_menu" />
-
+    <!-- Our manage space activity. Default pre-KitKat to be nothing. -->
+    <string name="manage_space_activity"></string>
 </resources>

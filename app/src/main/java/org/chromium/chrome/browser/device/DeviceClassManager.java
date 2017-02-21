@@ -7,8 +7,8 @@ package org.chromium.chrome.browser.device;
 import android.content.Context;
 import android.view.accessibility.AccessibilityManager;
 
-import org.chromium.base.ApplicationStatus;
 import org.chromium.base.CommandLine;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.SysUtils;
 import org.chromium.base.TraceEvent;
 import org.chromium.chrome.browser.ChromeSwitches;
@@ -28,8 +28,6 @@ public class DeviceClassManager {
     private boolean mEnableAnimations;
     private boolean mEnablePrerendering;
     private boolean mEnableToolbarSwipe;
-    private boolean mEnableToolbarSwipeInDocumentMode;
-    private boolean mEnableUndo;
     private boolean mDisableDomainReliability;
 
     private final boolean mEnableFullscreen;
@@ -65,7 +63,7 @@ public class DeviceClassManager {
             mDisableDomainReliability = false;
         }
 
-        if (DeviceFormFactor.isTablet(ApplicationStatus.getApplicationContext())) {
+        if (DeviceFormFactor.isTablet(ContextUtils.getApplicationContext())) {
             mEnableAccessibilityLayout = false;
         }
 
@@ -75,17 +73,10 @@ public class DeviceClassManager {
                 .hasSwitch(ChromeSwitches.ENABLE_ACCESSIBILITY_TAB_SWITCHER);
         mEnableFullscreen =
                 !commandLine.hasSwitch(ChromeSwitches.DISABLE_FULLSCREEN);
-        mEnableUndo = commandLine.hasSwitch(ChromeSwitches.ENABLE_HIGH_END_UI_UNDO);
-        mEnableToolbarSwipeInDocumentMode =
-                commandLine.hasSwitch(ChromeSwitches.ENABLE_TOOLBAR_SWIPE_IN_DOCUMENT_MODE);
 
         // Related features.
         if (mEnableAccessibilityLayout) {
             mEnableAnimations = false;
-        }
-
-        if (SysUtils.isLowEndDevice() || mEnableAccessibilityLayout)  {
-            mEnableUndo = true;
         }
     }
 
@@ -133,19 +124,10 @@ public class DeviceClassManager {
     }
 
     /**
-     * @param isDocumentMode Whether or not chrome is in document mode.
      * @return Whether or not we can use the toolbar swipe.
      */
-    public static boolean enableToolbarSwipe(boolean isDocumentMode) {
-        return getInstance().mEnableToolbarSwipe
-                && !(isDocumentMode && !getInstance().mEnableToolbarSwipeInDocumentMode);
-    }
-
-    /**
-     * @return Whether or not undo is enabled.
-     */
-    public static boolean enableUndo(Context context) {
-        return getInstance().mEnableUndo || isAccessibilityModeEnabled(context);
+    public static boolean enableToolbarSwipe() {
+        return getInstance().mEnableToolbarSwipe;
     }
 
     /**

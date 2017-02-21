@@ -26,11 +26,19 @@ public class LoadingView extends ProgressBar {
     private final Runnable mDelayedShow = new Runnable() {
         @Override
         public void run() {
+            if (!mShouldShow) return;
             mStartTime = SystemClock.elapsedRealtime();
             setVisibility(View.VISIBLE);
             setAlpha(1.0f);
         }
     };
+
+    /**
+     * Tracks whether the View should be displayed when {@link #mDelayedShow} is run.  Android
+     * doesn't always cancel a Runnable when requested, meaning that the View could be hidden before
+     * it even has a chance to be shown.
+     */
+    private boolean mShouldShow;
 
     // Material loading design spec requires us to show progress spinner at least 500ms, so we need
     // this delayed runnable to implement that.
@@ -67,6 +75,7 @@ public class LoadingView extends ProgressBar {
     public void showLoadingUI() {
         removeCallbacks(mDelayedShow);
         removeCallbacks(mDelayedHide);
+        mShouldShow = true;
 
         setVisibility(GONE);
         postDelayed(mDelayedShow, LOADING_ANIMATION_DELAY_MS);
@@ -79,6 +88,7 @@ public class LoadingView extends ProgressBar {
     public void hideLoadingUI() {
         removeCallbacks(mDelayedShow);
         removeCallbacks(mDelayedHide);
+        mShouldShow = false;
 
         if (getVisibility() == VISIBLE) {
             postDelayed(mDelayedHide, Math.max(0,

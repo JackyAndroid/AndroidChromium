@@ -6,6 +6,8 @@ package org.chromium.chrome.browser.media.remote;
 
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.base.library_loader.LibraryLoader;
+import org.chromium.base.metrics.RecordHistogram;
+import org.chromium.chrome.browser.rappor.RapporServiceBridge;
 
 /**
  * Record statistics on interesting cast events and actions.
@@ -19,6 +21,13 @@ public class RecordCastAction {
     public static final int DEVICE_TYPE_CAST_YOUTUBE = 1;
     public static final int DEVICE_TYPE_NON_CAST_YOUTUBE = 2;
     public static final int DEVICE_TYPE_COUNT = 3;
+
+    // UMA histogram values for the fullscreen controls the user could tap.
+    // Keep in sync with the MediaCommand enum in histograms.xml
+    public static final int FULLSCREEN_CONTROLS_RESUME = 0;
+    public static final int FULLSCREEN_CONTROLS_PAUSE = 1;
+    public static final int FULLSCREEN_CONTROLS_SEEK = 2;
+    public static final int FULLSCREEN_CONTROLS_COUNT = 3;
 
     /**
      * Record the type of cast receiver we to which we are casting.
@@ -63,9 +72,9 @@ public class RecordCastAction {
      * @param videoLengthMs the total length of the video in milliseconds
      * @param timeRemainingMs the remaining time in the video in milliseconds
      */
-    public static void castEndedTimeRemaining(int videoLengthMs, int timeRemainingMs) {
+    public static void castEndedTimeRemaining(long videoLengthMs, long timeRemainingMs) {
         if (LibraryLoader.isInitialized()) {
-            nativeRecordCastEndedTimeRemaining(videoLengthMs, timeRemainingMs);
+            nativeRecordCastEndedTimeRemaining((int) videoLengthMs, (int) timeRemainingMs);
         }
     }
 
@@ -77,6 +86,67 @@ public class RecordCastAction {
      */
     public static void castMediaType(int mediaType) {
         if (LibraryLoader.isInitialized()) nativeRecordCastMediaType(mediaType);
+    }
+
+    /**
+     * Record if the remotely played media element is alive when the
+     * {@link ExpandedControllerActivity} is shown.
+     *
+     * @param isMediaElementAlive if the media element is alive.
+     */
+    public static void recordFullscreenControlsShown(boolean isMediaElementAlive) {
+        if (LibraryLoader.isInitialized()) {
+            RecordHistogram.recordBooleanHistogram(
+                    "Cast.Sender.MediaElementPresentWhenShowFullscreenControls",
+                    isMediaElementAlive);
+        }
+    }
+
+    /**
+     * Record when an action was taken on the {@link ExpandedControllerActivity} by the user.
+     * Notes if the corresponding media element has been alive at that point in time.
+     *
+     * @param action one of the FULLSCREEN_CONTROLS_* constants defined above.
+     * @param isMediaElementAlive if the media element is alive.
+     */
+    public static void recordFullscreenControlsAction(int action, boolean isMediaElementAlive) {
+        if (!LibraryLoader.isInitialized()) return;
+
+        if (isMediaElementAlive) {
+            RecordHistogram.recordEnumeratedHistogram(
+                    "Cast.Sender.FullscreenControlsActionWithMediaElement",
+                    action, FULLSCREEN_CONTROLS_COUNT);
+        } else {
+            RecordHistogram.recordEnumeratedHistogram(
+                    "Cast.Sender.FullscreenControlsActionWithoutMediaElement",
+                    action, FULLSCREEN_CONTROLS_COUNT);
+        }
+    }
+
+    /**
+     * Record the domain and registry of the URL of the frame where the user is casting the video
+     * from using Rappor.
+     *
+     * @param url The frame URL to record the domain and registry of.
+     */
+    public static void castDomainAndRegistry(String url) {
+        if (LibraryLoader.isInitialized()) {
+            RapporServiceBridge.sampleDomainAndRegistryFromURL("Cast.Sender.MediaFrameUrl", url);
+        }
+    }
+
+    /**
+     * Record the ratio of the time the media element was detached from the remote playback session
+     * to the total duration of the session (as from when the element has been attached till when
+     * the session stopped or disconnected), in percents.
+     *
+     * @param percentage The ratio in percents.
+     */
+    public static void recordRemoteSessionTimeWithoutMediaElementPercentage(int percentage) {
+        if (LibraryLoader.isInitialized()) {
+            RecordHistogram.recordPercentageHistogram(
+                    "Cast.Sender.SessionTimeWithoutMediaElementPercentage", percentage);
+        }
     }
 
     // Cast sending

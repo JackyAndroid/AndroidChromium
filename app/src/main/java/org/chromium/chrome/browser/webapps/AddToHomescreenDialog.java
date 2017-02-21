@@ -17,26 +17,38 @@ import android.widget.ImageView;
 
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.tab.Tab;
 
 /**
- * Helper class showing the UI regarding Add to Homescreen. This class delegates
- * most of the logic to AddToHomescreenDialogHelper.
+ * Displays the "Add to Homescreen" dialog.
  */
-public class AddToHomescreenDialog {
-    private static AlertDialog sCurrentDialog;
+public class AddToHomescreenDialog implements AddToHomescreenManager.Observer {
+    private AlertDialog mDialog;
+    private View mProgressBarView;
+    private ImageView mIconView;
+    private EditText mInput;
+
+    private AddToHomescreenManager mManager;
+
+    /**
+     * Whether {@link mManager} is ready for {@link AddToHomescreenManager#addShortcut()} to be
+     * called.
+     */
+    private boolean mIsReadyToAdd = false;
+
+    public AddToHomescreenDialog(AddToHomescreenManager manager) {
+        mManager = manager;
+    }
 
     @VisibleForTesting
-    public static AlertDialog getCurrentDialogForTest() {
-        return sCurrentDialog;
+    public AlertDialog getAlertDialogForTesting() {
+        return mDialog;
     }
 
     /**
      * Shows the dialog for adding a shortcut to the home screen.
      * @param activity The current activity in which to create the dialog.
-     * @param currentTab The current tab for which the shortcut is being created.
      */
-    public static void show(final Activity activity, final Tab currentTab) {
+    public void show(final Activity activity) {
         View view = activity.getLayoutInflater().inflate(
                 R.layout.add_to_homescreen_dialog, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.AlertDialogTheme)
@@ -49,57 +61,36 @@ public class AddToHomescreenDialog {
                             }
                         });
 
-        final AlertDialog dialog = builder.create();
-        dialog.getDelegate().setHandleNativeActionModesEnabled(false);
+        mDialog = builder.create();
+        mDialog.getDelegate().setHandleNativeActionModesEnabled(false);
         // On click of the menu item for "add to homescreen", an alert dialog pops asking the user
         // if the title needs to be edited. On click of "Add", shortcut is created. Default
-        // title is the title of the page. OK button is disabled if the title text is empty.
-        final View progressBarView = view.findViewById(R.id.spinny);
-        final ImageView iconView = (ImageView) view.findViewById(R.id.icon);
-        final EditText input = (EditText) view.findViewById(R.id.text);
-        input.setEnabled(false);
+        // title is the title of the page.
+        mProgressBarView = view.findViewById(R.id.spinny);
+        mIconView = (ImageView) view.findViewById(R.id.icon);
+        mInput = (EditText) view.findViewById(R.id.text);
+
+        // The dialog's text field is disabled till the "user title" is fetched,
+        mInput.setEnabled(false);
 
         view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                     int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (progressBarView.getMeasuredHeight() == input.getMeasuredHeight()
-                        && input.getBackground() != null) {
+                if (mProgressBarView.getMeasuredHeight() == mInput.getMeasuredHeight()
+                        && mInput.getBackground() != null) {
                     // Force the text field to align better with the icon by accounting for the
                     // padding introduced by the background drawable.
-                    input.getLayoutParams().height =
-                            progressBarView.getMeasuredHeight() + input.getPaddingBottom();
+                    mInput.getLayoutParams().height =
+                            mProgressBarView.getMeasuredHeight() + mInput.getPaddingBottom();
                     v.requestLayout();
                     v.removeOnLayoutChangeListener(this);
                 }
             }
         });
 
-        final AddToHomescreenDialogHelper dialogHelper =
-                new AddToHomescreenDialogHelper(activity.getApplicationContext(), currentTab);
-
-        // Initializing the AddToHomescreenDialogHelper is asynchronous. Until
-        // it is initialized, the UI will show a disabled text field and OK
-        // buttons. They will be enabled and pre-filled as soon as the
-        // onInitialized callback will be run. The user will still be able to
-        // cancel the operation.
-        dialogHelper.initialize(new AddToHomescreenDialogHelper.Observer() {
-            @Override
-            public void onUserTitleAvailable(String title) {
-                input.setEnabled(true);
-                input.setText(title);
-            }
-
-            @Override
-            public void onIconAvailable(Bitmap icon) {
-                progressBarView.setVisibility(View.GONE);
-                iconView.setVisibility(View.VISIBLE);
-                iconView.setImageBitmap(icon);
-                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-            }
-        });
-
-        input.addTextChangedListener(new TextWatcher() {
+        // The "Add" button should be disabled if the dialog's text field is empty.
+        mInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
@@ -110,44 +101,67 @@ public class AddToHomescreenDialog {
 
             @Override
             public void afterTextChanged(Editable editableText) {
-                if (TextUtils.isEmpty(editableText)) {
-                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
-                } else {
-                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-                }
+                updateAddButtonEnabledState();
             }
         });
 
-        dialog.setView(view);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE,
+        mDialog.setView(view);
+        mDialog.setButton(DialogInterface.BUTTON_POSITIVE,
                 activity.getResources().getString(R.string.add),
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        dialogHelper.addShortcut(input.getText().toString());
+                        mManager.addShortcut(mInput.getText().toString());
                     }
                 });
 
-        // The "OK" button should only be shown when |dialogHelper| is
-        // initialized, it should be kept disabled until then.
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+        mDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface d) {
-                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(
-                        dialogHelper.isInitialized());
+                updateAddButtonEnabledState();
             }
         });
 
-        // We need to keep track of the current dialog for testing purposes.
-        sCurrentDialog = dialog;
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                sCurrentDialog = null;
-                dialogHelper.destroy();
+                mDialog = null;
+                mManager.onDismissed();
             }
         });
 
-        dialog.show();
+        mDialog.show();
+    }
+
+    /**
+     * Called when the title of the page is available.
+     */
+    @Override
+    public void onUserTitleAvailable(String title) {
+        mInput.setEnabled(true);
+        mInput.setText(title);
+    }
+
+    /**
+     * Called once the manager has finished fetching the homescreen shortcut's data (like the Web
+     * Manifest) and is ready for {@link AddToHomescreenManager#addShortcut()} to be called.
+     * @param icon Icon to use in the launcher.
+     */
+    @Override
+    public void onReadyToAdd(Bitmap icon) {
+        mIsReadyToAdd = true;
+
+        mProgressBarView.setVisibility(View.GONE);
+        mIconView.setVisibility(View.VISIBLE);
+        mIconView.setImageBitmap(icon);
+        updateAddButtonEnabledState();
+    }
+
+    /**
+     * Updates whether the dialog's OK button is enabled.
+     */
+    public void updateAddButtonEnabledState() {
+        boolean enable = mIsReadyToAdd && !TextUtils.isEmpty(mInput.getText());
+        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(enable);
     }
 }

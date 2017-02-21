@@ -4,77 +4,70 @@
 
 package org.chromium.chrome.browser.media.remote;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.media.MediaPlayer;
-import android.os.Build;
-import android.util.Log;
 
-import org.chromium.base.CommandLine;
+import org.chromium.base.Log;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
-import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.media.remote.RemoteVideoInfo.PlayerState;
-import org.chromium.media.MediaPlayerBridge;
 
 /**
  * Acts as a proxy between the remotely playing video and the HTMLMediaElement.
- *
- * Note that the only reason this derives from MediaPlayerBridge is that the
- * MediaPlayerListener takes a MediaPlayerBridge in its constructor.
- * TODO(aberent) fix this by creating a MediaPlayerBridgeInterface (or similar).
  */
 @JNINamespace("remote_media")
-public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
-    private final long mStartPositionMillis;
+public class RemoteMediaPlayerBridge {
+    private long mStartPositionMillis;
     private long mNativeRemoteMediaPlayerBridge;
 
-    private MediaPlayer.OnCompletionListener mOnCompletionListener;
-    private MediaPlayer.OnSeekCompleteListener mOnSeekCompleteListener;
-    private MediaPlayer.OnErrorListener mOnErrorListener;
-    private MediaPlayer.OnPreparedListener mOnPreparedListener;
-
+    /**
+     * The route controller for the video, null if no appropriate route controller.
+     */
     private final MediaRouteController mRouteController;
-    private final String mFrameUrl;
-    private final boolean mDebug;
-    private final String mSourceUrl;
+    private final String mOriginalSourceUrl;
+    private final String mOriginalFrameUrl;
+    private String mFrameUrl;
+    private String mSourceUrl;
     private final String mUserAgent;
     private Bitmap mPosterBitmap;
     private String mCookies;
     private boolean mPauseRequested;
     private boolean mSeekRequested;
-    private int mSeekLocation;
+    private long mSeekLocation;
+    private boolean mIsPlayable;
+    private boolean mRouteIsAvailable;
 
     // mActive is true when the Chrome is playing, or preparing to play, this player's video
     // remotely.
     private boolean mActive = false;
 
-    private static final String TAG = "RemoteMediaPlayerBridge";
+    private static final String TAG = "MediaFling";
 
     private final MediaRouteController.MediaStateListener mMediaStateListener =
             new MediaRouteController.MediaStateListener() {
         @Override
         public void onRouteAvailabilityChanged(boolean available) {
+            mRouteIsAvailable = available;
+            onRouteAvailabilityChange();
+        }
+
+        @Override
+        public void onRouteDialogCancelled() {
             if (mNativeRemoteMediaPlayerBridge == 0) return;
-            nativeOnRouteAvailabilityChanged(mNativeRemoteMediaPlayerBridge, available);
+            nativeOnCancelledRemotePlaybackRequest(mNativeRemoteMediaPlayerBridge);
         }
 
         @Override
         public void onError() {
-            if (mActive && mOnErrorListener != null) {
-                @SuppressLint("InlinedApi")
-                int errorExtra = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
-                        ? MediaPlayer.MEDIA_ERROR_TIMED_OUT
-                        : 0;
-                mOnErrorListener.onError(null, MediaPlayer.MEDIA_ERROR_UNKNOWN, errorExtra);
+            if (mActive && mNativeRemoteMediaPlayerBridge != 0) {
+                nativeOnError(mNativeRemoteMediaPlayerBridge);
             }
         }
 
         @Override
         public void onSeekCompleted() {
-            if (mActive && mOnSeekCompleteListener != null) {
-                mOnSeekCompleteListener.onSeekComplete(null);
+            mSeekRequested = false;
+            if (mActive && mNativeRemoteMediaPlayerBridge != 0) {
+                nativeOnSeekCompleted(mNativeRemoteMediaPlayerBridge);
             }
         }
 
@@ -88,11 +81,11 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
         public void onPlaybackStateChanged(PlayerState newState) {
             if (mNativeRemoteMediaPlayerBridge == 0) return;
             if (newState == PlayerState.FINISHED || newState == PlayerState.INVALIDATED) {
-                onCompleted();
                 nativeOnPlaybackFinished(mNativeRemoteMediaPlayerBridge);
             } else if (newState == PlayerState.PLAYING) {
                 nativeOnPlaying(mNativeRemoteMediaPlayerBridge);
             } else if (newState == PlayerState.PAUSED) {
+                mPauseRequested = false;
                 nativeOnPaused(mNativeRemoteMediaPlayerBridge);
             }
         }
@@ -110,25 +103,33 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
 
         @Override
         public void pauseLocal() {
+            if (mNativeRemoteMediaPlayerBridge == 0) return;
             nativePauseLocal(mNativeRemoteMediaPlayerBridge);
         }
 
         @Override
-        public int getLocalPosition() {
+        public long getLocalPosition() {
+            if (mNativeRemoteMediaPlayerBridge == 0) return 0L;
             return nativeGetLocalPosition(mNativeRemoteMediaPlayerBridge);
         }
 
         @Override
         public void onCastStarting(String routeName) {
-            nativeOnCastStarting(mNativeRemoteMediaPlayerBridge,
-                    RemoteMediaPlayerController.instance().getCastingMessage(routeName));
+            if (mNativeRemoteMediaPlayerBridge != 0) {
+                nativeOnCastStarting(mNativeRemoteMediaPlayerBridge,
+                        RemoteMediaPlayerController.instance().getCastingMessage(routeName));
+            }
             mActive = true;
         }
 
         @Override
         public void onCastStopping() {
-            nativeOnCastStopping(mNativeRemoteMediaPlayerBridge);
+            if (mNativeRemoteMediaPlayerBridge != 0) {
+                nativeOnCastStopping(mNativeRemoteMediaPlayerBridge);
+            }
             mActive = false;
+            // Free the poster bitmap to save memory
+            mPosterBitmap = null;
         }
 
         @Override
@@ -139,11 +140,6 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
         @Override
         public String getCookies() {
             return mCookies;
-        }
-
-        @Override
-        public String getUserAgent() {
-            return mUserAgent;
         }
 
         @Override
@@ -167,21 +163,17 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
         }
 
         @Override
-        public int getSeekLocation() {
+        public long getSeekLocation() {
             return mSeekLocation;
         }
     };
 
-    private RemoteMediaPlayerBridge(long nativeRemoteMediaPlayerBridge, long startPositionMillis,
-            String sourceUrl, String frameUrl, String userAgent) {
-
-        mDebug = CommandLine.getInstance().hasSwitch(ChromeSwitches.ENABLE_CAST_DEBUG_LOGS);
-
-        if (mDebug) Log.i(TAG, "Creating RemoteMediaPlayerBridge");
+    private RemoteMediaPlayerBridge(long nativeRemoteMediaPlayerBridge, String sourceUrl,
+            String frameUrl, String userAgent) {
+        Log.d(TAG, "Creating RemoteMediaPlayerBridge");
         mNativeRemoteMediaPlayerBridge = nativeRemoteMediaPlayerBridge;
-        mStartPositionMillis = startPositionMillis;
-        mSourceUrl = sourceUrl;
-        mFrameUrl = frameUrl;
+        mOriginalSourceUrl = sourceUrl;
+        mOriginalFrameUrl = frameUrl;
         mUserAgent = userAgent;
         // This will get null if there isn't a mediaRouteController that can play this media.
         mRouteController = RemoteMediaPlayerController.instance()
@@ -190,9 +182,9 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
 
     @CalledByNative
     private static RemoteMediaPlayerBridge create(long nativeRemoteMediaPlayerBridge,
-            long startPositionMillis, String sourceUrl, String frameUrl, String userAgent) {
-        return new RemoteMediaPlayerBridge(nativeRemoteMediaPlayerBridge, startPositionMillis,
-                sourceUrl, frameUrl, userAgent);
+            String sourceUrl, String frameUrl, String userAgent) {
+        return new RemoteMediaPlayerBridge(
+                nativeRemoteMediaPlayerBridge, sourceUrl, frameUrl, userAgent);
     }
 
     /**
@@ -200,12 +192,13 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
      * from Blink when the cast button is pressed on the default video controls.
      */
     @CalledByNative
-    private void requestRemotePlayback() {
-        if (mDebug) Log.i(TAG, "requestRemotePlayback");
+    private void requestRemotePlayback(long startPositionMillis) {
+        Log.d(TAG, "requestRemotePlayback at t=%d", startPositionMillis);
         if (mRouteController == null) return;
         // Clear out the state
         mPauseRequested = false;
         mSeekRequested = false;
+        mStartPositionMillis = startPositionMillis;
         RemoteMediaPlayerController.instance().requestRemotePlayback(
                 mMediaStateListener, mRouteController);
     }
@@ -215,28 +208,27 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
      */
     @CalledByNative
     private void requestRemotePlaybackControl() {
-        if (mDebug) Log.i(TAG, "requestRemotePlaybackControl");
+        Log.d(TAG, "requestRemotePlaybackControl");
         RemoteMediaPlayerController.instance().requestRemotePlaybackControl(mMediaStateListener);
     }
 
     @CalledByNative
     private void setNativePlayer() {
-        if (mDebug) Log.i(TAG, "setNativePlayer");
+        Log.d(TAG, "setNativePlayer");
         if (mRouteController == null) return;
-        mRouteController.setMediaStateListener(mMediaStateListener);
         mActive = true;
     }
 
     @CalledByNative
     private void onPlayerCreated() {
-        if (mDebug) Log.i(TAG, "onPlayerCreated");
+        Log.d(TAG, "onPlayerCreated");
         if (mRouteController == null) return;
         mRouteController.addMediaStateListener(mMediaStateListener);
     }
 
     @CalledByNative
     private void onPlayerDestroyed() {
-        if (mDebug) Log.i(TAG, "onPlayerDestroyed");
+        Log.d(TAG, "onPlayerDestroyed");
         if (mRouteController == null) return;
         mRouteController.removeMediaStateListener(mMediaStateListener);
     }
@@ -254,28 +246,24 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
         mPosterBitmap = bitmap;
     }
 
-    @Override
     @CalledByNative
     protected boolean isPlaying() {
         if (mRouteController == null) return false;
         return mRouteController.isPlaying();
     }
 
-    @Override
     @CalledByNative
     protected int getCurrentPosition() {
         if (mRouteController == null) return 0;
-        return mRouteController.getPosition();
+        return (int) mRouteController.getPosition();
     }
 
-    @Override
     @CalledByNative
     protected int getDuration() {
         if (mRouteController == null) return 0;
-        return mRouteController.getDuration();
+        return (int) mRouteController.getDuration();
     }
 
-    @Override
     @CalledByNative
     protected void release() {
         // Remove the state change listeners. Release does mean that Chrome is no longer interested
@@ -284,81 +272,44 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
         mActive = false;
     }
 
-    @Override
     @CalledByNative
     protected void setVolume(double volume) {
     }
 
-    @Override
     @CalledByNative
     protected void start() throws IllegalStateException {
         mPauseRequested = false;
         if (mRouteController != null && mRouteController.isBeingCast()) mRouteController.resume();
     }
 
-    @Override
     @CalledByNative
     protected void pause() throws IllegalStateException {
-        mPauseRequested = true;
-        if (mRouteController != null && mRouteController.isBeingCast()) mRouteController.pause();
+        if (mRouteController != null && mRouteController.isBeingCast()) {
+            mRouteController.pause();
+        } else {
+            mPauseRequested = true;
+        }
     }
 
-    @Override
     @CalledByNative
     protected void seekTo(int msec) throws IllegalStateException {
-        mSeekRequested = true;
-        mSeekLocation = msec;
         if (mRouteController != null && mRouteController.isBeingCast()) {
             mRouteController.seekTo(msec);
+        } else {
+            mSeekRequested = true;
+            mSeekLocation = msec;
         }
     }
 
-    @Override
-    protected boolean setDataSource(
-            Context context, String url, String cookies, String userAgent, boolean hideUrlLog) {
-        return true;
+    private void onRouteAvailabilityChange() {
+        if (mNativeRemoteMediaPlayerBridge == 0) return;
+        boolean usable = mRouteIsAvailable && mIsPlayable;
+        nativeOnRouteAvailabilityChanged(mNativeRemoteMediaPlayerBridge, usable);
     }
 
-    @Override
-    protected void setOnBufferingUpdateListener(MediaPlayer.OnBufferingUpdateListener listener) {
-    }
-
-    @Override
-    protected void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
-        mOnCompletionListener = listener;
-    }
-
-    @Override
-    protected void setOnSeekCompleteListener(MediaPlayer.OnSeekCompleteListener listener) {
-        mOnSeekCompleteListener = listener;
-    }
-
-    @Override
-    protected void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
-        mOnErrorListener = listener;
-    }
-
-    @Override
-    protected void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
-    }
-
-    @Override
-    protected void setOnVideoSizeChangedListener(MediaPlayer.OnVideoSizeChangedListener listener) {
-    }
-
-    /**
-     * Called when the video finishes
-     */
-    public void onCompleted() {
-        if (mActive && mOnCompletionListener != null) {
-            mOnCompletionListener.onCompletion(null);
-        }
-    }
-
-    @Override
     @CalledByNative
     protected void destroy() {
-        if (mDebug) Log.i(TAG, "destroy");
+        Log.d(TAG, "destroy");
         if (mRouteController != null) {
             mRouteController.removeMediaStateListener(mMediaStateListener);
         }
@@ -366,27 +317,36 @@ public class RemoteMediaPlayerBridge extends MediaPlayerBridge {
     }
 
     @CalledByNative
-    private boolean takesOverCastDevice() {
-        if (mRouteController == null) return false;
-        return mRouteController.playerTakesOverCastDevice(mMediaStateListener);
-    }
-
-    @CalledByNative
     private void setCookies(String cookies) {
+        if (mRouteController == null) return;
         mCookies = cookies;
+        mRouteController.checkIfPlayableRemotely(mOriginalSourceUrl, mOriginalFrameUrl, cookies,
+                mUserAgent, new MediaRouteController.MediaValidationCallback() {
+
+                    @Override
+                    public void onResult(
+                            boolean isPlayable, String revisedSourceUrl, String revisedFrameUrl) {
+                        mIsPlayable = isPlayable;
+                        mSourceUrl = revisedSourceUrl;
+                        mFrameUrl = revisedFrameUrl;
+                        onRouteAvailabilityChange();
+                    }
+                });
     }
 
-    private native String nativeGetFrameUrl(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnPlaying(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnPaused(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnRouteUnselected(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnPlaybackFinished(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnRouteAvailabilityChanged(long nativeRemoteMediaPlayerBridge,
             boolean available);
+    private native void nativeOnCancelledRemotePlaybackRequest(long nativeRemoteMediaPlayerBridge);
     private native String nativeGetTitle(long nativeRemoteMediaPlayerBridge);
     private native void nativePauseLocal(long nativeRemoteMediaPlayerBridge);
     private native int nativeGetLocalPosition(long nativeRemoteMediaPlayerBridge);
     private native void nativeOnCastStarting(long nativeRemoteMediaPlayerBridge,
             String castingMessage);
     private native void nativeOnCastStopping(long nativeRemoteMediaPlayerBridge);
+    private native void nativeOnError(long nativeRemoteMediaPlayerBridge);
+    private native void nativeOnSeekCompleted(long nativeRemoteMediaPlayerBridge);
 }

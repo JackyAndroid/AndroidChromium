@@ -12,7 +12,9 @@ import android.content.pm.ResolveInfo;
 import android.text.TextUtils;
 
 import org.chromium.base.PackageUtils;
-import org.chromium.sync.signin.ChromeSigninController;
+import org.chromium.components.signin.ChromeSigninController;
+
+import java.util.List;
 
 /**
  * A class responsible fore representing the current state of Chrome's integration with GSA.
@@ -101,8 +103,8 @@ public class GSAState {
         PackageManager pm = mContext.getPackageManager();
         Intent searchIntent = new Intent(SEARCH_INTENT_ACTION);
         searchIntent.setPackage(GSAState.SEARCH_INTENT_PACKAGE);
-        ResolveInfo resolveInfo = pm.resolveActivity(searchIntent, 0);
-        if (resolveInfo == null || resolveInfo.activityInfo == null) {
+        List<ResolveInfo> resolveInfo = pm.queryIntentActivities(searchIntent, 0);
+        if (resolveInfo.size() == 0) {
             mGsaAvailable = false;
         } else if (!isPackageAboveVersion(SEARCH_INTENT_PACKAGE, GSA_VERSION_FOR_DOCUMENT)
                 || !isPackageAboveVersion(GMS_CORE_PACKAGE, GMS_CORE_VERSION)) {

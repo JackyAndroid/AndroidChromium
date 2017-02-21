@@ -48,7 +48,8 @@ public interface LayoutProvider {
      * Build a {@link SceneLayer} for the active layout if it hasn't already been built, and update
      * it and return it.
      *
-     * @param contentViewport   A viewport in which to display content.
+     * @param viewport          A viewport in which to display content.
+     * @param contentViewport   The visible section of the viewport.
      * @param layerTitleCache   A layer title cache.
      * @param tabContentManager A tab content manager.
      * @param resourceManager   A resource manager.

@@ -16,7 +16,7 @@ import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.browser.signin.SigninHelper;
 import org.chromium.chrome.browser.signin.SigninManager;
 import org.chromium.chrome.browser.sync.SyncController;
-import org.chromium.sync.signin.ChromeSigninController;
+import org.chromium.components.signin.ChromeSigninController;
 
 /**
  * Starts and monitors various sync and Google services related tasks.
@@ -81,7 +81,7 @@ public class GoogleServicesManager implements ApplicationStateListener {
             SigninManager signinManager = SigninManager.get(mContext);
             if (!mChromeSigninController.isSignedIn() && signinManager.isSignedInOnNative()) {
                 Log.w(TAG, "Signed in state got out of sync, forcing native sign out");
-                signinManager.signOut(null, null);
+                signinManager.signOut();
             }
 
             // Initialize sync.

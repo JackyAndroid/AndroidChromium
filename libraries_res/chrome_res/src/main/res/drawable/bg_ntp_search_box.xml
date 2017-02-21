@@ -11,7 +11,7 @@
         android:width="1px"
         android:color="#b26d6d6d" />
     <solid
-        android:color="@android:color/transparent" />
+        android:color="@color/ntp_bg" />
     <padding
         android:left="1px"
         android:top="1px"

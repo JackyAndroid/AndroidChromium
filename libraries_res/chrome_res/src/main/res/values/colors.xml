@@ -9,17 +9,25 @@
     <color name="default_primary_color">#f2f2f2</color>
     <color name="light_normal_color">#5A5A5A</color>
     <color name="light_active_color">#4285F4</color>
-    <color name="input_underline_color">#e5e5e5</color>
     <color name="input_underline_error_color">#d32f2f</color>
     <color name="explanation_text_color">#909090</color>
     <color name="text_highlight_color">#C6DAFC</color>
     <color name="dark_action_bar_color">#263238</color>
+    <color name="descriptive_text_color">#646464</color>
+    <color name="error_text_color">#c53929</color>
+    <color name="google_blue_700">#3367d6</color>
+    <color name="google_blue_grey_500">#607D8B</color>
+    <color name="google_red_700">#c53929</color>
+    <color name="google_green_700">#0b8043</color>
+    <color name="google_grey_100">#f5f5f5</color>
+    <color name="google_grey_300">#e0e0e0</color>
+    <color name="google_grey_600">#757575</color>
+    <color name="toolbar_shadow_color">#1d000000</color>
+    <color name="toolbar_light_tint">#A3000000</color>
 
     <!-- Infobar colors -->
-    <color name="infobar_background">#fff</color>
-    <color name="infobar_background_separator">#afafaf</color>
     <color name="infobar_accent_blue">#4285f4</color>
-    <color name="infobar_tertiary_button_text">#969696</color>
+    <color name="infobar_descriptive_text_color">#646464</color>
 
     <!-- Snackbar colors -->
     <color name="snackbar_background_color">#282C32</color>
@@ -32,7 +40,7 @@
     <color name="tab_back_incognito">#4F4F4F</color>
 
     <!-- App banner colors -->
-    <color name="app_banner_install_button_bg">#689f38</color>
+    <color name="app_banner_install_button_bg">#0F9D58</color>
 
     <!-- Connection Info Popup colors -->
     <color name="connection_info_popup_reset_cert_decisions_button">#000000</color>
@@ -43,10 +51,6 @@
     <color name="website_settings_popup_text_link">#4285f4</color>
 
     <!-- URL Emphasizer colors -->
-    <color name="url_emphasis_start_scheme_security_warning">#ffb000</color>
-    <color name="url_emphasis_start_scheme_security_error">#db4437</color>
-    <color name="url_emphasis_start_scheme_ev_secure">#1ac222</color>
-    <color name="url_emphasis_start_scheme_secure">#1ac222</color>
     <color name="url_emphasis_non_emphasized_text">#80333333</color>
     <color name="url_emphasis_light_non_emphasized_text">#80ffffff</color>
     <color name="url_emphasis_domain_and_registry">#333333</color>
@@ -61,7 +65,6 @@
 
     <!-- Password generation popup colors -->
     <color name="password_generation_divider_color">#e5e5e5</color>
-    <color name="password_generation_link_text_color">#5595e3</color>
 
     <!-- Preferences Colors -->
     <color name="pref_accent_color">@color/light_active_color</color>
@@ -73,15 +76,18 @@
     <color name="data_reduction_chart_background_color">#FAFAFA</color>
 
     <!-- Compositor Tab Title Colors -->
-    <color name="compositor_tab_title_bar_text">#555555</color>
+    <color name="compositor_tab_title_bar_text">#A3000000</color>
     <color name="compositor_tab_title_bar_text_incognito">#FFFFFFFF</color>
-    <color name="compositor_tab_title_bar_shadow">#AAFFFFFF</color>
-    <color name="compositor_tab_title_bar_shadow_incognito">#88000000</color>
 
     <!-- First Run Experience Colors -->
     <color name="fre_text_color">#000000</color>
-    <color name="fre_light_text_color">#494949</color>
     <color name="fre_title_color">#161616</color>
+
+    <!-- Account Signin Colors -->
+    <!-- As in dimens.xml, signin uses values from the First Run Experience -->
+    <color name="signin_head_background">#fff</color>
+    <color name="signin_body_background">#fafafa</color>
+    <color name="signin_border_line_color">#000</color>
 
     <!-- Sad Tab colors -->
     <color name="sad_tab_header_text_color">#333333</color>
@@ -90,19 +96,27 @@
     <!-- NTP Colors. Used on the bookmarks and recent tabs pages. -->
     <color name="ntp_bg">#fff</color>
     <color name="ntp_bg_incognito">#222</color>
-    <color name="ntp_most_visited_text">#333</color>
-    <color name="ntp_most_visited_bg">#f2f2f2</color>
+    <color name="ntp_search_box_hint">#969696</color>
     <color name="ntp_list_item_text">#333</color>
     <color name="ntp_list_header_text">#333</color>
     <color name="ntp_list_header_subtext">#969696</color>
     <color name="ntp_list_header_subtext_active">#7cadff</color>
+    <color name="ntp_material_design_bg">#f2f2f2</color>
+    <color name="snippets_thumnail_placeholder_bg">#f2f2f2</color>
+    <color name="snippets_thumnail_placeholder_fg">#757575</color>
+    <color name="snippets_publisher_name_color">#646464</color>
+    <color name="snippets_text_color">#646464</color>
+    <color name="snippets_list_header_text_color">#646464</color>
+    <color name="snippets_headline_text_color">#333333</color>
 
-    <!-- Signin promo screen colors -->
-    <color name="illustration_background_color">#4FC3F7</color>
+    <!-- Most Visited colors. -->
+    <color name="most_visited_text">#6f6f6f</color>
+    <color name="most_visited_offline_badge_tint">#4285f4</color>
 
     <!-- Contextual Search colors -->
     <color name="contextual_search_promo_text_color">#333333</color>
     <color name="contextual_search_promo_background_color">#EEEEEE</color>
+    <color name="contextual_search_promo_border_color">#C2C2C2</color>
 
     <!-- Progress Bar colors -->
     <color name="progress_bar_foreground">@color/light_active_color</color>
@@ -114,8 +128,13 @@
     <color name="incognito_primary_color">#505050</color>
 
     <!-- LocationBar colors -->
+    <color name="locationbar_dark_hint_text">#969696</color>
     <color name="locationbar_light_hint_text">#80ffffff</color>
     <color name="locationbar_light_selection_color">#cc5595fe</color>
+    <color name="locationbar_status_color">@color/light_normal_color</color>
+    <color name="locationbar_status_color_light">#ffffff</color>
+    <color name="locationbar_status_separator_color">#3d000000</color>
+    <color name="locationbar_status_separator_color_light">#3dffffff</color>
 
     <!-- Find in Page colors -->
     <color name="find_result_bar_background_color">#bfffffff</color>
@@ -130,11 +149,9 @@
     <color name="find_in_page_results_status_white_color">#7f7f7f</color>
     <color name="find_in_page_failed_results_status_color">#db4437</color>
 
-    <!-- App Launch Colors -->
+    <!-- App Background Colors -->
     <color name="light_background_color">#FFFFFF</color>
-
-    <!-- Reader mode colors -->
-    <color name="reader_mode_header_bg">#ff494949</color>
+    <color name="resizing_background_color">#000000</color>
 
     <!-- WebappActivity colors -->
     <color name="webapp_default_bg">#fafafa</color>
@@ -142,29 +159,41 @@
     <color name="webapp_url_bar_bg">#fafafa</color>
     <color name="webapp_url_bar_separator">#e1e1e1</color>
 
-    <!-- Enhanced bookmark UI colors -->
-    <color name="enhanced_bookmark_detail_text">#212121</color>
-    <color name="enhanced_bookmark_detail_section">#7C7B79</color>
-    <color name="enhanced_bookmark_app_bar_shadow_color">#1D000000</color>
-    <color name="enhanced_bookmark_drawer_selected_background_color">#F0F0F0</color>
-    <color name="enhanced_bookmark_list_item_highlight_color">#804281f4</color>
-    <color name="enhanced_bookmark_icon_background_color">#ff787878</color>
-    <color name="enhanced_bookmark_appbar_background">@color/default_primary_color</color>
+    <!-- Colors common to secondary activities like the BookmarkActivity and the DownloadManagerUi -->
+    <color name="appbar_background">@color/default_primary_color</color>
 
-    <!-- Opt out promo -->
-    <color name="opt_out_text_color">#646464</color>
+    <!-- Bookmark UI colors -->
+    <color name="bookmark_detail_text">#212121</color>
+    <color name="bookmark_detail_section">#7C7B79</color>
+    <color name="bookmark_drawer_selected_background_color">#F0F0F0</color>
 
-    <!-- Media UI Colors -->
-    <color name="media_session_icon_color">#14181C</color>
+    <!-- Favicon colors -->
+    <color name="default_favicon_background_color">#ff787878</color>
 
-    <!-- Smart Lock for Passwords UI colors-->
-    <color name="smart_lock_auto_signin_snackbar_background_color">#2196F3</color>
+    <!-- Bookmark widget colors -->
+    <color name="bookmark_widget_pressed_highlight">#1D000000</color>
 
-    <!-- Physical Web Nearby URLs colors -->
-    <color name="nearby_urls_header_color">#1c47c1</color>
-    <color name="nearby_urls_url_color">#099f39</color>
-    <color name="nearby_urls_description_color">#545454</color>
-    <color name="nearby_urls_background_color">#fff</color>
-    <color name="bottom_bar_btn_selected_color">#dadada</color>
+    <!-- Physical Web colors -->
+    <color name="physical_web_header_color">#333</color>
+    <color name="physical_web_url_color">#969696</color>
+    <color name="physical_web_url_description_color">#646464</color>
+    <color name="physical_web_logo_gray_tint">#ccc</color>
+
+    <!-- Physical Web diagnostics colors -->
+    <color name="physical_web_diags_success_color">#00933b</color>
+    <color name="physical_web_diags_failure_color">#f90101</color>
+    <color name="physical_web_diags_indeterminate_color">#f2b50f</color>
+
+    <!-- Bottom bar colors -->
+    <color name="bottom_bar_shadow_color">#1d000000</color>
+
+    <!-- Payments UI colors -->
+    <color name="payments_ui_scrim">#000000</color>
+    <color name="payments_section_edit_background">#f5f5f5</color>
+    <color name="payments_section_chevron">#b2b2b2</color>
+    <color name="payments_section_separator">#e0e0e0</color>
+
+    <!-- Other colors -->
+    <color name="selectable_list_item_highlight_color">#804281f4</color>
 
 </resources>

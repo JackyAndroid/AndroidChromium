@@ -13,14 +13,6 @@ import android.view.ContextMenu;
  */
 public interface ContextMenuPopulator {
     /**
-     * Determines whether or not a context menu should be shown for {@code params}.
-     * @param params The {@link ContextMenuParams} that represent what should be shown in the
-     *               context menu.
-     * @return       Whether or not a context menu should be shown.
-     */
-    public boolean shouldShowContextMenu(ContextMenuParams params);
-
-    /**
      * Should be used to populate {@code menu} with the correct context menu items.
      * @param menu    The menu to populate.
      * @param context A {@link Context} instance.

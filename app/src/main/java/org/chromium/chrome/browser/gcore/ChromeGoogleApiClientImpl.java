@@ -20,19 +20,26 @@ import java.util.concurrent.TimeUnit;
  * Default implementation for {@link ChromeGoogleApiClient}.
  */
 public class ChromeGoogleApiClientImpl implements ChromeGoogleApiClient {
-    private static final String TAG = "cr.Icing";
+    private static final String TAG = "Icing";
 
     private final Context mApplicationContext;
     private final GoogleApiClient mClient;
 
     /**
      * @param context its application context will be exposed through
-     *                {@link #getApplicationContext()}.
+     *            {@link #getApplicationContext()}.
      * @param client will be exposed through {@link #getApiClient()}.
+     * @param requireFirstPartyBuild true if the given client can only be used in a first-party
+     *            build.
      */
-    public ChromeGoogleApiClientImpl(Context context, GoogleApiClient client) {
+    public ChromeGoogleApiClientImpl(Context context, GoogleApiClient client,
+            boolean requireFirstPartyBuild) {
         mApplicationContext = context.getApplicationContext();
         mClient = client;
+        if (requireFirstPartyBuild
+                && !ExternalAuthUtils.getInstance().isChromeGoogleSigned(mApplicationContext)) {
+            throw new IllegalStateException("GoogleApiClient requires first-party build");
+        }
     }
 
     @Override

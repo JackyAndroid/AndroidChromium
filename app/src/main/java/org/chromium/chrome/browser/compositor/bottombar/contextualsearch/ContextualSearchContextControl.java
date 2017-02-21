@@ -11,12 +11,13 @@ import android.widget.TextView;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel;
+import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelInflater;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
 
 /**
  * Controls the Search Context View that is used as a dynamic resource.
  */
-public class ContextualSearchContextControl extends ContextualSearchInflater {
+public class ContextualSearchContextControl extends OverlayPanelInflater {
     /**
      * The selected text View.
      */

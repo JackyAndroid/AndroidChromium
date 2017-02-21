@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.metrics;
 import android.content.Intent;
 import android.os.Handler;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.metrics.RecordHistogram;
 
 /**
@@ -28,14 +29,26 @@ public class StartupMetrics {
     private int mFirstActionTaken = NO_ACTIVITY;
 
     private boolean mIsMainIntent;
-    private long mSessionStartTimestamp;
     private Handler mHandler;
-    private boolean mRecordedHistogram;
+    // This ensures metrics are recorded only once per updateIntent(...) call.
+    private boolean mShouldRecordHistogram;
+
+    // Startup time is measured by two different time sources.
+    // {@code mStartTimeNanoMonotonic} is measured from a monotonic time source with nanosecond
+    // precision whereas {@code mStartTimeMilli} is measured from the wall clock with millisecond
+    // precision. The monotonic time source may not persist across reboots whereas the wall clock
+    // is subject to change by the user.
+    private long mStartTimeNanoMonotonic;
+    private long mStartTimeMilli;
 
     private static StartupMetrics sInstance;
 
     // Record only the first 10s.
     private static final long RECORDING_THRESHOLD_NS = 10000000000L;
+    private static final int MILLI_SEC_PER_MINUTE = 60000;
+    private static final int MINUTES_PER_30DAYS = 43200;
+    // Bucket sizes are exponential so we get minute level granularity for first 10 minutes.
+    private static final int NUM_BUCKETS = 50;
 
     public static StartupMetrics getInstance() {
         if (sInstance == null) {
@@ -46,7 +59,6 @@ public class StartupMetrics {
 
     // Singleton
     private StartupMetrics() {
-        mSessionStartTimestamp = System.nanoTime();
         mHandler = new Handler();
     }
 
@@ -58,12 +70,13 @@ public class StartupMetrics {
     public void updateIntent(Intent intent) {
         mIsMainIntent = intent != null && Intent.ACTION_MAIN.equals(intent.getAction());
         mFirstActionTaken = NO_ACTIVITY;
-        mSessionStartTimestamp = System.nanoTime();
-        mRecordedHistogram = false;
+        mStartTimeNanoMonotonic = System.nanoTime();
+        mStartTimeMilli = System.currentTimeMillis();
+        mShouldRecordHistogram = true;
     }
 
     private boolean isShortlyAfterChromeStarted() {
-        return (System.nanoTime() - mSessionStartTimestamp) <= RECORDING_THRESHOLD_NS;
+        return (System.nanoTime() - mStartTimeNanoMonotonic) <= RECORDING_THRESHOLD_NS;
     }
 
     private void setFirstAction(int type) {
@@ -103,12 +116,21 @@ public class StartupMetrics {
 
     /** Records the startup data in a histogram. Should only be called after native is loaded. */
     public void recordHistogram(boolean onStop) {
-        if (mRecordedHistogram) return;
+        if (!mShouldRecordHistogram) return;
         if (!isShortlyAfterChromeStarted() || mFirstActionTaken != NO_ACTIVITY || onStop) {
             String histogramName = mIsMainIntent ? "MobileStartup.MainIntentAction" :
                     "MobileStartup.NonMainIntentAction";
             RecordHistogram.recordEnumeratedHistogram(histogramName, mFirstActionTaken, MAX_INDEX);
-            mRecordedHistogram = true;
+            mShouldRecordHistogram = false;
+            long lastUsedTimeMilli = ContextUtils.getAppSharedPreferences().getLong(
+                    UmaSessionStats.LAST_USED_TIME_PREF, 0);
+            if (mIsMainIntent && (lastUsedTimeMilli > 0) && (mStartTimeMilli > lastUsedTimeMilli)
+                    && (mStartTimeMilli - lastUsedTimeMilli > Integer.MAX_VALUE)) {
+                // Measured in minutes and capped at a day with a bucket precision of 6 minutes.
+                RecordHistogram.recordCustomCountHistogram("MobileStartup.TimeSinceLastUse",
+                        (int) (mStartTimeMilli - lastUsedTimeMilli) / MILLI_SEC_PER_MINUTE, 1,
+                        MINUTES_PER_30DAYS, NUM_BUCKETS);
+            }
         } else {
             // Call back later to record the histogram after 10s have elapsed.
             mHandler.postDelayed(new Runnable() {
@@ -116,8 +138,7 @@ public class StartupMetrics {
                 public void run() {
                     recordHistogram(false);
                 }
-            } , (RECORDING_THRESHOLD_NS - (System.nanoTime() - mSessionStartTimestamp)) / 1000000);
+            }, (RECORDING_THRESHOLD_NS - (System.nanoTime() - mStartTimeNanoMonotonic)) / 1000000);
         }
     }
-
 }

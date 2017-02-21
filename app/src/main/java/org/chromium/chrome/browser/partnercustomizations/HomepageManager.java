@@ -6,9 +6,9 @@ package org.chromium.chrome.browser.partnercustomizations;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.ObserverList;
 
 /**
@@ -38,7 +38,7 @@ public class HomepageManager {
     private final ObserverList<HomepageStateListener> mHomepageStateListeners;
 
     private HomepageManager(Context context) {
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        mSharedPreferences = ContextUtils.getAppSharedPreferences();
         mHomepageStateListeners = new ObserverList<HomepageManager.HomepageStateListener>();
     }
 

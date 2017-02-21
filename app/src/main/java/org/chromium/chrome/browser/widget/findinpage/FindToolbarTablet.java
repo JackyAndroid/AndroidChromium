@@ -55,7 +55,7 @@ public class FindToolbarTablet extends FindToolbar {
         int endMargin = resources.getDimensionPixelOffset(R.dimen.find_in_page_popup_margin_end);
         int translateWidth = width + endMargin;
 
-        mAnimationEnter = ObjectAnimator.ofFloat(this, "translationX", translateWidth, 0);
+        mAnimationEnter = ObjectAnimator.ofFloat(this, View.TRANSLATION_X, translateWidth, 0);
         mAnimationEnter.setDuration(ENTER_EXIT_ANIMATION_DURATION_MS);
         mAnimationEnter.setInterpolator(new DecelerateInterpolator());
         mAnimationEnter.addListener(new AnimatorListenerAdapter() {
@@ -72,7 +72,7 @@ public class FindToolbarTablet extends FindToolbar {
             }
         });
 
-        mAnimationLeave = ObjectAnimator.ofFloat(this, "translationX", 0, translateWidth);
+        mAnimationLeave = ObjectAnimator.ofFloat(this, View.TRANSLATION_X, 0, translateWidth);
         mAnimationLeave.setDuration(ENTER_EXIT_ANIMATION_DURATION_MS);
         mAnimationLeave.setInterpolator(new DecelerateInterpolator());
         mAnimationLeave.addListener(new AnimatorListenerAdapter() {
@@ -136,8 +136,7 @@ public class FindToolbarTablet extends FindToolbar {
         float translationY = makeRoom ? -(getHeight() - mYInsetPx) : 0.f;
 
         if (translationY != getTranslationY()) {
-            mCurrentAnimation = ObjectAnimator.ofFloat(this, "translationY", getTranslationY(),
-                    translationY);
+            mCurrentAnimation = ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, translationY);
             mCurrentAnimation.setDuration(MAKE_ROOM_ANIMATION_DURATION_MS);
             mAnimationLeave.setInterpolator(new DecelerateInterpolator());
             mAnimationLeave.addListener(new AnimatorListenerAdapter() {
@@ -151,9 +150,7 @@ public class FindToolbarTablet extends FindToolbar {
                     mCurrentAnimation = null;
                 }
             });
-            mTabModelSelector.getCurrentTab()
-                             .getWindowAndroid()
-                             .startAnimationOverContent(mCurrentAnimation);
+            startAnimationOverContent(mCurrentAnimation);
         }
     }
 
@@ -173,9 +170,7 @@ public class FindToolbarTablet extends FindToolbar {
 
         if (nextAnimator != null) {
             mCurrentAnimation = nextAnimator;
-            mTabModelSelector.getCurrentTab()
-                             .getWindowAndroid()
-                             .startAnimationOverContent(nextAnimator);
+            startAnimationOverContent(nextAnimator);
             postInvalidateOnAnimation();
         }
     }

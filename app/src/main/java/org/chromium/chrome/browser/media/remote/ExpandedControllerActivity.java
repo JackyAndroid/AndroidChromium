@@ -26,12 +26,13 @@ import com.google.android.gms.cast.CastMediaControlIntent;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.media.remote.RemoteVideoInfo.PlayerState;
+import org.chromium.chrome.browser.metrics.MediaNotificationUma;
 import org.chromium.third_party.android.media.MediaController;
 
 /**
  * The activity that's opened by clicking the video flinging (casting) notification.
  *
- * TODO(cimamoglu): Refactor to merge some common logic with {@link TransportControl}.
+ * TODO(aberent): Refactor to merge some common logic with {@link CastNotificationControl}.
  */
 public class ExpandedControllerActivity
         extends FragmentActivity implements MediaRouteController.UiListener {
@@ -57,6 +58,9 @@ public class ExpandedControllerActivity
         public void onStart() {
             if (mMediaRouteController == null) return;
             mMediaRouteController.resume();
+            RecordCastAction.recordFullscreenControlsAction(
+                    RecordCastAction.FULLSCREEN_CONTROLS_RESUME,
+                    mMediaRouteController.getMediaStateListener() != null);
         }
 
         @Override
@@ -70,6 +74,9 @@ public class ExpandedControllerActivity
         public void onPause() {
             if (mMediaRouteController == null) return;
             mMediaRouteController.pause();
+            RecordCastAction.recordFullscreenControlsAction(
+                    RecordCastAction.FULLSCREEN_CONTROLS_PAUSE,
+                    mMediaRouteController.getMediaStateListener() != null);
         }
 
         @Override
@@ -87,7 +94,10 @@ public class ExpandedControllerActivity
         @Override
         public void onSeekTo(long pos) {
             if (mMediaRouteController == null) return;
-            mMediaRouteController.seekTo((int) pos);
+            mMediaRouteController.seekTo(pos);
+            RecordCastAction.recordFullscreenControlsAction(
+                    RecordCastAction.FULLSCREEN_CONTROLS_SEEK,
+                    mMediaRouteController.getMediaStateListener() != null);
         }
 
         @Override
@@ -124,6 +134,8 @@ public class ExpandedControllerActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        MediaNotificationUma.recordClickSource(getIntent());
 
         mMediaRouteController =
                 RemoteMediaPlayerController.instance().getCurrentlyPlayingMediaRouteController();
@@ -181,6 +193,12 @@ public class ExpandedControllerActivity
         super.onResume();
         if (mVideoInfo.state == PlayerState.FINISHED) finish();
         if (mMediaRouteController == null) return;
+
+        // Lifetime of the media element is bound to that of the {@link MediaStateListener}
+        // of the {@link MediaRouteController}.
+        RecordCastAction.recordFullscreenControlsShown(
+                mMediaRouteController.getMediaStateListener() != null);
+
         mMediaRouteController.prepareMediaRoute();
 
         ImageView iv = (ImageView) findViewById(R.id.cast_background_image);
@@ -284,7 +302,7 @@ public class ExpandedControllerActivity
     }
 
     @Override
-    public void onPlaybackStateChanged(PlayerState oldState, PlayerState newState) {
+    public void onPlaybackStateChanged(PlayerState newState) {
         RemoteVideoInfo videoInfo = new RemoteVideoInfo(mVideoInfo);
         videoInfo.state = newState;
         setVideoInfo(videoInfo);
@@ -298,14 +316,14 @@ public class ExpandedControllerActivity
     }
 
     @Override
-    public void onDurationUpdated(int durationMillis) {
+    public void onDurationUpdated(long durationMillis) {
         RemoteVideoInfo videoInfo = new RemoteVideoInfo(mVideoInfo);
         videoInfo.durationMillis = durationMillis;
         setVideoInfo(videoInfo);
     }
 
     @Override
-    public void onPositionChanged(int positionMillis) {
+    public void onPositionChanged(long positionMillis) {
         RemoteVideoInfo videoInfo = new RemoteVideoInfo(mVideoInfo);
         videoInfo.currentTimeMillis = positionMillis;
         setVideoInfo(videoInfo);

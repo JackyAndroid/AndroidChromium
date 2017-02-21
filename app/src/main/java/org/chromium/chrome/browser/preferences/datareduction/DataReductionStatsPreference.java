@@ -9,6 +9,7 @@ import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
 
 import static org.chromium.third_party.android.datausagechart.ChartDataUsageView.DAYS_IN_CHART;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -133,6 +134,8 @@ public class DataReductionStatsPreference extends PreferenceCategory {
      * of all data received (after compression), the percent data reduction
      * and the range of dates over which these statistics apply.
      */
+    // TODO(crbug.com/635567): Fix this properly.
+    @SuppressLint("DefaultLocale")
     private void updateDetailData() {
         final long start = mLeftPosition;
         // Include up to the last second of the currently selected day.

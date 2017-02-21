@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- PaymentRequestUI editor dialog. -->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto" >
+
+    <!-- Toolbar -->
+    <org.chromium.chrome.browser.payments.ui.EditorDialogToolbar
+        android:id="@+id/action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:background="@color/dark_action_bar_color" />
+    
+    <!-- All the page content in scrollable form. -->
+    <org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView
+        android:id="@+id/scroll_view"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_below="@id/action_bar"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" >
+
+        <LinearLayout
+            android:id="@+id/contents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/pref_autofill_content_spacing"
+            android:paddingEnd="@dimen/pref_autofill_content_spacing"
+            android:orientation="vertical" />
+
+    </org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView>
+
+    <!-- Shadow overlaps the FadingEdgeScrollView. -->
+    <org.chromium.chrome.browser.widget.FadingShadowView
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@id/action_bar"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>

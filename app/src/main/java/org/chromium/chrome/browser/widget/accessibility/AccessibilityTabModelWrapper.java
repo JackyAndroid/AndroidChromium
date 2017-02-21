@@ -62,6 +62,12 @@ public class AccessibilityTabModelWrapper extends LinearLayout {
                     mTabModelSelector.commitAllTabClosures();
                     mTabModelSelector.selectModel(mIncognito);
                     setStateBasedOnModel();
+
+                    int stackAnnouncementId = mIncognito
+                            ? R.string.accessibility_tab_switcher_incognito_stack_selected
+                            : R.string.accessibility_tab_switcher_standard_stack_selected;
+                    AccessibilityTabModelWrapper.this.announceForAccessibility(
+                            getResources().getString(stackAnnouncementId));
                 }
             }
         }

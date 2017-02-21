@@ -21,27 +21,13 @@ public class GcmUma {
     public static final int UMA_UPSTREAM_SIZE_LIMIT_EXCEEDED = 1;
     public static final int UMA_UPSTREAM_TOKEN_REQUEST_FAILED = 2;
     public static final int UMA_UPSTREAM_SEND_FAILED = 3;
-    public static final int UMA_UPSTREAM_MAX = 4;
-
-    // Values for the "GCM.AndroidGcmReceiver" UMA histogram. The list is append-only.
-    public static final int UMA_GCM_RECEIVER_SUCCESS = 0;
-    public static final int UMA_GCM_RECEIVER_ERROR_SECURITY_EXCEPTION = 1;
-    public static final int UMA_GCM_RECEIVER_MAX = 2;
+    public static final int UMA_UPSTREAM_COUNT = 4;
 
     public static void recordGcmUpstreamHistogram(Context context, final int value) {
         onNativeLaunched(context, new Runnable() {
             @Override public void run() {
                 RecordHistogram.recordEnumeratedHistogram(
-                        "Invalidations.GCMUpstreamRequest", value, UMA_UPSTREAM_MAX);
-            }
-        });
-    }
-
-    public static void recordGcmReceiverHistogram(Context context, final int value) {
-        onNativeLaunched(context, new Runnable() {
-            @Override public void run() {
-                RecordHistogram.recordEnumeratedHistogram(
-                        "GCM.AndroidGcmReceiverError", value, UMA_GCM_RECEIVER_MAX);
+                        "Invalidations.GCMUpstreamRequest", value, UMA_UPSTREAM_COUNT);
             }
         });
     }

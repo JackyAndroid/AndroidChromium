@@ -106,14 +106,15 @@ public abstract class TabModelJniBridge implements TabModel {
 
     /**
      * Creates a Tab with the given WebContents.
-     * @param incognito Whether or not the tab is incognito.
+     * @param parent      The parent tab that creates the new tab.
+     * @param incognito   Whether or not the tab is incognito.
      * @param webContents A {@link WebContents} object.
-     * @param parentId ID of the parent.
+     * @param parentId    ID of the parent.
      * @return Whether or not the Tab was successfully created.
      */
     @CalledByNative
-    protected abstract boolean createTabWithWebContents(
-            boolean incognito, WebContents webContents, int parentId);
+    protected abstract boolean createTabWithWebContents(Tab parent, boolean incognito,
+            WebContents webContents, int parentId);
 
     /**
      * Creates a Tab with the given WebContents for DevTools.
@@ -122,7 +123,7 @@ public abstract class TabModelJniBridge implements TabModel {
     @CalledByNative
     protected Tab createNewTabForDevTools(String url) {
         return getTabCreator(false).createNewTab(new LoadUrlParams(url),
-                TabModel.TabLaunchType.FROM_MENU_OR_OVERVIEW, null);
+                TabModel.TabLaunchType.FROM_CHROME_UI, null);
     }
 
     @Override

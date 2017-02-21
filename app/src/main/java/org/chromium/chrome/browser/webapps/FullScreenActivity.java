@@ -8,16 +8,21 @@ import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeActivity;
+import org.chromium.chrome.browser.TabState;
 import org.chromium.chrome.browser.compositor.layouts.LayoutManagerDocument;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabDelegateFactory;
+import org.chromium.chrome.browser.tab.TabUma.TabCreationState;
 import org.chromium.chrome.browser.tabmodel.SingleTabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.document.TabDelegate;
 import org.chromium.chrome.browser.widget.ControlContainer;
 import org.chromium.content_public.browser.LoadUrlParams;
+import org.chromium.content_public.browser.WebContentsObserver;
 
 import java.io.File;
 
@@ -30,9 +35,14 @@ import java.io.File;
  * the regular browser's UI is either unnecessary or undesirable.
  * Subclasses can override {@link #createUI()} if they need something more exotic.
  */
-public abstract class FullScreenActivity extends ChromeActivity
-        implements FullScreenActivityTab.TopControlsVisibilityDelegate {
-    private FullScreenActivityTab mTab;
+@SuppressFBWarnings("URF_UNREAD_FIELD")
+public abstract class FullScreenActivity extends ChromeActivity {
+    protected static final String BUNDLE_TAB_ID = "tabId";
+    protected static final String BUNDLE_TAB_URL = "tabUrl";
+    private static final String TAG = "FullScreenActivity";
+
+    private Tab mTab;
+    private WebContentsObserver mWebContentsObserver;
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -62,8 +72,7 @@ public abstract class FullScreenActivity extends ChromeActivity
 
     @Override
     public void finishNativeInitialization() {
-        mTab = FullScreenActivityTab.create(
-                this, getWindowAndroid(), getActivityDirectory(), getSavedInstanceState(), this);
+        mTab = createTab();
         getTabModelSelector().setTab(mTab);
         mTab.show(TabSelectionType.FROM_NEW);
 
@@ -85,8 +94,62 @@ public abstract class FullScreenActivity extends ChromeActivity
     }
 
     @Override
-    public final FullScreenActivityTab getActivityTab() {
+    public final Tab getActivityTab() {
         return mTab;
+    }
+
+    /**
+     * Creates the {@link Tab} used by the FullScreenActivity.
+     * If the {@code savedInstanceState} exists, then the user did not intentionally close the app
+     * by swiping it away in the recent tasks list.  In that case, we try to restore the tab from
+     * disk.
+     */
+    private Tab createTab() {
+        Tab tab = null;
+        boolean unfreeze = false;
+
+        int tabId = Tab.INVALID_TAB_ID;
+        String tabUrl = null;
+        if (getSavedInstanceState() != null) {
+            tabId = getSavedInstanceState().getInt(BUNDLE_TAB_ID, Tab.INVALID_TAB_ID);
+            tabUrl = getSavedInstanceState().getString(BUNDLE_TAB_URL);
+        }
+
+        if (tabId != Tab.INVALID_TAB_ID && tabUrl != null && getActivityDirectory() != null) {
+            // Restore the tab.
+            TabState tabState = TabState.restoreTabState(getActivityDirectory(), tabId);
+            tab = new Tab(tabId, Tab.INVALID_TAB_ID, false, this, getWindowAndroid(),
+                    TabLaunchType.FROM_RESTORE,
+                    TabCreationState.FROZEN_ON_RESTORE, tabState);
+            unfreeze = true;
+        }
+
+        if (tab == null) {
+            tab = new Tab(Tab.INVALID_TAB_ID, Tab.INVALID_TAB_ID, false, this, getWindowAndroid(),
+                    TabLaunchType.FROM_CHROME_UI, null, null);
+        }
+
+        tab.initialize(null, getTabContentManager(), createTabDelegateFactory(), false, unfreeze);
+        mWebContentsObserver = new WebContentsObserver(tab.getWebContents()) {
+            @Override
+            public void didCommitProvisionalLoadForFrame(
+                    long frameId, boolean isMainFrame, String url, int transitionType) {
+                if (isMainFrame) {
+                    // Notify the renderer to permanently hide the top controls since they do
+                    // not apply to fullscreen content views.
+                    getActivityTab().updateTopControlsState(
+                            getActivityTab().getTopControlsStateConstraints(), true);
+                }
+            }
+        };
+        return tab;
+    }
+
+    /**
+     * @return {@link TabDelegateFactory} to be used while creating the associated {@link Tab}.
+     */
+    protected TabDelegateFactory createTabDelegateFactory() {
+        return new FullScreenDelegateFactory();
     }
 
     /**
@@ -94,12 +157,6 @@ public abstract class FullScreenActivity extends ChromeActivity
      */
     protected File getActivityDirectory() {
         return null;
-    }
-
-    // Implements {@link FullScreenActivityTab.TopControlsVisibilityDelegate}.
-    @Override
-    public boolean shouldShowTopControls(String url, int securityLevel) {
-        return false;
     }
 
     @Override
@@ -110,5 +167,9 @@ public abstract class FullScreenActivity extends ChromeActivity
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onCheckForUpdate(boolean updateAvailable) {
     }
 }

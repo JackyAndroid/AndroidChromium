@@ -4,6 +4,9 @@
 
 package org.chromium.chrome.browser;
 
+import android.support.annotation.UiThread;
+
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 
@@ -34,6 +37,19 @@ public class JavaExceptionReporter implements Thread.UncaughtExceptionHandler {
         }
     }
 
+    /**
+     * Report and upload the stack trace as if it was a crash. This is very expensive and should
+     * be called rarely and only on the UI thread to avoid corrupting other crash uploads. Ideally
+     * only called in idle handlers.
+     *
+     * @param stackTrace The stack trace to report.
+     */
+    @UiThread
+    public static void reportStackTrace(String stackTrace) {
+        assert ThreadUtils.runningOnUiThread();
+        nativeReportJavaStackTrace(stackTrace);
+    }
+
     @CalledByNative
     private static void installHandler() {
         Thread.setDefaultUncaughtExceptionHandler(
@@ -41,4 +57,5 @@ public class JavaExceptionReporter implements Thread.UncaughtExceptionHandler {
     }
 
     private static native void nativeReportJavaException(Throwable e);
+    private static native void nativeReportJavaStackTrace(String stackTrace);
 }

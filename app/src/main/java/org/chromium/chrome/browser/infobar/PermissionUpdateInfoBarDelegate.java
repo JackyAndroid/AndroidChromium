@@ -22,7 +22,7 @@ import org.chromium.ui.base.WindowAndroid;
  */
 class PermissionUpdateInfoBarDelegate implements WindowAndroid.PermissionCallback {
 
-    private final WindowAndroid mWindowAndroid;
+    private final ContentViewCore mContentViewCore;
     private final String[] mAndroidPermisisons;
     private long mNativePtr;
     private ActivityStateListener mActivityStateListener;
@@ -37,7 +37,7 @@ class PermissionUpdateInfoBarDelegate implements WindowAndroid.PermissionCallbac
             long nativePtr, WebContents webContents, String[] permissions) {
         mNativePtr = nativePtr;
         mAndroidPermisisons = permissions;
-        mWindowAndroid = ContentViewCore.fromWebContents(webContents).getWindowAndroid();
+        mContentViewCore = ContentViewCore.fromWebContents(webContents);
     }
 
     @CalledByNative
@@ -51,17 +51,23 @@ class PermissionUpdateInfoBarDelegate implements WindowAndroid.PermissionCallbac
 
     @CalledByNative
     private void requestPermissions() {
+        WindowAndroid windowAndroid = mContentViewCore.getWindowAndroid();
+        if (windowAndroid == null) {
+            nativeOnPermissionResult(mNativePtr, false);
+            return;
+        }
+
         boolean canRequestAllPermissions = true;
         for (int i = 0; i < mAndroidPermisisons.length; i++) {
             canRequestAllPermissions &=
-                    (mWindowAndroid.hasPermission(mAndroidPermisisons[i])
-                            || mWindowAndroid.canRequestPermission(mAndroidPermisisons[i]));
+                    (windowAndroid.hasPermission(mAndroidPermisisons[i])
+                            || windowAndroid.canRequestPermission(mAndroidPermisisons[i]));
         }
 
         if (canRequestAllPermissions) {
-            mWindowAndroid.requestPermissions(mAndroidPermisisons, this);
+            windowAndroid.requestPermissions(mAndroidPermisisons, this);
         } else {
-            Activity activity = mWindowAndroid.getActivity().get();
+            Activity activity = windowAndroid.getActivity().get();
             if (activity == null) {
                 nativeOnPermissionResult(mNativePtr, false);
                 return;
@@ -87,7 +93,7 @@ class PermissionUpdateInfoBarDelegate implements WindowAndroid.PermissionCallbac
 
             Intent settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             settingsIntent.setData(Uri.parse(
-                    "package:" + mWindowAndroid.getApplicationContext().getPackageName()));
+                    "package:" + windowAndroid.getApplicationContext().getPackageName()));
             settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity.startActivity(settingsIntent);
         }
@@ -100,9 +106,13 @@ class PermissionUpdateInfoBarDelegate implements WindowAndroid.PermissionCallbac
 
     private void notifyPermissionResult() {
         boolean hasAllPermissions = true;
-        for (int i = 0; i < mAndroidPermisisons.length; i++) {
-            hasAllPermissions &=
-                    mWindowAndroid.hasPermission(mAndroidPermisisons[i]);
+        WindowAndroid windowAndroid = mContentViewCore.getWindowAndroid();
+        if (windowAndroid == null) {
+            hasAllPermissions = false;
+        } else {
+            for (int i = 0; i < mAndroidPermisisons.length; i++) {
+                hasAllPermissions &= windowAndroid.hasPermission(mAndroidPermisisons[i]);
+            }
         }
         if (mNativePtr != 0) nativeOnPermissionResult(mNativePtr, hasAllPermissions);
     }

@@ -15,8 +15,6 @@ import java.sql.Types;
 /**
  * This class exposes the query result from native side.
  */
-// TODO(michaelbai): fix deprecation warnings crbug.com/528085
-@SuppressWarnings("deprecation")
 public class SQLiteCursor extends AbstractCursor {
     private static final String TAG = "SQLiteCursor";
     // Used by JNI.
@@ -139,30 +137,31 @@ public class SQLiteCursor extends AbstractCursor {
         }
         window.acquireReference();
         try {
-            int oldpos = mPos;
-            mPos = position - 1;
+            int oldpos = getPosition();
+            moveToPosition(position - 1);
             window.clear();
             window.setStartPosition(position);
             int columnNum = getColumnCount();
             window.setNumColumns(columnNum);
             while (moveToNext() && window.allocRow()) {
+                int pos = getPosition();
                 for (int i = 0; i < columnNum; i++) {
                     boolean hasRoom = true;
                     switch (getColumnType(i)) {
                         case Types.DOUBLE:
-                            hasRoom = fillRow(window, Double.valueOf(getDouble(i)), mPos, i);
+                            hasRoom = fillRow(window, Double.valueOf(getDouble(i)), pos, i);
                             break;
                         case Types.NUMERIC:
-                            hasRoom = fillRow(window, Long.valueOf(getLong(i)), mPos, i);
+                            hasRoom = fillRow(window, Long.valueOf(getLong(i)), pos, i);
                             break;
                         case Types.BLOB:
-                            hasRoom = fillRow(window, getBlob(i), mPos, i);
+                            hasRoom = fillRow(window, getBlob(i), pos, i);
                             break;
                         case Types.LONGVARCHAR:
-                            hasRoom = fillRow(window, getString(i), mPos, i);
+                            hasRoom = fillRow(window, getString(i), pos, i);
                             break;
                         case Types.NULL:
-                            hasRoom = fillRow(window, null, mPos, i);
+                            hasRoom = fillRow(window, null, pos, i);
                             break;
                         default:
                             // Ignore an unknown type.
@@ -172,7 +171,7 @@ public class SQLiteCursor extends AbstractCursor {
                     }
                 }
             }
-            mPos = oldpos;
+            moveToPosition(oldpos);
         } catch (IllegalStateException e) {
             // simply ignore it
         } finally {

@@ -11,7 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.chrome.browser.document.DocumentUtils;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.document.DocumentTabModel.Entry;
@@ -38,7 +38,7 @@ public class ActivityDelegateImpl extends ActivityDelegate {
 
     @Override
     public List<Entry> getTasksFromRecents(boolean isIncognito) {
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
         ActivityManager activityManager =
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 
@@ -69,7 +69,7 @@ public class ActivityDelegateImpl extends ActivityDelegate {
     }
 
     private ActivityManager.AppTask getTask(boolean isIncognito, int tabId) {
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
         ActivityManager activityManager =
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
@@ -82,7 +82,7 @@ public class ActivityDelegateImpl extends ActivityDelegate {
 
     @Override
     public boolean isIncognitoDocumentAccessibleToUser() {
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
         ActivityManager activityManager =
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 

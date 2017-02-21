@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class ExponentialBackoffScheduler {
-    private static final String TAG = "cr.omaha";
+    private static final String TAG = "omaha";
 
     private static final String PREFERENCE_DELAY = "delay";
     private static final String PREFERENCE_FAILED_ATTEMPTS = "backoffFailedAttempts";

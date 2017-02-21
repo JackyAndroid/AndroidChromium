@@ -25,48 +25,52 @@ class AnswerTextBuilder {
     private static final String TAG = "AnswerTextBuilder";
 
     // Types, sizes and colors specified at http://goto.google.com/ais_api.
-    private static final int ANSWERS_ANSWER_TEXT_TYPE = 1;
-    private static final int ANSWERS_HEADLINE_TEXT_TYPE = 2;
+    // Deprecated: ANSWERS_ANSWER_TEXT_TYPE = 1;
+    // Deprecated: ANSWERS_HEADLINE_TEXT_TYPE = 2;
     private static final int ANSWERS_TOP_ALIGNED_TEXT_TYPE = 3;
-    private static final int ANSWERS_DESCRIPTION_TEXT_TYPE = 4;
+    // Deprecated: ANSWERS_DESCRIPTION_TEXT_TYPE = 4;
     private static final int ANSWERS_DESCRIPTION_TEXT_NEGATIVE_TYPE = 5;
     private static final int ANSWERS_DESCRIPTION_TEXT_POSITIVE_TYPE = 6;
-    private static final int ANSWERS_MORE_INFO_TEXT_TYPE = 7;
+    // Deprecated: ANSWERS_MORE_INFO_TEXT_TYPE = 7;
     private static final int ANSWERS_SUGGESTION_TEXT_TYPE = 8;
-    private static final int ANSWERS_SUGGESTION_TEXT_POSITIVE_TYPE = 9;
-    private static final int ANSWERS_SUGGESTION_TEXT_NEGATIVE_TYPE = 10;
-    private static final int ANSWERS_SUGGESTION_LINK_COLOR_TYPE = 11;
-    private static final int ANSWERS_STATUS_TEXT_TYPE = 12;
+    // Deprecated: ANSWERS_SUGGESTION_TEXT_POSITIVE_TYPE = 9;
+    // Deprecated: ANSWERS_SUGGESTION_TEXT_NEGATIVE_TYPE = 10;
+    // Deprecated: ANSWERS_SUGGESTION_LINK_COLOR_TYPE = 11;
+    // Deprecated: ANSWERS_STATUS_TEXT_TYPE = 12;
     private static final int ANSWERS_PERSONALIZED_SUGGESTION_TEXT_TYPE = 13;
+    // Deprecated: ANSWERS_IMMERSIVE_DESCRIPTION_TEXT = 14;
+    // Deprecated: ANSWERS_DATE_TEXT = 15;
+    // Deprecated: ANSWERS_PREVIEW_TEXT = 16;
+    private static final int ANSWERS_ANSWER_TEXT_MEDIUM_TYPE = 17;
+    private static final int ANSWERS_ANSWER_TEXT_LARGE_TYPE = 18;
+    private static final int ANSWERS_SECONDARY_TEXT_SMALL_TYPE = 19;
+    private static final int ANSWERS_SECONDARY_TEXT_MEDIUM_TYPE = 20;
 
-    private static final int ANSWERS_ANSWER_TEXT_SIZE_SP = 28;
-    private static final int ANSWERS_HEADLINE_TEXT_SIZE_SP = 24;
-    private static final int ANSWERS_TOP_ALIGNED_TEXT_SIZE_SP = 13;
-    private static final int ANSWERS_DESCRIPTION_TEXT_SIZE_SP = 15;
+    private static final int ANSWERS_TOP_ALIGNED_TEXT_SIZE_SP = 12;
     private static final int ANSWERS_DESCRIPTION_TEXT_NEGATIVE_SIZE_SP = 16;
     private static final int ANSWERS_DESCRIPTION_TEXT_POSITIVE_SIZE_SP = 16;
-    private static final int ANSWERS_MORE_INFO_TEXT_SIZE_SP = 12;
-    private static final int ANSWERS_SUGGESTION_TEXT_SIZE_SP = 15;
-    private static final int ANSWERS_SUGGESTION_TEXT_POSITIVE_SIZE_SP = 15;
-    private static final int ANSWERS_SUGGESTION_TEXT_NEGATIVE_SIZE_SP = 15;
-    private static final int ANSWERS_SUGGESTION_LINK_COLOR_SIZE_SP = 15;
-    private static final int ANSWERS_STATUS_TEXT_SIZE_SP = 13;
+    private static final int ANSWERS_SUGGESTION_TEXT_SIZE_SP = 16;
     private static final int ANSWERS_PERSONALIZED_SUGGESTION_TEXT_SIZE_SP = 15;
+    private static final int ANSWERS_ANSWER_TEXT_MEDIUM_SIZE_SP = 20;
+    private static final int ANSWERS_ANSWER_TEXT_LARGE_SIZE_SP = 24;
+    private static final int ANSWERS_SECONDARY_TEXT_SMALL_SIZE_SP = 12;
+    private static final int ANSWERS_SECONDARY_TEXT_MEDIUM_SIZE_SP = 14;
 
-    private static final int ANSWERS_ANSWER_TEXT_COLOR = Color.BLACK;
-    private static final int ANSWERS_HEADLINE_TEXT_COLOR = Color.BLACK;
-    private static final int ANSWERS_TOP_ALIGNED_TEXT_COLOR = Color.GRAY;
-    private static final int ANSWERS_DESCRIPTION_TEXT_COLOR = Color.BLACK;
+    private static final int ANSWERS_TOP_ALIGNED_TEXT_COLOR = 0xFF8A8A8A;
+    // These two colors deviate from the AIS spec because they provide better
+    // contrast over the background in Chrome, but they do come from the
+    // Google pallette.
     private static final int ANSWERS_DESCRIPTION_TEXT_NEGATIVE_COLOR = 0xFFC53929;
     private static final int ANSWERS_DESCRIPTION_TEXT_POSITIVE_COLOR = 0xFF0B8043;
-    private static final int ANSWERS_MORE_INFO_TEXT_COLOR = Color.BLACK;
-    private static final int ANSWERS_SUGGESTION_TEXT_COLOR = Color.BLACK;
-    private static final int ANSWERS_SUGGESTION_TEXT_POSITIVE_COLOR = Color.GREEN;
-    private static final int ANSWERS_SUGGESTION_TEXT_NEGATIVE_COLOR = Color.RED;
-    // TODO(jdonnelly): Links should be purple if visited.
-    private static final int ANSWERS_SUGGESTION_LINK_COLOR_COLOR = Color.BLUE;
-    private static final int ANSWERS_STATUS_TEXT_COLOR = Color.GRAY;
+    private static final int ANSWERS_SUGGESTION_TEXT_COLOR =
+            SuggestionView.TITLE_COLOR_STANDARD_FONT_DARK;
     private static final int ANSWERS_PERSONALIZED_SUGGESTION_TEXT_COLOR = Color.BLACK;
+    private static final int ANSWERS_ANSWER_TEXT_MEDIUM_COLOR =
+            SuggestionView.TITLE_COLOR_STANDARD_FONT_DARK;
+    private static final int ANSWERS_ANSWER_TEXT_LARGE_COLOR =
+            SuggestionView.TITLE_COLOR_STANDARD_FONT_DARK;
+    private static final int ANSWERS_SECONDARY_TEXT_SMALL_COLOR = 0xFF8A8A8A;
+    private static final int ANSWERS_SECONDARY_TEXT_MEDIUM_COLOR = 0xFF8A8A8A;
 
     /**
      * Builds a Spannable containing all of the styled text in the supplied ImageLine.
@@ -184,32 +188,24 @@ class AnswerTextBuilder {
      */
     private static int getAnswerTextSizeSp(int type) {
         switch (type) {
-            case ANSWERS_ANSWER_TEXT_TYPE:
-                return ANSWERS_ANSWER_TEXT_SIZE_SP;
-            case ANSWERS_HEADLINE_TEXT_TYPE:
-                return ANSWERS_HEADLINE_TEXT_SIZE_SP;
             case ANSWERS_TOP_ALIGNED_TEXT_TYPE:
                 return ANSWERS_TOP_ALIGNED_TEXT_SIZE_SP;
-            case ANSWERS_DESCRIPTION_TEXT_TYPE:
-                return ANSWERS_DESCRIPTION_TEXT_SIZE_SP;
             case ANSWERS_DESCRIPTION_TEXT_NEGATIVE_TYPE:
                 return ANSWERS_DESCRIPTION_TEXT_NEGATIVE_SIZE_SP;
             case ANSWERS_DESCRIPTION_TEXT_POSITIVE_TYPE:
                 return ANSWERS_DESCRIPTION_TEXT_POSITIVE_SIZE_SP;
-            case ANSWERS_MORE_INFO_TEXT_TYPE:
-                return ANSWERS_MORE_INFO_TEXT_SIZE_SP;
             case ANSWERS_SUGGESTION_TEXT_TYPE:
                 return ANSWERS_SUGGESTION_TEXT_SIZE_SP;
-            case ANSWERS_SUGGESTION_TEXT_POSITIVE_TYPE:
-                return ANSWERS_SUGGESTION_TEXT_POSITIVE_SIZE_SP;
-            case ANSWERS_SUGGESTION_TEXT_NEGATIVE_TYPE:
-                return ANSWERS_SUGGESTION_TEXT_NEGATIVE_SIZE_SP;
-            case ANSWERS_SUGGESTION_LINK_COLOR_TYPE:
-                return ANSWERS_SUGGESTION_LINK_COLOR_SIZE_SP;
-            case ANSWERS_STATUS_TEXT_TYPE:
-                return ANSWERS_STATUS_TEXT_SIZE_SP;
             case ANSWERS_PERSONALIZED_SUGGESTION_TEXT_TYPE:
                 return ANSWERS_PERSONALIZED_SUGGESTION_TEXT_SIZE_SP;
+            case ANSWERS_ANSWER_TEXT_MEDIUM_TYPE:
+                return ANSWERS_ANSWER_TEXT_MEDIUM_SIZE_SP;
+            case ANSWERS_ANSWER_TEXT_LARGE_TYPE:
+                return ANSWERS_ANSWER_TEXT_LARGE_SIZE_SP;
+            case ANSWERS_SECONDARY_TEXT_SMALL_TYPE:
+                return ANSWERS_SECONDARY_TEXT_SMALL_SIZE_SP;
+            case ANSWERS_SECONDARY_TEXT_MEDIUM_TYPE:
+                return ANSWERS_SECONDARY_TEXT_MEDIUM_SIZE_SP;
             default:
                 Log.w(TAG, "Unknown answer type: " + type);
                 return ANSWERS_SUGGESTION_TEXT_SIZE_SP;
@@ -223,32 +219,24 @@ class AnswerTextBuilder {
      */
     private static int getAnswerTextColor(int type) {
         switch (type) {
-            case ANSWERS_ANSWER_TEXT_TYPE:
-                return ANSWERS_ANSWER_TEXT_COLOR;
-            case ANSWERS_HEADLINE_TEXT_TYPE:
-                return ANSWERS_HEADLINE_TEXT_COLOR;
             case ANSWERS_TOP_ALIGNED_TEXT_TYPE:
                 return ANSWERS_TOP_ALIGNED_TEXT_COLOR;
-            case ANSWERS_DESCRIPTION_TEXT_TYPE:
-                return ANSWERS_DESCRIPTION_TEXT_COLOR;
             case ANSWERS_DESCRIPTION_TEXT_NEGATIVE_TYPE:
                 return ANSWERS_DESCRIPTION_TEXT_NEGATIVE_COLOR;
             case ANSWERS_DESCRIPTION_TEXT_POSITIVE_TYPE:
                 return ANSWERS_DESCRIPTION_TEXT_POSITIVE_COLOR;
-            case ANSWERS_MORE_INFO_TEXT_TYPE:
-                return ANSWERS_MORE_INFO_TEXT_COLOR;
             case ANSWERS_SUGGESTION_TEXT_TYPE:
                 return ANSWERS_SUGGESTION_TEXT_COLOR;
-            case ANSWERS_SUGGESTION_TEXT_POSITIVE_TYPE:
-                return ANSWERS_SUGGESTION_TEXT_POSITIVE_COLOR;
-            case ANSWERS_SUGGESTION_TEXT_NEGATIVE_TYPE:
-                return ANSWERS_SUGGESTION_TEXT_NEGATIVE_COLOR;
-            case ANSWERS_SUGGESTION_LINK_COLOR_TYPE:
-                return ANSWERS_SUGGESTION_LINK_COLOR_COLOR;
-            case ANSWERS_STATUS_TEXT_TYPE:
-                return ANSWERS_STATUS_TEXT_COLOR;
             case ANSWERS_PERSONALIZED_SUGGESTION_TEXT_TYPE:
                 return ANSWERS_PERSONALIZED_SUGGESTION_TEXT_COLOR;
+            case ANSWERS_ANSWER_TEXT_MEDIUM_TYPE:
+                return ANSWERS_ANSWER_TEXT_MEDIUM_COLOR;
+            case ANSWERS_ANSWER_TEXT_LARGE_TYPE:
+                return ANSWERS_ANSWER_TEXT_LARGE_COLOR;
+            case ANSWERS_SECONDARY_TEXT_SMALL_TYPE:
+                return ANSWERS_SECONDARY_TEXT_SMALL_COLOR;
+            case ANSWERS_SECONDARY_TEXT_MEDIUM_TYPE:
+                return ANSWERS_SECONDARY_TEXT_MEDIUM_COLOR;
             default:
                 Log.w(TAG, "Unknown answer type: " + type);
                 return ANSWERS_SUGGESTION_TEXT_COLOR;

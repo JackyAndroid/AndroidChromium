@@ -11,109 +11,62 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.MeasureSpec;
-import android.view.View.OnAttachStateChangeListener;
 import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
-import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
-import org.chromium.ui.base.LocalizationUtils;
 
 /**
  * UI component that handles showing text bubbles.
  */
-public class TextBubble
-        extends PopupWindow implements OnLayoutChangeListener, OnAttachStateChangeListener {
-    /** Whether to use the intrinsic padding of the bubble background as padding (boolean). */
-    public static final String BACKGROUND_INTRINSIC_PADDING = "Background_Intrinsic_Padding";
+public abstract class TextBubble extends PopupWindow implements OnLayoutChangeListener {
+    /** How much of the anchor should be overlapped. */
+    private final float mYOverlapPercentage;
 
-    /**
-     * Boolean to be used for deciding whether the bubble should be anchored above or below
-     * the view
-     */
-    public static final String UP_DOWN = "Up_Down";
-
-    /** Style resource Id to be used for text inside the bubble. Should be of type int. */
-    public static final String TEXT_STYLE_ID = "Text_Style_Id";
-
-    /** Boolean to be used for deciding whether the bubble should be centered to the view */
-    public static final String CENTER = "Center";
-
-    public static final String ANIM_STYLE_ID = "Animation_Style";
-
-    private final int mTooltipEdgeMargin;
-    private final int mTooltipTopMargin;
-    private final int mBubbleTipXMargin;
-    private boolean mAnchorBelow = false;
-    private boolean mCenterView = true;
-    private int mXPosition;
-    private int mYPosition;
-    private View mAnchorView;
     private final Rect mCachedPaddingRect = new Rect();
 
-    // The text view inside the popup containing the tooltip text.
-    private final TextView mTooltipText;
+    private int mXPosition;
+    private int mYPosition;
+    private int mWidth;
+    private int mHeight;
+
+    private View mAnchorView;
+    private View mContentView;
 
     /**
-     * Constructor that uses a bundle object to fetch resources and optional boolean
-     * values for the {@link TextBubble}.
-     *
-     * Use  CENTER for centering the tip to the anchor view.
-     *      UP_DOWN for drawing the bubble with tip pointing up or down.
-     *          Up is true and Down is false.
-     *      LAYOUT_WIDTH_ID Dimension resource Id for the width of the {@link TextView} inside the
-     *          bubble. The height is set to half of this value.
-     *
-     * @param context
-     * @param res Bundle object that contains resource ids and optional flags.
+     * Constructs a TextBubble that will point at a particular view.
+     * @param context            Context to draw resources from.
+     * @param yOverlapPercentage How much the arrow should overlap the view.
      */
-    public TextBubble(Context context, Bundle res) {
-        mAnchorBelow = (res.containsKey(UP_DOWN) ? res.getBoolean(UP_DOWN) : true);
-        mCenterView = (res.containsKey(CENTER) ? res.getBoolean(CENTER) : true);
-        mTooltipEdgeMargin =
-                context.getResources().getDimensionPixelSize(R.dimen.tooltip_min_edge_margin);
-        mTooltipTopMargin =
-                context.getResources().getDimensionPixelSize(R.dimen.tooltip_top_margin);
-        mBubbleTipXMargin = context.getResources().getDimensionPixelSize(R.dimen.bubble_tip_margin);
+    public TextBubble(Context context, float yOverlapPercentage) {
+        super(context);
+        mYOverlapPercentage = yOverlapPercentage;
 
-        setBackgroundDrawable(new BubbleBackgroundDrawable(context, res));
-        setAnimationStyle(res.containsKey(ANIM_STYLE_ID) ? res.getInt(ANIM_STYLE_ID)
-                                                         : android.R.style.Animation);
+        setBackgroundDrawable(new BubbleBackgroundDrawable(context));
+        getBackground().getPadding(mCachedPaddingRect);
 
-        mTooltipText = new TextView(context);
-        ApiCompatibilityUtils.setTextAppearance(mTooltipText,
-                (res.containsKey(TEXT_STYLE_ID) ? res.getInt(TEXT_STYLE_ID) : R.style.info_bubble));
-
-        setContentView(mTooltipText);
+        mContentView = createContent(context);
+        setContentView(mContentView);
         setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     /**
-     * @return The textview for the bubble text.
+     * Creates the View that contains everything that should be displayed inside the bubble.
      */
-    public TextView getBubbleTextView() {
-        return mTooltipText;
-    }
+    protected abstract View createContent(Context context);
 
     /**
      * Shows a text bubble anchored to the given view.
      *
-     * @param text The text to be shown.
      * @param anchorView The view that the bubble should be anchored to.
-     * @param maxWidth The maximum width of the text bubble.
-     * @param maxHeight The maximum height of the text bubble.
      */
-    public void showTextBubble(String text, View anchorView, int maxWidth, int maxHeight) {
-        mTooltipText.setText(text);
-        mTooltipText.measure(MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.AT_MOST),
-                MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST));
+    public void show(View anchorView) {
         mAnchorView = anchorView;
         calculateNewPosition();
         showAtCalculatedPosition();
@@ -125,83 +78,64 @@ public class TextBubble
      * showAtCalculatedPosition should be called explicitly.
      */
     private void calculateNewPosition() {
-        View offsetView = mAnchorView;
-        int xOffset = 0;
-        int yOffset = 0;
-        if (mAnchorBelow) yOffset = mAnchorView.getHeight();
+        measureContentView();
 
-        while (offsetView != null) {
-            xOffset += offsetView.getLeft();
-            yOffset += offsetView.getTop();
-            if (!(offsetView.getParent() instanceof View)) break;
-            offsetView = (View) offsetView.getParent();
-        }
+        // Center the bubble below of the anchor, arrow pointing upward.  The overlap determines how
+        // much of the bubble's arrow overlaps the anchor view.
+        int[] anchorCoordinates = {0, 0};
+        mAnchorView.getLocationOnScreen(anchorCoordinates);
+        anchorCoordinates[0] += mAnchorView.getWidth() / 2;
+        anchorCoordinates[1] += (int) (mAnchorView.getHeight() * (1.0 - mYOverlapPercentage));
 
-        if (mCenterView) {
-            // Center the tooltip over the view (calculating the width of the tooltip text).
-            xOffset += mAnchorView.getWidth() / 2;
-        } else if (LocalizationUtils.isLayoutRtl()) {
-            xOffset += mAnchorView.getWidth();
-        }
+        mWidth = mContentView.getMeasuredWidth()
+                + mCachedPaddingRect.left + mCachedPaddingRect.right;
+        mHeight = mContentView.getMeasuredHeight()
+                + mCachedPaddingRect.top + mCachedPaddingRect.bottom;
+        mXPosition = anchorCoordinates[0] - (mWidth / 2);
+        mYPosition = anchorCoordinates[1];
 
-        int tooltipWidth = mTooltipText.getMeasuredWidth();
-        xOffset -= tooltipWidth / 2;
-
-        // Account for the padding of the bubble background to ensure it is centered properly.
-        getBackground().getPadding(mCachedPaddingRect);
-        tooltipWidth += mCachedPaddingRect.left + mCachedPaddingRect.right;
-        xOffset -= mCachedPaddingRect.left;
-
-        int defaultXOffset = xOffset;
-
+        // Make sure the bubble stays on screen.
         View rootView = mAnchorView.getRootView();
-        // Make sure the tooltip does not get rendered off the screen.
-        if (xOffset + tooltipWidth > rootView.getWidth()) {
-            xOffset = rootView.getWidth() - tooltipWidth - mTooltipEdgeMargin;
-        } else if (xOffset < 0) {
-            xOffset = mTooltipEdgeMargin;
+        if (mXPosition > rootView.getWidth() - mWidth) {
+            mXPosition = rootView.getWidth() - mWidth;
+        } else if (mXPosition < 0) {
+            mXPosition = 0;
         }
 
-        // Move the bubble arrow to be centered over the anchor view.
-        int newOffset = -(xOffset - defaultXOffset);
-        if (Math.abs(newOffset) > mTooltipText.getMeasuredWidth() / 2 - mBubbleTipXMargin) {
-            newOffset = (mTooltipText.getMeasuredWidth() / 2 - mBubbleTipXMargin)
-                    * (int) Math.signum(newOffset);
-        }
-        ((BubbleBackgroundDrawable) getBackground()).setBubbleArrowXOffset(newOffset);
+        // Center the tip of the arrow.
+        int tipCenterXPosition = anchorCoordinates[0] - mXPosition;
+        ((BubbleBackgroundDrawable) getBackground()).setBubbleArrowXCenter(tipCenterXPosition);
 
-        if (mAnchorBelow) {
-            mXPosition = xOffset;
-            mYPosition = yOffset - mTooltipTopMargin;
-        } else {
-            mXPosition = xOffset;
-            mYPosition = mAnchorView.getRootView().getHeight() - yOffset + mTooltipTopMargin;
-        }
+        // Update the popup's dimensions.
+        setWidth(MeasureSpec.makeMeasureSpec(mWidth, MeasureSpec.EXACTLY));
+        setHeight(MeasureSpec.makeMeasureSpec(mHeight, MeasureSpec.EXACTLY));
+    }
+
+    private void measureContentView() {
+        View rootView = mAnchorView.getRootView();
+        getBackground().getPadding(mCachedPaddingRect);
+
+        // The maximum width of the bubble is determined by how wide the root view is.
+        int maxContentWidth =
+                rootView.getWidth() - mCachedPaddingRect.left - mCachedPaddingRect.right;
+
+        // The maximum height of the bubble is determined by the available space below the anchor.
+        int anchorYOverlap = (int) -(mYOverlapPercentage * mAnchorView.getHeight());
+        int maxContentHeight = getMaxAvailableHeight(mAnchorView, anchorYOverlap)
+                - mCachedPaddingRect.top - mCachedPaddingRect.bottom;
+
+        int contentWidthSpec = MeasureSpec.makeMeasureSpec(maxContentWidth, MeasureSpec.AT_MOST);
+        int contentHeightSpec = MeasureSpec.makeMeasureSpec(maxContentHeight, MeasureSpec.AT_MOST);
+        mContentView.measure(contentWidthSpec, contentHeightSpec);
     }
 
     /**
-     * Shows the TextBubble in the precalculated position. Should be called after mXPosition
-     * and MYPosition has been set.
+     * Shows the TextBubble in the precalculated position.
      */
     private void showAtCalculatedPosition() {
-        if (mAnchorBelow) {
-            showAtLocation(
-                    mAnchorView.getRootView(), Gravity.TOP | Gravity.START, mXPosition, mYPosition);
-        } else {
-            showAtLocation(mAnchorView.getRootView(), Gravity.BOTTOM | Gravity.START, mXPosition,
-                    mYPosition);
-        }
-    }
-
-    // The two functions below are used for the floating animation.
-
-    /**
-     * Updates the y offset of the popup bubble (applied in addition to
-     * the default calculated offset).
-     * @param yoffset The new mYOffset to be used.
-     */
-    public void setOffsetY(int yoffset) {
-        update(mXPosition, mYPosition + yoffset, -1, -1);
+        mAnchorView.addOnLayoutChangeListener(this);
+        showAtLocation(mAnchorView.getRootView(), Gravity.TOP | Gravity.START,
+                mXPosition, mYPosition);
     }
 
     /**
@@ -210,16 +144,15 @@ public class TextBubble
      * @return Whether the TextBubble needs to be redrawn.
      */
     private boolean updatePosition() {
+        BubbleBackgroundDrawable background = (BubbleBackgroundDrawable) getBackground();
+
         int previousX = mXPosition;
         int previousY = mYPosition;
-        int previousOffset = ((BubbleBackgroundDrawable) getBackground()).getBubbleArrowOffset();
+        int previousOffset = background.getBubbleArrowXCenter();
         calculateNewPosition();
-        if (previousX != mXPosition || previousY != mYPosition
-                || previousOffset
-                        != ((BubbleBackgroundDrawable) getBackground()).getBubbleArrowOffset()) {
-            return true;
-        }
-        return false;
+
+        return previousX != mXPosition || previousY != mYPosition
+                || previousOffset != background.getBubbleArrowXCenter();
     }
 
     @Override
@@ -230,52 +163,29 @@ public class TextBubble
         if (willDisappear) {
             dismiss();
         } else if (changePosition) {
-            dismiss();
-            showAtCalculatedPosition();
+            update(mXPosition, mYPosition, mWidth, mHeight);
         }
     }
 
     @Override
-    public void onViewAttachedToWindow(View v) {}
-
-    @Override
-    public void onViewDetachedFromWindow(View v) {
-        dismiss();
+    public void dismiss() {
+        if (mAnchorView != null) mAnchorView.removeOnLayoutChangeListener(this);
+        super.dismiss();
     }
 
     /**
-     * Drawable for rendering the background for a popup bubble.
-     *
-     * <p>Using a custom class as the LayerDrawable handles padding oddly and did not allow the
-     *    bubble arrow to be rendered below the content portion of the bubble if you specified
-     *    padding, which is required to make it look nice.
+     * Drawable representing a bubble with a arrow pointing upward at something.
      */
-    static class BubbleBackgroundDrawable extends Drawable {
-        private final int mTooltipBorderWidth;
-        private final Rect mTooltipContentPadding;
-
+    private static class BubbleBackgroundDrawable extends Drawable {
         private final Drawable mBubbleContentsDrawable;
         private final BitmapDrawable mBubbleArrowDrawable;
-        private boolean mUp = false;
-        private int mBubbleArrowXOffset;
+        private int mBubbleArrowXCenter;
 
-        BubbleBackgroundDrawable(Context context, Bundle res) {
-            mUp = (res.containsKey(UP_DOWN) ? res.getBoolean(UP_DOWN) : true);
-            mBubbleContentsDrawable = ApiCompatibilityUtils.getDrawable(context.getResources(),
-                    R.drawable.bubble_white);
+        BubbleBackgroundDrawable(Context context) {
+            mBubbleContentsDrawable = ApiCompatibilityUtils.getDrawable(
+                    context.getResources(), R.drawable.menu_bg);
             mBubbleArrowDrawable = (BitmapDrawable) ApiCompatibilityUtils.getDrawable(
                     context.getResources(), R.drawable.bubble_point_white);
-            mTooltipBorderWidth =
-                    context.getResources().getDimensionPixelSize(R.dimen.tooltip_border_width);
-
-            if (res.getBoolean(BACKGROUND_INTRINSIC_PADDING, false)) {
-                mTooltipContentPadding = new Rect();
-                mBubbleContentsDrawable.getPadding(mTooltipContentPadding);
-            } else {
-                int padding = context.getResources().getDimensionPixelSize(
-                        R.dimen.tooltip_content_padding);
-                mTooltipContentPadding = new Rect(padding, padding, padding, padding);
-            }
         }
 
         @Override
@@ -286,30 +196,28 @@ public class TextBubble
 
         @Override
         protected void onBoundsChange(Rect bounds) {
+            super.onBoundsChange(bounds);
             if (bounds == null) return;
 
-            super.onBoundsChange(bounds);
+            // The arrow hugs the top boundary and pushes the rest of the rectangular portion of the
+            // callout beneath it.
             int halfArrowWidth = mBubbleArrowDrawable.getIntrinsicWidth() / 2;
-            int halfBoundsWidth = bounds.width() / 2;
-            if (mUp) {
-                int contentsTop = bounds.top + mBubbleArrowDrawable.getIntrinsicHeight()
-                        - mTooltipBorderWidth;
-                mBubbleContentsDrawable.setBounds(
-                        bounds.left, contentsTop, bounds.right, bounds.bottom);
-                mBubbleArrowDrawable.setBounds(
-                        mBubbleArrowXOffset + halfBoundsWidth - halfArrowWidth, bounds.top,
-                        mBubbleArrowXOffset + halfBoundsWidth + halfArrowWidth,
-                        bounds.top + mBubbleArrowDrawable.getIntrinsicHeight());
-            } else {
-                int contentsBottom = bounds.bottom - mBubbleArrowDrawable.getIntrinsicHeight();
-                mBubbleContentsDrawable.setBounds(
-                        bounds.left, bounds.left, bounds.right, contentsBottom);
-                mBubbleArrowDrawable.setBounds(
-                        mBubbleArrowXOffset + halfBoundsWidth - halfArrowWidth,
-                        contentsBottom - mTooltipBorderWidth,
-                        mBubbleArrowXOffset + halfBoundsWidth + halfArrowWidth, contentsBottom
-                                + mBubbleArrowDrawable.getIntrinsicHeight() - mTooltipBorderWidth);
-            }
+            int arrowLeft = mBubbleArrowXCenter + bounds.left - halfArrowWidth;
+            int arrowRight = arrowLeft + mBubbleArrowDrawable.getIntrinsicWidth();
+            mBubbleArrowDrawable.setBounds(
+                    arrowLeft,
+                    bounds.top,
+                    arrowRight,
+                    bounds.top + mBubbleArrowDrawable.getIntrinsicHeight());
+
+            // Adjust the background of the callout to account for the side margins and the arrow.
+            Rect bubblePadding = new Rect();
+            mBubbleContentsDrawable.getPadding(bubblePadding);
+            mBubbleContentsDrawable.setBounds(
+                    bounds.left,
+                    bounds.top + mBubbleArrowDrawable.getIntrinsicHeight() - bubblePadding.top,
+                    bounds.right,
+                    bounds.bottom);
         }
 
         @Override
@@ -330,34 +238,29 @@ public class TextBubble
 
         @Override
         public boolean getPadding(Rect padding) {
-            padding.set(mTooltipContentPadding);
-            if (mUp) {
-                padding.set(padding.left, padding.top + mBubbleArrowDrawable.getIntrinsicHeight(),
-                        padding.right, padding.bottom);
-            } else {
-                padding.set(padding.left, padding.top, padding.right,
-                        padding.bottom + mBubbleArrowDrawable.getIntrinsicHeight());
-            }
+            mBubbleContentsDrawable.getPadding(padding);
 
+            padding.set(padding.left,
+                    Math.max(padding.top, mBubbleArrowDrawable.getIntrinsicHeight()),
+                    padding.right,
+                    padding.bottom);
             return true;
         }
 
         /**
-         * Updates the additional X Offset for the bubble arrow.  The arrow defaults to being
-         * centered in the bubble, so this is delta from the center.
-         *
+         * Updates where the bubble arrow should be centered along the x-axis.
          * @param xOffset The offset of the bubble arrow.
          */
-        public void setBubbleArrowXOffset(int xOffset) {
-            mBubbleArrowXOffset = xOffset;
+        public void setBubbleArrowXCenter(int xOffset) {
+            mBubbleArrowXCenter = xOffset;
             onBoundsChange(getBounds());
         }
 
         /**
-         * @return the current x offset for the bubble arrow.
+         * @return the current x center for the bubble arrow.
          */
-        public int getBubbleArrowOffset() {
-            return mBubbleArrowXOffset;
+        public int getBubbleArrowXCenter() {
+            return mBubbleArrowXCenter;
         }
     }
 }

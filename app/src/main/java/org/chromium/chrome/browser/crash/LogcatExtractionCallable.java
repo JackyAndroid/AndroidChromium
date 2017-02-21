@@ -90,6 +90,9 @@ public class LogcatExtractionCallable implements Callable<Boolean> {
     protected static final String BEGIN_MICRODUMP = "-----BEGIN BREAKPAD MICRODUMP-----";
     @VisibleForTesting
     protected static final String END_MICRODUMP = "-----END BREAKPAD MICRODUMP-----";
+    @VisibleForTesting
+    protected static final String SNIPPED_MICRODUMP =
+            "-----SNIPPED OUT BREAKPAD MICRODUMP FOR THIS CRASH-----";
 
     @VisibleForTesting
     protected static final String IP_ELISION = "1.2.3.4";
@@ -159,6 +162,9 @@ public class LogcatExtractionCallable implements Callable<Boolean> {
             int len = mMinidumpFilenames.length;
             CrashFileManager fileManager = new CrashFileManager(mContext.getCacheDir());
             for (int i = 0; i < len; i++) {
+                // Output crash dump file path to logcat so non-browser crashes appear too.
+                Log.i(TAG, "Output crash dump:");
+                Log.i(TAG, fileManager.getCrashFile(mMinidumpFilenames[i]).getAbsolutePath());
                 processMinidump(logcatFile, mMinidumpFilenames[i], fileManager, i == len - 1);
             }
             return true;
@@ -227,77 +233,74 @@ public class LogcatExtractionCallable implements Callable<Boolean> {
 
     @VisibleForTesting
     protected List<String> getLogcat() throws IOException, InterruptedException {
-        return getLogcatInternal();
-    }
-
-    private static List<String> getLogcatInternal() throws IOException, InterruptedException {
-        List<String> rawLogcat = null;
-        Integer exitValue = null;
-        // In the absence of the android.permission.READ_LOGS permission the
-        // the logcat call will just hang.
+        // Grab the last lines of the logcat output, with a generous buffer to compensate for any
+        // microdumps that might be in the logcat output, since microdumps are stripped in the
+        // extraction code. Note that the repeated check of the process exit value is to account for
+        // the fact that the process might not finish immediately.  And, it's not appropriate to
+        // call p.waitFor(), because this call will block *forever* if the process's output buffer
+        // fills up.
         Process p = Runtime.getRuntime().exec("logcat -d");
-        BufferedReader reader = null;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        LinkedList<String> rawLogcat = new LinkedList<>();
+        Integer exitValue = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while (exitValue == null) {
-                rawLogcat = extractLogcatFromReader(reader, LOGCAT_SIZE);
+                String logLn;
+                while ((logLn = reader.readLine()) != null) {
+                    rawLogcat.add(logLn);
+                    if (rawLogcat.size() > LOGCAT_SIZE * 4) {
+                        rawLogcat.removeFirst();
+                    }
+                }
+
                 try {
                     exitValue = p.exitValue();
                 } catch (IllegalThreadStateException itse) {
                     Thread.sleep(HALF_SECOND);
                 }
             }
-            if (exitValue != 0) {
-                String msg = "Logcat failed: " + exitValue;
-                Log.w(TAG, msg);
-                throw new IOException(msg);
-            }
-            return rawLogcat;
         } finally {
-            if (reader != null) {
-                reader.close();
-            }
+            reader.close();
         }
+
+        if (exitValue != 0) {
+            String msg = "Logcat failed: " + exitValue;
+            Log.w(TAG, msg);
+            throw new IOException(msg);
+        }
+
+        return trimLogcat(rawLogcat, LOGCAT_SIZE);
     }
 
     /**
-     * Extract microdump-free logcat for more informative crash reports
+     * Extracts microdump-free logcat for more informative crash reports. Returns the most recent
+     * lines that are likely to be relevant to the crash, which are either the lines leading up to a
+     * microdump if a microdump is present, or just the final lines of the logcat if no microdump is
+     * present.
      *
-     * @param reader A buffered reader from which lines of initial logcat is read.
+     * @param rawLogcat The last lines of the raw logcat file, with sufficient history to allow a
+     *     sufficient history even after trimming.
      * @param maxLines The maximum number of lines logcat extracts from minidump.
      *
      * @return Logcat up to specified length as a list of strings.
-     * @throws IOException if the buffered reader encounters an I/O error.
      */
     @VisibleForTesting
-    protected static List<String> extractLogcatFromReader(
-            BufferedReader reader, int maxLines) throws IOException {
-        return extractLogcatFromReaderInternal(reader, maxLines);
-    }
-
-    private static List<String> extractLogcatFromReaderInternal(
-            BufferedReader reader, int maxLines) throws IOException {
-        boolean inMicrodump = false;
-        List<String> rawLogcat = new LinkedList<>();
-        String logLn;
-        while ((logLn = reader.readLine()) != null && rawLogcat.size() < maxLines) {
-            if (logLn.contains(BEGIN_MICRODUMP)) {
-                // If the log contains two begin markers without an end marker
-                // in between, we ignore the second begin marker.
-                inMicrodump = true;
-            } else if (logLn.contains(END_MICRODUMP)) {
-                if (!inMicrodump) {
-                    // If we have been extracting microdump the whole time,
-                    // start over with a clean logcat.
-                    rawLogcat.clear();
-                } else {
-                    inMicrodump = false;
-                }
-            } else {
-                if (!inMicrodump) {
-                    rawLogcat.add(logLn);
-                }
+    protected static List<String> trimLogcat(List<String> rawLogcat, int maxLines) {
+        // Trim off the last microdump, and anything after it.
+        for (int i = rawLogcat.size() - 1; i >= 0; i--) {
+            if (rawLogcat.get(i).contains(BEGIN_MICRODUMP)) {
+                rawLogcat = rawLogcat.subList(0, i);
+                rawLogcat.add(SNIPPED_MICRODUMP);
+                break;
             }
+        }
+
+        // Trim down the remainder to only contain the most recent lines. Thus, if the original
+        // input contained a microdump, the result contains the most recent lines before the
+        // microdump, which are most likely to be relevant to the crash.  If there is no microdump
+        // in the raw logcat, then just hope that the last lines in the dump are relevant.
+        if (rawLogcat.size() > maxLines) {
+            rawLogcat = rawLogcat.subList(rawLogcat.size() - maxLines, rawLogcat.size());
         }
         return rawLogcat;
     }
@@ -354,7 +357,7 @@ public class LogcatExtractionCallable implements Callable<Boolean> {
      */
     @VisibleForTesting
     protected static String elideUrl(String original) {
-        StringBuffer buffer = new StringBuffer(original);
+        StringBuilder buffer = new StringBuilder(original);
         Matcher matcher = WEB_URL.matcher(buffer);
         int start = 0;
         while (matcher.find(start)) {

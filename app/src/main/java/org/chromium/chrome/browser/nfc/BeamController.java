@@ -11,6 +11,8 @@ import android.nfc.NfcAdapter;
 import android.os.Process;
 import android.util.Log;
 
+import org.chromium.base.ApiCompatibilityUtils;
+
 /**
  * Initializes Android Beam (sharing URL via NFC) for devices that have NFC. If user taps their
  * device with another Beam capable device, then Chrome gets the current URL, filters for security
@@ -26,8 +28,11 @@ public final class BeamController {
     public static void registerForBeam(final Activity activity, final BeamProvider provider) {
         final NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(activity);
         if (nfcAdapter == null) return;
-        if (activity.checkPermission(Manifest.permission.NFC, Process.myPid(), Process.myUid())
-                == PackageManager.PERMISSION_DENIED) return;
+        if (ApiCompatibilityUtils.checkPermission(
+                activity, Manifest.permission.NFC, Process.myPid(), Process.myUid())
+                == PackageManager.PERMISSION_DENIED) {
+            return;
+        }
         try {
             final BeamCallback beamCallback = new BeamCallback(activity, provider);
             nfcAdapter.setNdefPushMessageCallback(beamCallback, activity);

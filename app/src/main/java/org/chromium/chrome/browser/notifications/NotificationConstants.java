@@ -24,11 +24,16 @@ public class NotificationConstants {
      * Names of the Intent extras used for Intents related to notifications. These intents are set
      * and owned by Chromium.
      */
-    public static final String EXTRA_PERSISTENT_NOTIFICATION_ID = "notification_persistent_id";
+    public static final String EXTRA_NOTIFICATION_ID = "notification_id";
     public static final String EXTRA_NOTIFICATION_INFO_ORIGIN = "notification_info_origin";
+    public static final String EXTRA_NOTIFICATION_INFO_PROFILE_ID = "notification_info_profile_id";
+    public static final String EXTRA_NOTIFICATION_INFO_PROFILE_INCOGNITO =
+            "notification_info_profile_incognito";
     public static final String EXTRA_NOTIFICATION_INFO_TAG = "notification_info_tag";
     public static final String EXTRA_NOTIFICATION_INFO_ACTION_INDEX =
             "notification_info_action_index";
+    public static final String EXTRA_NOTIFICATION_INFO_WEBAPK_PACKAGE =
+            "notification_info_webapk_package";
 
     /**
      * Unique identifier for a single sync notification. Since the notification ID is reused,
@@ -49,4 +54,9 @@ public class NotificationConstants {
      * developer specified tag.
      */
     public static final String NOTIFICATION_TAG_SEPARATOR = ";";
+
+    /**
+     * Key for retrieving the results of user input from notification text action intents.
+     */
+    static final String KEY_TEXT_REPLY = "key_text_reply";
 }

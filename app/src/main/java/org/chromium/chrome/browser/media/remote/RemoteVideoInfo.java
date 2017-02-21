@@ -45,7 +45,7 @@ public class RemoteVideoInfo {
     /**
      * The duration of the video
      */
-    public int durationMillis;
+    public long durationMillis;
     /**
      * The current state of the video
      */
@@ -53,7 +53,7 @@ public class RemoteVideoInfo {
     /**
      * The last known position in the video
      */
-    public int currentTimeMillis;
+    public long currentTimeMillis;
     /**
      * The current error message, if any
      */
@@ -68,8 +68,8 @@ public class RemoteVideoInfo {
      * @param currentTimeMillis
      * @param errorMessage
      */
-    public RemoteVideoInfo(String title, int durationMillis, PlayerState state,
-                           int currentTimeMillis, String errorMessage) {
+    public RemoteVideoInfo(String title, long durationMillis, PlayerState state,
+            long currentTimeMillis, String errorMessage) {
         this.title = title;
         this.durationMillis = durationMillis;
         this.state = state;
@@ -105,8 +105,10 @@ public class RemoteVideoInfo {
 
     @Override
     public int hashCode() {
-        int result = durationMillis;
-        result = 31 * result + currentTimeMillis;
+        int result = (int) durationMillis;
+        result = 31 * result + (int) (durationMillis >> 32);
+        result = 31 * result + (int) currentTimeMillis;
+        result = 31 * result + (int) (currentTimeMillis >> 32);
         result = 31 * result + (title == null ? 0 : title.hashCode());
         result = 31 * result + (state == null ? 0 : state.hashCode());
         result = 31 * result + (errorMessage == null ? 0 : errorMessage.hashCode());

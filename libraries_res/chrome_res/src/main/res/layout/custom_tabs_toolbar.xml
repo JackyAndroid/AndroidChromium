@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical" >
-        <ImageButton
+        <org.chromium.chrome.browser.widget.TintedImageButton
             android:id="@+id/security_button"
             style="@style/LocationBarButton"
             android:layout_width="@dimen/location_bar_icon_width"
@@ -24,8 +24,9 @@
             android:layout_gravity="center_vertical"
             android:contentDescription="@string/accessibility_toolbar_btn_site_info"
             android:scaleType="center"
-            android:visibility="gone" />
-        <FrameLayout
+            android:visibility="invisible" />
+        <view
+            class="org.chromium.chrome.browser.toolbar.CustomTabToolbar$InterceptTouchLayout"
             android:id="@+id/title_url_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,7 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="@dimen/custom_tabs_toolbar_vertical_padding"
                 android:background="@null"
                 android:ellipsize="end"
                 android:inputType="none"
@@ -54,7 +55,7 @@
                 android:singleLine="true"
                 android:paddingEnd="@dimen/toolbar_edge_padding"
                 android:textSize="@dimen/location_bar_url_text_size" />
-        </FrameLayout>
+        </view>
     </FrameLayout>
     <ImageButton
         android:id="@+id/action_button"

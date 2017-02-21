@@ -7,52 +7,55 @@ package org.chromium.chrome.browser.banners;
 import android.content.Context;
 import android.text.TextUtils;
 
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.browser.ShortcutHelper;
-import org.chromium.chrome.browser.tab.EmptyTabObserver;
-import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.content_public.browser.WebContents;
 
 /**
  * Manages an AppBannerInfoBar for a Tab.
  *
- * The AppBannerManager manages a single AppBannerInfoBar, creating a new one when it detects that
- * the current webpage is requesting a banner to be built. The actual observation of the WebContents
- * (which triggers the automatic creation and removal of banners, among other things) is done by the
- * native-side AppBannerManager.
- *
- * This Java-side class owns its native-side counterpart, which is basically used to grab resources
- * from the network.
+ * The AppBannerManager is responsible for fetching details about native apps to display in the
+ * banner. The actual observation of the WebContents (which triggers the automatic creation and
+ * removal of banners, among other things) is done by the native-side AppBannerManagerAndroid.
  */
 @JNINamespace("banners")
-public class AppBannerManager extends EmptyTabObserver {
+public class AppBannerManager {
     private static final String TAG = "AppBannerManager";
 
     /** Retrieves information about a given package. */
     private static AppDetailsDelegate sAppDetailsDelegate;
 
-    /** Whether the banners are enabled. */
-    private static Boolean sIsEnabled;
+    /** Whether add to home screen is permitted by the system. */
+    private static Boolean sIsSupported;
+
+    /** Whether the tab to which this manager is attached to is permitted to show banners. */
+    private boolean mIsEnabledForTab;
 
     /** Pointer to the native side AppBannerManager. */
     private long mNativePointer;
 
-    /** Tab that the AppBannerView/AppBannerManager is owned by. */
-    private final Tab mTab;
+    /**
+     * Checks if the add to home screen intent is supported.
+     * @return true if add to home screen is supported, false otherwise.
+     */
+    public static boolean isSupported() {
+        if (sIsSupported == null) {
+            Context context = ContextUtils.getApplicationContext();
+            sIsSupported = ShortcutHelper.isAddToHomeIntentSupported(context);
+        }
+        return sIsSupported;
+    }
 
     /**
-     * Checks if app banners are enabled.
-     * @return True if banners are enabled, false otherwise.
+     * Checks if app banners are enabled for the tab which this manager is attached to.
+     * @return true if app banners can be shown for this tab, false otherwise.
      */
-    public static boolean isEnabled() {
-        if (sIsEnabled == null) {
-            Context context = ApplicationStatus.getApplicationContext();
-            sIsEnabled = ShortcutHelper.isAddToHomeIntentSupported(context);
-        }
-        return sIsEnabled;
+    @CalledByNative
+    private boolean isEnabledForTab() {
+        return isSupported() && mIsEnabledForTab;
     }
 
     /**
@@ -65,39 +68,22 @@ public class AppBannerManager extends EmptyTabObserver {
     }
 
     /**
-     * Constructs an AppBannerManager for the given tab.
-     * @param tab Tab that the AppBannerManager will be attached to.
+     * Constructs an AppBannerManager.
+     * @param nativePointer the native-side object that owns this AppBannerManager.
      */
-    public AppBannerManager(Tab tab, Context context) {
-        mNativePointer = nativeInit();
-        mTab = tab;
-        updatePointers();
+    private AppBannerManager(long nativePointer) {
+        mNativePointer = nativePointer;
+        mIsEnabledForTab = isSupported();
     }
 
-    @Override
-    public void onWebContentsSwapped(Tab tab, boolean didStartLoad,
-            boolean didFinishLoad) {
-        updatePointers();
+    @CalledByNative
+    private static AppBannerManager create(long nativePointer) {
+        return new AppBannerManager(nativePointer);
     }
 
-    @Override
-    public void onContentChanged(Tab tab) {
-        updatePointers();
-    }
-
-    /**
-     * Destroys the native AppBannerManager.
-     */
-    public void destroy() {
-        nativeDestroy(mNativePointer);
+    @CalledByNative
+    private void destroy() {
         mNativePointer = 0;
-    }
-
-    /**
-     * Updates which WebContents the native AppBannerManager is monitoring.
-     */
-    private void updatePointers() {
-        nativeReplaceWebContents(mNativePointer, mTab.getWebContents());
     }
 
     /**
@@ -110,7 +96,7 @@ public class AppBannerManager extends EmptyTabObserver {
             String url, String packageName, String referrer, int iconSizeInDp) {
         if (sAppDetailsDelegate == null) return;
 
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
         int iconSizeInPx = Math.round(
                 context.getResources().getDisplayMetrics().density * iconSizeInDp);
         sAppDetailsDelegate.getAppDetailsAsynchronously(
@@ -137,10 +123,15 @@ public class AppBannerManager extends EmptyTabObserver {
         };
     }
 
-    /** Enables or disables the app banners for testing. */
+    /** Enables or disables app banners. */
+    public void setIsEnabledForTab(boolean state) {
+        mIsEnabledForTab = state;
+    }
+
+    /** Overrides whether the system supports add to home screen. Used in testing. */
     @VisibleForTesting
-    static void setIsEnabledForTesting(boolean state) {
-        sIsEnabled = state;
+    public static void setIsSupported(boolean state) {
+        sIsSupported = state;
     }
 
     /** Sets a constant (in days) that gets added to the time when the current time is requested. */
@@ -161,15 +152,18 @@ public class AppBannerManager extends EmptyTabObserver {
         nativeSetEngagementWeights(directEngagement, indirectEngagement);
     }
 
-    /** Returns whether a AppBannerDataFetcher is actively retrieving data. */
+    /** Returns whether the native AppBannerManager is working. */
     @VisibleForTesting
-    public boolean isFetcherActiveForTesting() {
-        return nativeIsFetcherActive(mNativePointer);
+    public boolean isActiveForTesting() {
+        return nativeIsActiveForTesting(mNativePointer);
     }
 
-    private native long nativeInit();
-    private native void nativeDestroy(long nativeAppBannerManagerAndroid);
-    private native void nativeReplaceWebContents(long nativeAppBannerManagerAndroid,
+    /** Returns the AppBannerManager object. This is owned by the C++ banner manager. */
+    public static AppBannerManager getAppBannerManagerForWebContents(WebContents webContents) {
+        return nativeGetJavaBannerManagerForWebContents(webContents);
+    }
+
+    private static native AppBannerManager nativeGetJavaBannerManagerForWebContents(
             WebContents webContents);
     private native boolean nativeOnAppDetailsRetrieved(long nativeAppBannerManagerAndroid,
             AppData data, String title, String packageName, String imageUrl);
@@ -179,5 +173,5 @@ public class AppBannerManager extends EmptyTabObserver {
     private static native void nativeDisableSecureSchemeCheckForTesting();
     private static native void nativeSetEngagementWeights(double directEngagement,
             double indirectEngagement);
-    private native boolean nativeIsFetcherActive(long nativeAppBannerManagerAndroid);
+    private native boolean nativeIsActiveForTesting(long nativeAppBannerManagerAndroid);
 }

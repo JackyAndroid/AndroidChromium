@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.browser.omnibox.OmniboxSuggestion.MatchClassification;
 import org.chromium.chrome.browser.search_engines.TemplateUrlService;
 
 import java.util.ArrayList;
@@ -140,17 +141,20 @@ public class VoiceSuggestionProvider {
         if (result.getConfidence() < confidenceThreshold && result.getConfidence() > 0) return;
         String voiceUrl = TemplateUrlService.getInstance().getUrlForVoiceSearchQuery(
                 result.getMatch());
+        List<MatchClassification> classifications = new ArrayList<>();
+        classifications.add(new MatchClassification(0, MatchClassificationStyle.NONE));
         suggestions.add(new OmniboxSuggestion(
                 OmniboxSuggestionType.VOICE_SUGGEST,
                 true,
                 0,
                 1,
                 result.getMatch(),
+                classifications,
+                null,
+                classifications,
                 null,
                 null,
                 null,
-                null,
-                voiceUrl,
                 voiceUrl,
                 false,
                 false));

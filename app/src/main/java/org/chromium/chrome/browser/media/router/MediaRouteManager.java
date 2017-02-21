@@ -45,8 +45,16 @@ public interface MediaRouteManager {
     /**
      * Called when the route is closed either as a result of
      * {@link MediaRouteProvider#closeRoute(String)} or an external event (e.g. screen disconnect).
+     * @param mediaRouteId the id of the created route.
      */
     public void onRouteClosed(String mediaRouteId);
+
+    /**
+     * Called when the route is closed because of an error, for example, session launch failure.
+     * @param mediaRouteId the id of the created route.
+     * @param message The error message.
+     */
+    public void onRouteClosedWithError(String mediaRouteId, String message);
 
     /**
      * Called when sending the message to the route finished.

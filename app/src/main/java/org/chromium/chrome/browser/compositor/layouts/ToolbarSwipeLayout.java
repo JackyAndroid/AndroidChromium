@@ -341,6 +341,9 @@ public class ToolbarSwipeLayout extends Layout implements Animatable<ToolbarSwip
     }
 
     @Override
+    public void onPropertyAnimationFinished(Property prop) {}
+
+    @Override
     protected SceneLayer getSceneLayer() {
         return mSceneLayer;
     }

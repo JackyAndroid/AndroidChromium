@@ -52,4 +52,11 @@ public class ChromeVersionInfo {
     public static boolean isOfficialBuild() {
         return ChromeVersionConstants.IS_OFFICIAL_BUILD;
     }
+
+    /**
+     * @return The version number.
+     */
+    public static String getProductVersion() {
+        return ChromeVersionConstants.PRODUCT_VERSION;
+    }
 }

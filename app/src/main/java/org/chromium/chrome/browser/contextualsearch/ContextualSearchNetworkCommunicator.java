@@ -28,15 +28,21 @@ public interface ContextualSearchNetworkCommunicator {
      * @param searchTerm the term to search for.
      * @param displayText the text to display that describes the search term.
      * @param alternateTerm the alternate search term.
+     * @param mid the MID for an entity to use to trigger a Knowledge Panel, or an empty string.
+     *            A MID is a unique identifier for an entity in the Search Knowledge Graph.
      * @param doPreventPreload whether to prevent preloading the search result.
      * @param selectionStartAdjust The start offset adjustment of the selection to use to highlight
      *        the search term.
      * @param selectionEndAdjust The end offset adjustment of the selection to use to highlight
      *        the search term.
+     * @param contextLanguage The language of the context, or the empty string if unknown.
+     * @param thumbnailUrl The URL of the thumbnail to display in our UX.
+     * @param caption The caption to display.
      */
     void handleSearchTermResolutionResponse(boolean isNetworkUnavailable, int responseCode,
-            String searchTerm, String displayText, String alternateTerm, boolean doPreventPreload,
-            int selectionStartAdjust, int selectionEndAdjust);
+            String searchTerm, String displayText, String alternateTerm, String mid,
+            boolean doPreventPreload, int selectionStartAdjust, int selectionEndAdjust,
+            String contextLanguage, String thumbnailUrl, String caption);
 
     // --------------------------------------------------------------------------------------------
     // These are non-network actions that need to be stubbed out for testing.

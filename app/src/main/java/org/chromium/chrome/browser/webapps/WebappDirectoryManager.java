@@ -14,16 +14,19 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.text.TextUtils;
 
-import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.FileUtils;
 import org.chromium.base.Log;
+import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.document.DocumentUtils;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -158,11 +161,15 @@ public class WebappDirectoryManager {
     File getWebappDirectory(Context context, String webappId) {
         // Temporarily allowing disk access while fixing. TODO: http://crbug.com/525781
         StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
+        StrictMode.allowThreadDiskWrites();
         try {
+            long time = SystemClock.elapsedRealtime();
             File webappDirectory = new File(getBaseWebappDirectory(context), webappId);
             if (!webappDirectory.exists() && !webappDirectory.mkdir()) {
                 Log.e(TAG, "Failed to create web app directory.");
             }
+            RecordHistogram.recordTimesHistogram("Android.StrictMode.WebappDir",
+                    SystemClock.elapsedRealtime() - time, TimeUnit.MILLISECONDS);
             return webappDirectory;
         } finally {
             StrictMode.setThreadPolicy(oldPolicy);
@@ -179,7 +186,7 @@ public class WebappDirectoryManager {
     protected Set<Intent> getBaseIntentsForAllTasks() {
         Set<Intent> baseIntents = new HashSet<Intent>();
 
-        Context context = ApplicationStatus.getApplicationContext();
+        Context context = ContextUtils.getApplicationContext();
         ActivityManager manager =
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (AppTask task : manager.getAppTasks()) {

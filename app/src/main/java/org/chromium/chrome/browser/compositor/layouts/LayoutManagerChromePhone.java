@@ -11,6 +11,7 @@ import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
 import org.chromium.chrome.browser.compositor.layouts.phone.SimpleAnimationLayout;
 import org.chromium.chrome.browser.compositor.overlays.SceneOverlay;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchManagementDelegate;
+import org.chromium.chrome.browser.dom_distiller.ReaderModeManagerDelegate;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
@@ -50,12 +51,13 @@ public class LayoutManagerChromePhone extends LayoutManagerChrome {
     public void init(TabModelSelector selector, TabCreatorManager creator,
             TabContentManager content, ViewGroup androidContentContainer,
             ContextualSearchManagementDelegate contextualSearchDelegate,
+            ReaderModeManagerDelegate readerModeDelegate,
             DynamicResourceLoader dynamicResourceLoader) {
         // Initialize Layouts
         mSimpleAnimationLayout.setTabModelSelector(selector, content);
 
         super.init(selector, creator, content, androidContentContainer, contextualSearchDelegate,
-                dynamicResourceLoader);
+                readerModeDelegate, dynamicResourceLoader);
     }
 
     @Override
@@ -96,7 +98,7 @@ public class LayoutManagerChromePhone extends LayoutManagerChrome {
     }
 
     @Override
-    protected void tabClosed(int id, int nextId, boolean incognito) {
+    protected void tabClosed(int id, int nextId, boolean incognito, boolean tabRemoved) {
         boolean showOverview = nextId == Tab.INVALID_TAB_ID;
         Layout overviewLayout = useAccessibilityLayout() ? mOverviewListLayout : mOverviewLayout;
         if (getActiveLayout() != overviewLayout && showOverview) {
@@ -107,7 +109,8 @@ public class LayoutManagerChromePhone extends LayoutManagerChrome {
         getActiveLayout().onTabClosed(time(), id, nextId, incognito);
         Tab nextTab = getTabById(nextId);
         if (nextTab != null) nextTab.requestFocus();
-        if (getActiveLayout() != overviewLayout && showOverview && !animationsEnabled()) {
+        boolean animate = !tabRemoved && animationsEnabled();
+        if (getActiveLayout() != overviewLayout && showOverview && !animate) {
             startShowing(overviewLayout, false);
         }
     }

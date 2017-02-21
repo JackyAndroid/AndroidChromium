@@ -5,31 +5,29 @@
 package org.chromium.chrome.browser.ntp;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
-import org.chromium.base.ObserverList;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.chrome.browser.UrlConstants;
 import org.chromium.chrome.browser.favicon.FaviconHelper;
 import org.chromium.chrome.browser.favicon.FaviconHelper.FaviconImageCallback;
-import org.chromium.chrome.browser.firstrun.ProfileDataCache;
 import org.chromium.chrome.browser.invalidation.InvalidationController;
 import org.chromium.chrome.browser.metrics.StartupMetrics;
 import org.chromium.chrome.browser.ntp.ForeignSessionHelper.ForeignSession;
 import org.chromium.chrome.browser.ntp.ForeignSessionHelper.ForeignSessionCallback;
 import org.chromium.chrome.browser.ntp.ForeignSessionHelper.ForeignSessionTab;
-import org.chromium.chrome.browser.ntp.RecentTabsPromoView.SyncPromoModel;
 import org.chromium.chrome.browser.ntp.RecentlyClosedBridge.RecentlyClosedCallback;
 import org.chromium.chrome.browser.ntp.RecentlyClosedBridge.RecentlyClosedTab;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.signin.SigninManager;
 import org.chromium.chrome.browser.signin.SigninManager.SignInStateObserver;
-import org.chromium.chrome.browser.sync.SyncController;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.components.signin.ChromeSigninController;
+import org.chromium.components.sync.AndroidSyncSettings;
+import org.chromium.components.sync.AndroidSyncSettings.AndroidSyncSettingsObserver;
 import org.chromium.content_public.browser.LoadUrlParams;
-import org.chromium.sync.AndroidSyncSettings;
-import org.chromium.sync.AndroidSyncSettings.AndroidSyncSettingsObserver;
-import org.chromium.sync.signin.ChromeSigninController;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,8 +35,7 @@ import java.util.List;
 /**
  * Provides the domain logic and data for RecentTabsPage and RecentTabsRowAdapter.
  */
-public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInStateObserver,
-        SyncPromoModel {
+public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInStateObserver {
 
     /**
      * Implement this to receive updates when the page contents change.
@@ -51,12 +48,12 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
     }
 
     private static final int RECENTLY_CLOSED_MAX_TAB_COUNT = 5;
+    private static final String PREF_SIGNIN_PROMO_DECLINED =
+            "recent_tabs_signin_promo_declined";
 
     private final Profile mProfile;
     private final Tab mTab;
     private final Context mContext;
-    private final ObserverList<AndroidSyncSettingsObserver> mObservers =
-            new ObserverList<AndroidSyncSettingsObserver>();
 
     private FaviconHelper mFaviconHelper;
     private ForeignSessionHelper mForeignSessionHelper;
@@ -66,7 +63,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
     private RecentlyClosedBridge mRecentlyClosedBridge;
     private SigninManager mSignInManager;
     private UpdatedCallback mUpdatedCallback;
-    private ProfileDataCache mProfileDataCache;
+    private boolean mIsDestroyed;
 
     /**
      * Create an RecentTabsManager to be used with RecentTabsPage and RecentTabsRowAdapter.
@@ -98,6 +95,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * Should be called when this object is no longer needed. Performs necessary listener tear down.
      */
     public void destroy() {
+        mIsDestroyed = true;
         AndroidSyncSettings.unregisterObserver(mContext, this);
 
         mSignInManager.removeSignInStateObserver(this);
@@ -117,12 +115,14 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
         mNewTabPagePrefs.destroy();
         mNewTabPagePrefs = null;
 
-        if (mProfileDataCache != null) {
-            mProfileDataCache.destroy();
-            mProfileDataCache = null;
-        }
-
         InvalidationController.get(mContext).onRecentTabsPageClosed();
+    }
+
+    /**
+     * Returns true if destroy() has been called.
+     */
+    public boolean isDestroyed() {
+        return mIsDestroyed;
     }
 
     private static ForeignSessionHelper buildForeignSessionHelper(Profile profile) {
@@ -209,6 +209,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      */
     public void openForeignSessionTab(ForeignSession session, ForeignSessionTab tab,
             int windowDisposition) {
+        if (mIsDestroyed) return;
         NewTabPageUma.recordAction(NewTabPageUma.ACTION_OPENED_FOREIGN_SESSION);
         mForeignSessionHelper.openForeignSessionTab(mTab, session, tab, windowDisposition);
     }
@@ -221,6 +222,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      *         be restored into the current tab or a new tab.
      */
     public void openRecentlyClosedTab(RecentlyClosedTab tab, int windowDisposition) {
+        if (mIsDestroyed) return;
         NewTabPageUma.recordAction(NewTabPageUma.ACTION_OPENED_RECENTLY_CLOSED_ENTRY);
         mRecentlyClosedBridge.openRecentlyClosedTab(mTab, tab, windowDisposition);
     }
@@ -229,6 +231,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * Opens the history page.
      */
     public void openHistoryPage() {
+        if (mIsDestroyed) return;
         mTab.loadUrl(new LoadUrlParams(UrlConstants.HISTORY_URL));
         StartupMetrics.getInstance().recordOpenedHistory();
     }
@@ -273,6 +276,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @param isCollapsed Whether the currently open tabs list is collapsed.
      */
     public void setCurrentlyOpenTabsCollapsed(boolean isCollapsed) {
+        if (mIsDestroyed) return;
         mNewTabPagePrefs.setCurrentlyOpenTabsCollapsed(isCollapsed);
     }
 
@@ -316,6 +320,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @param isCollapsed Whether the session is collapsed or expanded.
      */
     public void setForeignSessionCollapsed(ForeignSession session, boolean isCollapsed) {
+        if (mIsDestroyed) return;
         mNewTabPagePrefs.setForeignSessionCollapsed(session, isCollapsed);
     }
 
@@ -336,6 +341,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @param isCollapsed Whether the recently closed tabs list is collapsed.
      */
     public void setRecentlyClosedTabsCollapsed(boolean isCollapsed) {
+        if (mIsDestroyed) return;
         mNewTabPagePrefs.setRecentlyClosedTabsCollapsed(isCollapsed);
     }
 
@@ -356,6 +362,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @param session Session to be deleted.
      */
     public void deleteForeignSession(ForeignSession session) {
+        if (mIsDestroyed) return;
         mForeignSessionHelper.deleteForeignSession(session);
     }
 
@@ -363,6 +370,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * Clears the list of recently closed tabs.
      */
     public void clearRecentlyClosedTabs() {
+        if (mIsDestroyed) return;
         mRecentlyClosedBridge.clearRecentlyClosedTabs();
     }
 
@@ -372,11 +380,27 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @return Whether sync promo should be displayed.
      */
     public boolean shouldDisplaySyncPromo() {
-        if (SigninManager.get(mContext).isSigninDisabledByPolicy()) {
+        SigninManager signinManager = SigninManager.get(mContext);
+        if (signinManager.isSigninDisabledByPolicy() || !signinManager.isSigninSupported()) {
+            return false;
+        }
+
+        if (ContextUtils.getAppSharedPreferences().getBoolean(
+                PREF_SIGNIN_PROMO_DECLINED, false)) {
             return false;
         }
 
         return !AndroidSyncSettings.isSyncEnabled(mContext) || mForeignSessions.isEmpty();
+    }
+
+    /**
+     * Save that user tapped "No" button on the signin promo.
+     */
+    public void setSigninPromoDeclined() {
+        SharedPreferences.Editor sharedPreferencesEditor =
+                ContextUtils.getAppSharedPreferences().edit();
+        sharedPreferencesEditor.putBoolean(PREF_SIGNIN_PROMO_DECLINED, true);
+        sharedPreferencesEditor.apply();
     }
 
     /**
@@ -385,6 +409,7 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
      * @param isCollapsed Whether the sync promo is collapsed.
      */
     public void setSyncPromoCollapsed(boolean isCollapsed) {
+        if (mIsDestroyed) return;
         mNewTabPagePrefs.setSyncPromoCollapsed(isCollapsed);
     }
 
@@ -420,46 +445,14 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
         ThreadUtils.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (mIsDestroyed) return;
                 updateForeignSessions();
                 postUpdate();
-                for (AndroidSyncSettingsObserver observer : mObservers) {
-                    observer.androidSyncSettingsChanged();
-                }
             }
         });
     }
 
-    // SyncPromoModel
-    @Override
-    public boolean isSyncEnabled() {
-        return AndroidSyncSettings.isSyncEnabled(mContext);
-    }
-
-    @Override
     public boolean isSignedIn() {
         return ChromeSigninController.get(mContext).isSignedIn();
-    }
-
-    @Override
-    public void enableSync() {
-        SyncController.get(mContext).start();
-    }
-
-    @Override
-    public void registerForSyncUpdates(AndroidSyncSettingsObserver changeListener) {
-        mObservers.addObserver(changeListener);
-    }
-
-    @Override
-    public void unregisterForSyncUpdates(AndroidSyncSettingsObserver changeListener) {
-        mObservers.removeObserver(changeListener);
-    }
-
-    @Override
-    public ProfileDataCache getProfileDataCache() {
-        if (mProfileDataCache == null) {
-            mProfileDataCache = new ProfileDataCache(mContext, Profile.getLastUsedProfile());
-        }
-        return mProfileDataCache;
     }
 }

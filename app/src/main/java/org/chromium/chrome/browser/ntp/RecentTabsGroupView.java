@@ -19,8 +19,6 @@ import org.chromium.chrome.browser.ntp.ForeignSessionHelper.ForeignSession;
 import org.chromium.chrome.browser.widget.TintedDrawable;
 import org.chromium.ui.base.DeviceFormFactor;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Header view shown above each group of items on the Recent Tabs page. Shows the name of the
  * group (e.g. "Recently closed" or "Jim's Laptop"), an icon, last synced time, and a button to
@@ -36,7 +34,6 @@ public class RecentTabsGroupView extends RelativeLayout {
     private ImageView mExpandCollapseIcon;
     private TextView mDeviceLabel;
     private TextView mTimeLabel;
-    private long mInitializationTimestamp;
     private int mDeviceLabelExpandedColor;
     private int mDeviceLabelCollapsedColor;
     private int mTimeLabelExpandedColor;
@@ -78,15 +75,6 @@ public class RecentTabsGroupView extends RelativeLayout {
                 ApiCompatibilityUtils.getColorStateList(getResources(), R.color.blue_mode_tint));
         collapseIcon.addLevel(DRAWABLE_LEVEL_EXPANDED, DRAWABLE_LEVEL_EXPANDED, collapse);
         mExpandCollapseIcon.setImageDrawable(collapseIcon);
-    }
-
-    /**
-     * Initialize the state of the group view. Should be called immediatly after object creation.
-     *
-     * @param initializationTimestamp The timestamp to compute the time since last session sync.
-     */
-    public void initialize(long initializationTimestamp) {
-        mInitializationTimestamp = initializationTimestamp;
     }
 
     /**
@@ -171,27 +159,28 @@ public class RecentTabsGroupView extends RelativeLayout {
         mTimeLabel.setTextColor(isExpanded ? mTimeLabelExpandedColor : mTimeLabelCollapsedColor);
     }
 
-    private String getTimeString(ForeignSession session) {
-        long sessionModifiedTimeSeconds =
-                TimeUnit.SECONDS.convert(session.modifiedTime, TimeUnit.MILLISECONDS);
-        long timeDelta = mInitializationTimestamp - sessionModifiedTimeSeconds;
-        timeDelta = timeDelta > 0 ? timeDelta : 0;
+    private CharSequence getTimeString(ForeignSession session) {
+        long timeDeltaMs = System.currentTimeMillis() - session.modifiedTime;
+        if (timeDeltaMs < 0) timeDeltaMs = 0;
 
-        long daysElapsed = timeDelta / (24L * 60L * 60L);
-        long hoursElapsed = timeDelta / (60L * 60L);
-        long minutesElapsed = timeDelta / 60L;
+        int daysElapsed = (int) (timeDeltaMs / (24L * 60L * 60L * 1000L));
+        int hoursElapsed = (int) (timeDeltaMs / (60L * 60L * 1000L));
+        int minutesElapsed = (int) (timeDeltaMs / (60L * 1000L));
 
-        Resources resources = getContext().getResources();
+        Resources res = getResources();
+        String relativeTime;
         if (daysElapsed > 0L) {
-            return resources.getString(R.string.ntp_recent_tabs_last_synced_days, daysElapsed);
+            relativeTime = res.getQuantityString(R.plurals.n_days_ago, daysElapsed, daysElapsed);
         } else if (hoursElapsed > 0L) {
-            return resources.getString(R.string.ntp_recent_tabs_last_synced_hours, hoursElapsed);
+            relativeTime = res.getQuantityString(R.plurals.n_hours_ago, hoursElapsed, hoursElapsed);
         } else if (minutesElapsed > 0L) {
-            return resources.getString(
-                    R.string.ntp_recent_tabs_last_synced_minutes, minutesElapsed);
+            relativeTime = res.getQuantityString(R.plurals.n_minutes_ago, minutesElapsed,
+                    minutesElapsed);
         } else {
-            return resources.getString(R.string.ntp_recent_tabs_last_synced_just_now);
+            relativeTime = res.getString(R.string.just_now);
         }
+
+        return getResources().getString(R.string.ntp_recent_tabs_last_synced, relativeTime);
     }
 
     /**

@@ -10,7 +10,8 @@
     <org.chromium.chrome.browser.preferences.ChromeSwitchPreference
         android:key="usage_and_crash_reports_switch"
         android:summaryOn="@string/text_on"
-        android:summaryOff="@string/text_off"/>
+        android:summaryOff="@string/text_off"
+        chrome:drawDivider="true"/>
 
     <org.chromium.chrome.browser.preferences.TextMessagePreference
         android:title="@string/usage_and_crash_reports_description"/>

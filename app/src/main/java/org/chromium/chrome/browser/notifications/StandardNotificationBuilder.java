@@ -5,90 +5,61 @@
 package org.chromium.chrome.browser.notifications;
 
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.support.v4.app.NotificationCompat;
+import android.os.Build;
 
 /**
- * Builds a notification using the given inputs. Relies on NotificationCompat and
- * NotificationCompat.BigTextStyle to provide a standard layout.
+ * Builds a notification using the standard Notification.BigTextStyle layout.
  */
-public class StandardNotificationBuilder implements NotificationBuilder {
-    private final NotificationCompat.Builder mBuilder;
+public class StandardNotificationBuilder extends NotificationBuilderBase {
+    private final Context mContext;
 
     public StandardNotificationBuilder(Context context) {
-        mBuilder = new NotificationCompat.Builder(context);
+        super(context.getResources());
+        mContext = context;
     }
 
     @Override
     public Notification build() {
-        return mBuilder.build();
-    }
-
-    @Override
-    public NotificationBuilder setTitle(String title) {
-        mBuilder.setContentTitle(title);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setBody(String body) {
-        mBuilder.setContentText(body).setStyle(new NotificationCompat.BigTextStyle().bigText(body));
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setOrigin(String origin) {
-        mBuilder.setSubText(origin);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setTicker(CharSequence tickerText) {
-        mBuilder.setTicker(tickerText);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setLargeIcon(Bitmap icon) {
-        mBuilder.setLargeIcon(icon);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setSmallIcon(int iconId) {
-        mBuilder.setSmallIcon(iconId);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setContentIntent(PendingIntent intent) {
-        mBuilder.setContentIntent(intent);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setDeleteIntent(PendingIntent intent) {
-        mBuilder.setDeleteIntent(intent);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder addAction(int iconId, CharSequence title, PendingIntent intent) {
-        mBuilder.addAction(iconId, title, intent);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setDefaults(int defaults) {
-        mBuilder.setDefaults(defaults);
-        return this;
-    }
-
-    @Override
-    public NotificationBuilder setVibrate(long[] pattern) {
-        mBuilder.setVibrate(pattern);
-        return this;
+        // Note: this is not a NotificationCompat builder so be mindful of the
+        // API level of methods you call on the builder.
+        Notification.Builder builder = new Notification.Builder(mContext);
+        builder.setContentTitle(mTitle);
+        builder.setContentText(mBody);
+        builder.setSubText(mOrigin);
+        builder.setTicker(mTickerText);
+        if (mImage != null) {
+            Notification.BigPictureStyle style =
+                    new Notification.BigPictureStyle().bigPicture(mImage);
+            if (Build.VERSION.CODENAME.equals("N")
+                    || Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+                // Android N doesn't show content text when expanded, so duplicate body text as a
+                // summary for the big picture.
+                style.setSummaryText(mBody);
+            }
+            builder.setStyle(style);
+        } else {
+            // If there is no image, let the body text wrap only multiple lines when expanded.
+            builder.setStyle(new Notification.BigTextStyle().bigText(mBody));
+        }
+        builder.setLargeIcon(getNormalizedLargeIcon());
+        setSmallIconOnBuilder(builder, mSmallIconId, mSmallIconBitmap);
+        builder.setContentIntent(mContentIntent);
+        builder.setDeleteIntent(mDeleteIntent);
+        for (Action action : mActions) {
+            addActionToBuilder(builder, action);
+        }
+        if (mSettingsAction != null) {
+            addActionToBuilder(builder, mSettingsAction);
+        }
+        builder.setDefaults(mDefaults);
+        builder.setVibrate(mVibratePattern);
+        builder.setWhen(mTimestamp);
+        builder.setOnlyAlertOnce(!mRenotify);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Notification.Builder.setPublicVersion was added in Android L.
+            builder.setPublicVersion(createPublicNotification(mContext));
+        }
+        return builder.build();
     }
 }

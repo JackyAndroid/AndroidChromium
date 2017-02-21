@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<!-- Base layout for Autofill editors.
+     Editor fields are expected to be added to the LinearLayout inside of the ScrollView.
+-->
+<org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true" >
+
+    <!-- All fields go into this LinearLayout. -->
+    <LinearLayout
+        style="@style/PreferenceScreenLayout"
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+</org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView>

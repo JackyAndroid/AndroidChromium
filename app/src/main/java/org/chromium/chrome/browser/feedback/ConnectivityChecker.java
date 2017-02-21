@@ -25,7 +25,7 @@ import java.net.URL;
  */
 @JNINamespace("chrome::android")
 public final class ConnectivityChecker {
-    private static final String TAG = "cr.feedback";
+    private static final String TAG = "feedback";
 
     private static final String DEFAULT_HTTP_NO_CONTENT_URL =
             "http://clients4.google.com/generate_204";

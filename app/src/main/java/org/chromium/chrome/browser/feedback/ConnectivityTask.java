@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * both available network stacks, and checking over both HTTP and HTTPS.
  */
 public class ConnectivityTask {
-    private static final String TAG = "cr.feedback";
+    private static final String TAG = "feedback";
 
     /**
      * The key for the data describing how long time from the connection check was started,

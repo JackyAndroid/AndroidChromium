@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="6dp"
+    android:orientation="vertical">
+    
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    
+    <View
+        android:id="@+id/bottom_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/toolbar_shadow_normal"
+        android:scaleY="-1" 
+        android:visibility="invisible" />
+        
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+      
+         <Button
+             android:id="@+id/cancel_button"
+             style="@style/ButtonCompatBorderless"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:textColor="@color/light_active_color"
+             android:text="@string/cancel"
+             android:textAllCaps="true"
+             android:textSize="14sp"
+             android:layout_marginEnd="16dp"
+             android:layout_gravity="center_vertical"/>
+          
+         <org.chromium.ui.widget.ButtonCompat
+             android:id="@+id/save_button"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:textColor="@android:color/white"
+             android:text="@string/save"
+             android:textAllCaps="true"
+             android:textSize="14sp"
+             android:layout_marginEnd="8dp"
+             chrome:buttonColor="@color/light_active_color"
+             chrome:buttonRaised="false"
+             android:layout_gravity="center_vertical"/>
+          
+    </LinearLayout>
+    
+</LinearLayout>

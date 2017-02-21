@@ -7,11 +7,20 @@ package org.chromium.chrome.browser.compositor;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 import android.util.SparseArray;
 
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.compositor.layouts.content.TitleBitmapFactory;
+import org.chromium.chrome.browser.favicon.FaviconHelper;
+import org.chromium.chrome.browser.favicon.FaviconHelper.FaviconImageCallback;
+import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tabmodel.TabModelSelector;
+import org.chromium.chrome.browser.util.ColorUtils;
+import org.chromium.ui.base.DeviceFormFactor;
 import org.chromium.ui.resources.ResourceManager;
 import org.chromium.ui.resources.dynamics.BitmapDynamicResource;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
@@ -20,17 +29,31 @@ import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
  * A version of the {@link LayerTitleCache} that builds native cc::Layer objects
  * that represent the cached title textures.
  */
-@JNINamespace("chrome::android")
+@JNINamespace("android")
 public class LayerTitleCache implements TitleCache {
-    private long mNativeLayerTitleCache;
-    private final SparseArray<Title> mTitles = new SparseArray<Title>();
-    private ResourceManager mResourceManager;
     private static int sNextResourceId = 1;
+
+    private final Context mContext;
+    private TabModelSelector mTabModelSelector;
+
+    private final SparseArray<Title> mTitles = new SparseArray<Title>();
+    private final int mFaviconSize;
+
+    private long mNativeLayerTitleCache;
+    private ResourceManager mResourceManager;
+
+    private FaviconHelper mFaviconHelper;
+
+    /** Responsible for building titles on light themes or standard tabs. */
+    protected TitleBitmapFactory mStandardTitleBitmapFactory;
+    /** Responsible for building incognito or dark theme titles. */
+    protected TitleBitmapFactory mDarkTitleBitmapFactory;
 
     /**
      * Builds an instance of the LayerTitleCache.
      */
     public LayerTitleCache(Context context) {
+        mContext = context;
         Resources res = context.getResources();
         final int fadeWidthPx = res.getDimensionPixelOffset(R.dimen.border_texture_title_fade);
         final int faviconStartPaddingPx =
@@ -39,6 +62,11 @@ public class LayerTitleCache implements TitleCache {
                 res.getDimensionPixelSize(R.dimen.tab_title_favicon_end_padding);
         mNativeLayerTitleCache = nativeInit(fadeWidthPx, faviconStartPaddingPx, faviconEndPaddingPx,
                 R.drawable.spinner, R.drawable.spinner_white);
+        mFaviconSize = res.getDimensionPixelSize(R.dimen.compositor_tab_title_favicon_size);
+        mStandardTitleBitmapFactory =
+                new TitleBitmapFactory(context, false, R.drawable.default_favicon);
+        mDarkTitleBitmapFactory =
+                new TitleBitmapFactory(context, true, R.drawable.default_favicon_white);
     }
 
     /**
@@ -58,14 +86,54 @@ public class LayerTitleCache implements TitleCache {
         mNativeLayerTitleCache = 0;
     }
 
+    public void setTabModelSelector(TabModelSelector tabModelSelector) {
+        mTabModelSelector = tabModelSelector;
+    }
+
     @CalledByNative
     private long getNativePtr() {
         return mNativeLayerTitleCache;
     }
 
+    @CalledByNative
+    private void buildUpdatedTitle(int tabId) {
+        if (mTabModelSelector == null) return;
+
+        Tab tab = mTabModelSelector.getTabById(tabId);
+        if (tab == null) return;
+
+        getUpdatedTitle(tab, "");
+    }
+
     @Override
-    public void put(int tabId, Bitmap titleBitmap, Bitmap faviconBitmap, boolean isIncognito,
-            boolean isRtl) {
+    public String getUpdatedTitle(Tab tab, String defaultTitle) {
+        // If content view core is null, tab does not have direct access to the favicon, and we
+        // will initially show default favicon. But favicons are stored in the history database, so
+        // we will fetch favicons asynchronously from database.
+        boolean fetchFaviconFromHistory = tab.getContentViewCore() == null;
+
+        String titleString = getTitleForTab(tab, defaultTitle);
+        getUpdatedTitleInternal(tab, titleString, fetchFaviconFromHistory);
+        if (fetchFaviconFromHistory) fetchFaviconForTab(tab);
+        return titleString;
+    }
+
+    private String getUpdatedTitleInternal(Tab tab, String titleString,
+            boolean fetchFaviconFromHistory) {
+        final int tabId = tab.getId();
+        Bitmap originalFavicon = tab.getFavicon();
+
+        boolean isDarkTheme = tab.isIncognito();
+        // The theme might require lighter text.
+        if (!DeviceFormFactor.isTablet(mContext)) {
+            isDarkTheme |= ColorUtils.shouldUseLightForegroundOnBackground(tab.getThemeColor());
+        }
+
+        ColorUtils.shouldUseLightForegroundOnBackground(tab.getThemeColor());
+        boolean isRtl = tab.isTitleDirectionRtl();
+        TitleBitmapFactory titleBitmapFactory = isDarkTheme
+                ? mDarkTitleBitmapFactory : mStandardTitleBitmapFactory;
+
         Title title = mTitles.get(tabId);
         if (title == null) {
             title = new Title();
@@ -73,11 +141,66 @@ public class LayerTitleCache implements TitleCache {
             title.register();
         }
 
-        title.update(titleBitmap, faviconBitmap);
+        title.set(titleBitmapFactory.getTitleBitmap(mContext, titleString),
+                titleBitmapFactory.getFaviconBitmap(mContext, originalFavicon),
+                fetchFaviconFromHistory);
 
         if (mNativeLayerTitleCache != 0) {
             nativeUpdateLayer(mNativeLayerTitleCache, tabId, title.getTitleResId(),
-                    title.getFaviconResId(), isIncognito, isRtl);
+                    title.getFaviconResId(), isDarkTheme, isRtl);
+        }
+        return titleString;
+    }
+
+    private void fetchFaviconForTab(final Tab tab) {
+        if (mFaviconHelper == null) mFaviconHelper = new FaviconHelper();
+
+        // Since tab#getProfile() is not available by this time, we will use whatever last used
+        // profile. This should be normal profile since fetching favicons should normally happen on
+        // a cold start. Return otherwise.
+        if (Profile.getLastUsedProfile().hasOffTheRecordProfile()) return;
+
+        mFaviconHelper.getLocalFaviconImageForURL(
+                Profile.getLastUsedProfile(),
+                tab.getUrl(),
+                mFaviconSize,
+                new FaviconImageCallback() {
+                    @Override
+                    public void onFaviconAvailable(Bitmap favicon, String iconUrl) {
+                        updateFaviconFromHistory(tab, favicon);
+                    }
+                });
+    }
+
+    /**
+     * Comes up with a valid title to return for a tab.
+     * @param tab The {@link Tab} to build a title for.
+     * @return    The title to use.
+     */
+    private String getTitleForTab(Tab tab, String defaultTitle) {
+        String title = tab.getTitle();
+        if (TextUtils.isEmpty(title)) {
+            title = tab.getUrl();
+            if (TextUtils.isEmpty(title)) {
+                title = defaultTitle;
+                if (TextUtils.isEmpty(title)) {
+                    title = "";
+                }
+            }
+        }
+        return title;
+    }
+
+    private void updateFaviconFromHistory(Tab tab, Bitmap faviconBitmap) {
+        if (!tab.isInitialized()) return;
+
+        int tabId = tab.getId();
+        Title title = mTitles.get(tabId);
+        if (title == null) return;
+        if (!title.updateFaviconFromHistory(faviconBitmap)) return;
+
+        if (mNativeLayerTitleCache != 0) {
+            nativeUpdateFavicon(mNativeLayerTitleCache, tabId, title.getFaviconResId());
         }
     }
 
@@ -111,11 +234,23 @@ public class LayerTitleCache implements TitleCache {
         private final BitmapDynamicResource mFavicon = new BitmapDynamicResource(sNextResourceId++);
         private final BitmapDynamicResource mTitle = new BitmapDynamicResource(sNextResourceId++);
 
+        // We don't want to override updated favicon (e.g. from Tab#onFaviconAvailable) with one
+        // fetched from history. You can set this to true / false to control that.
+        private boolean mExpectUpdateFromHistory;
+
         public Title() {}
 
-        public void update(Bitmap titleBitmap, Bitmap faviconBitmap) {
-            mFavicon.setBitmap(faviconBitmap);
+        public void set(Bitmap titleBitmap, Bitmap faviconBitmap, boolean expectUpdateFromHistory) {
             mTitle.setBitmap(titleBitmap);
+            mFavicon.setBitmap(faviconBitmap);
+            mExpectUpdateFromHistory = expectUpdateFromHistory;
+        }
+
+        public boolean updateFaviconFromHistory(Bitmap faviconBitmap) {
+            if (!mExpectUpdateFromHistory) return false;
+            mFavicon.setBitmap(faviconBitmap);
+            mExpectUpdateFromHistory = false;
+            return true;
         }
 
         public void register() {
@@ -147,4 +282,6 @@ public class LayerTitleCache implements TitleCache {
     private native void nativeClearExcept(long nativeLayerTitleCache, int exceptId);
     private native void nativeUpdateLayer(long nativeLayerTitleCache, int tabId, int titleResId,
             int faviconResId, boolean isIncognito, boolean isRtl);
+    private native void nativeUpdateFavicon(long nativeLayerTitleCache, int tabId,
+            int faviconResId);
 }

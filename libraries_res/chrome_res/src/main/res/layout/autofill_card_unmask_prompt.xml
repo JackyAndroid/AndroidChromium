@@ -9,29 +9,28 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/instructions_container"
+    <TextView
+        android:id="@+id/no_retry_error_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/controls_container"
-        android:layout_alignEnd="@+id/controls_container"
-        android:orientation="vertical">
+        android:layout_marginTop="23dp"
+        android:layout_marginBottom="2dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="15dp"
+        android:gravity="start"
+        android:textSize="12sp"
+        android:textColor="@color/input_underline_error_color"
+        android:background="#e0e0e0"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/no_retry_error_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="23dp"
-            android:layout_marginBottom="2dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="15dp"
-            android:gravity="start"
-            android:textSize="12sp"
-            android:textColor="@color/input_underline_error_color"
-            android:background="#e0e0e0"
-            android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/controls_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/no_retry_error_message"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/instructions"
@@ -45,14 +44,6 @@
             android:textColor="@color/explanation_text_color"
             android:lineSpacingMultiplier="1.25"
             android:gravity="start" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/controls_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/instructions_container"
-        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -185,12 +176,15 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"
             android:visibility="gone" />
 
         <ImageView
             android:id="@+id/verification_success"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"
             android:src="@drawable/verify_checkmark"
             android:visibility="gone"
             android:contentDescription="@null" />
