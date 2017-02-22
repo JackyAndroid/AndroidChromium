@@ -21,9 +21,9 @@ CSDN: http://blog.csdn.net/rain_butterfly
 If you are using AndroidStudio above 2.0 version and open instant run function, suggested to debug after closing (instant run will modify on the Application of the result in chrome provider context reference error)
 
 ###Screenshots
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot1.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot2.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot3.jpg)
 
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screensho4.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot5.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot6.jpg)
 
 ###The upgrade Chromium kernel steps are as follows
 ---

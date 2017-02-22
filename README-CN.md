@@ -19,9 +19,9 @@ CSDN: http://blog.csdn.net/rain_butterfly
 如果使用的是AndroidStudio 2.0以上版本且开启instant run功能，建议关闭后再进行调试（instant run会修改首先启动的Application导致chrome provider context 引用错误导致crash）
 
 ###效果图
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172236.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172251.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172309.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot1.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot2.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot3.jpg)
 
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screensho4.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot5.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot6.jpg)
 
 ###以下为升级Chromium内核步骤
 ---
