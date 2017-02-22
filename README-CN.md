@@ -21,7 +21,7 @@ CSDN: http://blog.csdn.net/rain_butterfly
 ###效果图
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot1.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot2.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot3.jpg)
 
-![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screensho4.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot5.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot6.jpg)
+![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot4.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot5.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/screenshot6.png)
 
 ###以下为升级Chromium内核步骤
 ---
