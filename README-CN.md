@@ -23,7 +23,7 @@ CSDN: http://blog.csdn.net/rain_butterfly
 
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
 
-###以下为升级chrome内核详解，非相关人员可以忽略
+###以下为升级Chromium内核步骤
 ---
 
 ###准备
@@ -47,21 +47,21 @@ CSDN: http://blog.csdn.net/rain_butterfly
 
 ###本项目和源码目录对应关系
 
-app/libs ----------- chromium/src/out/Release/lib.java
+app/libs ----------- chromium/src/out/gnbuild/lib.java
 
 app/src/main/aidl ----------- chromium/src/chrome/android/java/src/android/support/customtabs/*.aidl
 
-app/src/main/assets ----------- chromium/src/out/Release/assets/chrome_public_apk
+app/src/main/assets ----------- chromium/src/out/gnbuild/
 
 app/src/main/java ------------ chromium/src/chrome/android/java/src
 
-app/src/main/jniLibs ----------- chromium/src/out/Release/chrome_public_apk/libs
+app/src/main/jniLibs ----------- chromium/src/out/gnbuild/
 
 app/src/main/res（app module 初始化资源）
 
 libraries/androidmedia_res ----------- chromium/src/third_party/android_media/java/res
 
-libraries/chrome_res ----------- chromium/src/chrome/android/java/res & chromium/src/chrome/android/java/res_chromium
+libraries/chrome_res ----------- chromium/src/chrome/android/java/res && chromium/src/chrome/android/java/res_chromium
 
 libraries/content_res ----------- chromium/src/content/public/android/java/res
 
@@ -72,9 +72,9 @@ libraries/ui_res ---------- chromium/src/ui/android/java/res
 ###内核升级注意事项
 
 2.	pak和dat等文件需要加入到assets目录，而且不能压缩
-3.	aidl文件加入到main/aidl下，android studio会自动处理
-4. 目前构建的chromium版本是48.0.2554.0，内核为官方版本
-6. 因为某些java文件是通过C文件编译生成，只存在chromium/src/out  目录下。如果按以上对应关系升级版本缺失文件，请到out/目录下去搜索，根据命名空间添加相应文件。还有一些临时生成的xml资源文件也需要从out/目录下去拷贝到相应的资源模块。
+3.	aidl文件加入到main/aidl下
+4. 目前构建的chromium版本是55.0.2883.99
+6. 因为某些java文件是通过C文件编译生成，只存在chromium/src/out 目录下或存在于out下jar包中。如果按以上对应关系升级版本缺失文件，请到out/目录下去搜索，根据命名空间添加相应文件。还有一些临时生成的xml资源文件也需要从out/目录下去拷贝到相应的资源模块。
 
 ###感谢
 

@@ -25,7 +25,7 @@ If you are using AndroidStudio above 2.0 version and open instant run function, 
 
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172403.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-172456.jpg)  ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/screenshots/S60709-173225.jpg)
 
-###The following to upgrade the chrome kernel explanation, not relevant personnel can be ignored
+###The upgrade Chromium kernel steps are as follows
 ---
 
 ###Preparation
@@ -49,15 +49,15 @@ Because namespace problems, such as the content of the module resources namespac
 
 ###Directory corresponding relation
 
-app/libs ----------- chromium/src/out/Release/lib.java
+app/libs ----------- chromium/src/out/gnbuild/lib.java
 
 app/src/main/aidl ----------- chromium/src/chrome/android/java/src/android/support/customtabs/*.aidl
 
-app/src/main/assets ----------- chromium/src/out/Release/assets/chrome_public_apk
+app/src/main/assets ----------- chromium/src/out/gnbuild/
 
 app/src/main/java ------------ chromium/src/chrome/android/java/src
 
-app/src/main/jniLibs ----------- chromium/src/out/Release/chrome_public_apk/libs
+app/src/main/jniLibs ----------- chromium/src/out/gnbuild/
 
 app/src/main/res（app module init res）
 
@@ -75,8 +75,8 @@ libraries/ui_res ---------- chromium/src/ui/android/java/res
 
 1.	Pak and dat files need to be added to the assets directory, and cannot be compressed
 2.	Aidl files added to the main/aidl
-3. The current build chromium version is 48.0.2554.0, the kernel is the official version
-4. Because some Java file is through the C compiler generated, there is only the chromium/SRC/out directory.If according to corresponding relation between the above updated version missing files, please go to the out/directory search, add corresponding files according to the namespace.There are some temporary generated XML resource file also need the out/directory on copy to the corresponding resource module.
+3. The current build chromium version is 55.0.2883.99
+4. Because some Java file is through the C compiler generated, there is the chromium/src/out directory or exist in the jars.If according to corresponding relation between the above updated version missing files, please go to the out/directory search, add corresponding files according to the namespace.There are some temporary generated XML resource file also need the out/directory on copy to the corresponding resource module.
 
 ###Thanks
 
