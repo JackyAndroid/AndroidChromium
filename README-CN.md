@@ -15,7 +15,7 @@ GitHub: https://github.com/JackyAndroid
 * 理清本项目业务逻辑完全可以胜任国内一线公司工程师
 * 本项目会长期跟进并升级谷歌浏览器内核版本，欢迎star
 
-###注意事项
+### 注意事项
 如果使用的是AndroidStudio 2.0以上版本且开启instant run功能，建议关闭后再进行调试（instant run会修改首先启动的Application导致chrome provider context 引用错误导致crash）
 
 ### 效果图
@@ -71,10 +71,10 @@ libraries/ui_res ---------- chromium/src/ui/android/java/res
 
 ### 内核升级注意事项
 
-2.	pak和dat等文件需要加入到assets目录，而且不能压缩
-3.	aidl文件加入到main/aidl下
-4. 目前构建的chromium版本是55.0.2883.99
-6. 因为某些java文件是通过C文件编译生成，只存在chromium/src/out 目录下或存在于out下jar包中。如果按以上对应关系升级版本缺失文件，请到out/目录下去搜索，根据命名空间添加相应文件。还有一些临时生成的xml资源文件也需要从out/目录下去拷贝到相应的资源模块。
+1. pak和dat等文件需要加入到assets目录，而且不能压缩
+2. aidl文件加入到main/aidl下
+3. 目前构建的chromium版本是55.0.2883.99
+4. 因为某些java文件是通过C文件编译生成，只存在chromium/src/out 目录下或存在于out下jar包中。如果按以上对应关系升级版本缺失文件，请到out/目录下去搜索，根据命名空间添加相应文件。还有一些临时生成的xml资源文件也需要从out/目录下去拷贝到相应的资源模块。
 
 ### 感谢
 

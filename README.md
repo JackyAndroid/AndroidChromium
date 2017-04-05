@@ -8,7 +8,7 @@ Gold: https://gold.xitu.io/user/562dc7cc60b20fc9817962a2
 
 ---
 
-#AndroidChromium
+# AndroidChromium
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/app/src/main/res/mipmap-xhdpi/app_icon.png)
 
 ### Brief Introduction
