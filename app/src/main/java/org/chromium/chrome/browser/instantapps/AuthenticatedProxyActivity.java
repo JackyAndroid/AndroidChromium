@@ -25,7 +25,13 @@ public class AuthenticatedProxyActivity extends Activity {
 
         Intent forwardIntent = (Intent) getIntent().getParcelableExtra(AUTHENTICATED_INTENT_EXTRA);
         if (forwardIntent != null) {
-            startActivityForResult(forwardIntent, -1);
+            // Ensure that the forwardIntent doesn't have FLAG_ACTIVITY_NEW_TASK or
+            // FLAG_ACTIVITY_NEW_DOCUMENT set as those don't work with startActivityForResult().
+            forwardIntent.setFlags(forwardIntent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+            forwardIntent.setFlags(forwardIntent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+            // Non-negative result code ensures that startActivityForResult doesn't degrade to
+            // startActivity() behaviour.
+            startActivityForResult(forwardIntent, 0);
         }
         finish();
     }

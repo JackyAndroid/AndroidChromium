@@ -235,6 +235,12 @@ public class ContextualSearchUma {
     private static final int NO_BAR_OVERLAP_RESULTS_NOT_SEEN_FROM_LONG_PRESS = 7;
     private static final int BAR_OVERLAP_RESULTS_BOUNDARY = 8;
 
+    // Constants for quick action intent resolution histogram.
+    private static final int QUICK_ACTION_RESOLVE_FAILED = 0;
+    private static final int QUICK_ACTION_RESOLVE_SINGLE = 1;
+    private static final int QUICK_ACTION_RESOLVE_MULTIPLE = 2;
+    private static final int QUICK_ACTION_RESOLVE_BOUNDARY = 3;
+
     /**
      * Key used in maps from {state, reason} to state entry (exit) logging code.
      */
@@ -1320,6 +1326,62 @@ public class ContextualSearchUma {
     }
 
     /**
+     * Logs whether a quick action intent resolved to zero, one, or many apps.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
+     * @param numMatchingAppsApps The number of apps that the resolved intent matched.
+     */
+    public static void logQuickActionIntentResolution(int quickActionCategory,
+            int numMatchingAppsApps) {
+        int code = numMatchingAppsApps == 0 ? QUICK_ACTION_RESOLVE_FAILED
+                : numMatchingAppsApps == 1 ? QUICK_ACTION_RESOLVE_SINGLE
+                        : QUICK_ACTION_RESOLVE_MULTIPLE;
+        RecordHistogram.recordEnumeratedHistogram(
+                "Search.ContextualSearchQuickActions.IntentResolution."
+                        + getLabelForQuickActionCategory(quickActionCategory),
+                code, QUICK_ACTION_RESOLVE_BOUNDARY);
+    }
+
+    /**
+     * Logs whether a quick action was shown, and the quick aciton category if a quick action was
+     * shown. Should be logged on tap if Contextual Search single actions are enabled.
+     * @param quickActionShown Whether a quick action was shown.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
+     */
+    public static void logQuickActionShown(boolean quickActionShown, int quickActionCategory) {
+        RecordHistogram.recordBooleanHistogram(
+                "Search.ContextualSearchQuickActions.Shown", quickActionShown);
+        if (quickActionShown) {
+            RecordHistogram.recordEnumeratedHistogram(
+                    "Search.ContextualSearchQuickActions.Category",
+                    quickActionCategory, QuickActionCategory.BOUNDARY);
+        }
+    }
+
+    /**
+     * Logs whether results were seen when a quick action was present.
+     * @param wasSeen Whether the search results were seen.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
+     */
+    public static void logQuickActionResultsSeen(boolean wasSeen, int quickActionCategory) {
+        RecordHistogram.recordEnumeratedHistogram(
+                "Search.ContextualSearchQuickActions.ResultsSeen."
+                        + getLabelForQuickActionCategory(quickActionCategory),
+                wasSeen ? RESULTS_SEEN : RESULTS_NOT_SEEN, RESULTS_SEEN_BOUNDARY);
+    }
+
+    /**
+     * Logs whether a quick action was clicked.
+     * @param wasClicked Whether the quick action was clicked
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
+     */
+    public static void logQuickActionClicked(boolean wasClicked, int quickActionCategory) {
+        RecordHistogram.recordBooleanHistogram(
+                "Search.ContextualSearchQuickActions.Clicked."
+                        + getLabelForQuickActionCategory(quickActionCategory),
+                 wasClicked);
+    }
+
+    /**
      * Gets the state-change code for the given parameters by doing a lookup in the given map.
      * @param state The panel state.
      * @param reason The reason the state changed.
@@ -1414,5 +1476,20 @@ public class ContextualSearchUma {
         RecordHistogram.recordEnumeratedHistogram(histogramName,
                 getPanelSeenByGestureStateCode(wasPanelSeen, wasTap),
                 RESULTS_BY_GESTURE_BOUNDARY);
+    }
+
+    private static String getLabelForQuickActionCategory(int quickActionCategory) {
+        switch(quickActionCategory) {
+            case QuickActionCategory.ADDRESS:
+                return "Address";
+            case QuickActionCategory.EMAIL:
+                return "Email";
+            case QuickActionCategory.EVENT:
+                return "Event";
+            case QuickActionCategory.PHONE:
+                return "Phone";
+            default:
+                return "None";
+        }
     }
 }

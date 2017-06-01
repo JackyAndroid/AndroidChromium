@@ -4,27 +4,66 @@
 
 package org.chromium.chrome.browser.download.ui;
 
-import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.text.TextUtils;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.IntentHandler;
 import org.chromium.chrome.browser.download.DownloadItem;
 import org.chromium.chrome.browser.download.DownloadUtils;
 import org.chromium.chrome.browser.offlinepages.downloads.OfflinePageDownloadItem;
 import org.chromium.chrome.browser.widget.DateDividedAdapter.TimedItem;
+import org.chromium.content_public.browser.DownloadState;
 import org.chromium.ui.widget.Toast;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /** Wraps different classes that contain information about downloads. */
-public abstract class DownloadHistoryItemWrapper implements TimedItem {
+public abstract class DownloadHistoryItemWrapper extends TimedItem {
+    public static final Integer FILE_EXTENSION_OTHER = 0;
+    public static final Integer FILE_EXTENSION_APK = 1;
+    public static final Integer FILE_EXTENSION_CSV = 2;
+    public static final Integer FILE_EXTENSION_DOC = 3;
+    public static final Integer FILE_EXTENSION_DOCX = 4;
+    public static final Integer FILE_EXTENSION_EXE = 5;
+    public static final Integer FILE_EXTENSION_PDF = 6;
+    public static final Integer FILE_EXTENSION_PPT = 7;
+    public static final Integer FILE_EXTENSION_PPTX = 8;
+    public static final Integer FILE_EXTENSION_PSD = 9;
+    public static final Integer FILE_EXTENSION_RTF = 10;
+    public static final Integer FILE_EXTENSION_TXT = 11;
+    public static final Integer FILE_EXTENSION_XLS = 12;
+    public static final Integer FILE_EXTENSION_XLSX = 13;
+    public static final Integer FILE_EXTENSION_ZIP = 14;
+    public static final Integer FILE_EXTENSION_BOUNDARY = 15;
+
+    private static final Map<String, Integer> EXTENSIONS_MAP;
+    static {
+        Map<String, Integer> extensions = new HashMap<>();
+        extensions.put("apk", FILE_EXTENSION_APK);
+        extensions.put("csv", FILE_EXTENSION_CSV);
+        extensions.put("doc", FILE_EXTENSION_DOC);
+        extensions.put("docx", FILE_EXTENSION_DOCX);
+        extensions.put("exe", FILE_EXTENSION_EXE);
+        extensions.put("pdf", FILE_EXTENSION_PDF);
+        extensions.put("ppt", FILE_EXTENSION_PPT);
+        extensions.put("pptx", FILE_EXTENSION_PPTX);
+        extensions.put("psd", FILE_EXTENSION_PSD);
+        extensions.put("rtf", FILE_EXTENSION_RTF);
+        extensions.put("txt", FILE_EXTENSION_TXT);
+        extensions.put("xls", FILE_EXTENSION_XLS);
+        extensions.put("xlsx", FILE_EXTENSION_XLSX);
+        extensions.put("zip", FILE_EXTENSION_ZIP);
+
+        EXTENSIONS_MAP = Collections.unmodifiableMap(extensions);
+    }
+
     protected final BackendProvider mBackendProvider;
     protected final ComponentName mComponentName;
     private Long mStableId;
@@ -71,6 +110,15 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
     /** @return The mime type or null if the item doesn't have one. */
     public abstract String getMimeType();
 
+    /** @return The file extension type. See list at the top of the file. */
+    public abstract int getFileExtensionType();
+
+    /** @return How much of the download has completed, or -1 if there is no progress. */
+    public abstract int getDownloadProgress();
+
+    /** @return Whether or not the file is completely downloaded. */
+    public abstract boolean isComplete();
+
     /** Called when the user wants to open the file. */
     abstract void open();
 
@@ -95,24 +143,34 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
     protected void recordOpenSuccess() {
         RecordHistogram.recordEnumeratedHistogram("Android.DownloadManager.Item.OpenSucceeded",
                 getFilterType(), DownloadFilter.FILTER_BOUNDARY);
+
+        if (getFilterType() == DownloadFilter.FILTER_OTHER) {
+            RecordHistogram.recordEnumeratedHistogram(
+                    "Android.DownloadManager.OtherExtensions.OpenSucceeded",
+                    getFileExtensionType(), FILE_EXTENSION_BOUNDARY);
+        }
     }
 
     protected void recordOpenFailure() {
         RecordHistogram.recordEnumeratedHistogram("Android.DownloadManager.Item.OpenFailed",
                 getFilterType(), DownloadFilter.FILTER_BOUNDARY);
+
+        if (getFilterType() == DownloadFilter.FILTER_OTHER) {
+            RecordHistogram.recordEnumeratedHistogram(
+                    "Android.DownloadManager.OtherExtensions.OpenFailed",
+                    getFileExtensionType(), FILE_EXTENSION_BOUNDARY);
+        }
     }
 
     /** Wraps a {@link DownloadItem}. */
     public static class DownloadItemWrapper extends DownloadHistoryItemWrapper {
         private final DownloadItem mItem;
-        private final boolean mIsOffTheRecord;
         private File mFile;
+        private Integer mFileExtensionType;
 
-        DownloadItemWrapper(DownloadItem item, boolean isOffTheRecord, BackendProvider provider,
-                ComponentName component) {
+        DownloadItemWrapper(DownloadItem item, BackendProvider provider, ComponentName component) {
             super(provider, component);
             mItem = item;
-            mIsOffTheRecord = isOffTheRecord;
         }
 
         @Override
@@ -148,7 +206,11 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
 
         @Override
         public long getFileSize() {
-            return mItem.getDownloadInfo().getContentLength();
+            if (mItem.getDownloadInfo().state() == DownloadState.COMPLETE) {
+                return mItem.getDownloadInfo().getContentLength();
+            } else {
+                return 0;
+            }
         }
 
         @Override
@@ -167,10 +229,35 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
         }
 
         @Override
+        public int getFileExtensionType() {
+            if (mFileExtensionType == null) {
+                int extensionIndex = getFilePath().lastIndexOf(".");
+                if (extensionIndex == -1 || extensionIndex == getFilePath().length() - 1) {
+                    mFileExtensionType = FILE_EXTENSION_OTHER;
+                    return mFileExtensionType;
+                }
+
+                String extension = getFilePath().substring(extensionIndex + 1);
+                if (!TextUtils.isEmpty(extension) && EXTENSIONS_MAP.containsKey(
+                        extension.toLowerCase(Locale.getDefault()))) {
+                    mFileExtensionType = EXTENSIONS_MAP.get(
+                            extension.toLowerCase(Locale.getDefault()));
+                } else {
+                    mFileExtensionType = FILE_EXTENSION_OTHER;
+                }
+            }
+
+            return mFileExtensionType;
+        }
+
+        @Override
+        public int getDownloadProgress() {
+            return mItem.getDownloadInfo().getPercentCompleted();
+        }
+
+        @Override
         public void open() {
             Context context = ContextUtils.getApplicationContext();
-            Intent viewIntent = DownloadUtils.createViewIntentForDownloadItem(
-                    Uri.fromFile(getFile()), getMimeType());
 
             if (mItem.hasBeenExternallyRemoved()) {
                 Toast.makeText(context, context.getString(R.string.download_cant_open_file),
@@ -178,30 +265,9 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
                 return;
             }
 
-            // Check if Chrome should open the file itself.
-            if (mBackendProvider.getDownloadDelegate().isDownloadOpenableInBrowser(
-                    mItem.getId(), mIsOffTheRecord, getMimeType())) {
-                // Share URIs use the content:// scheme when able, which looks bad when displayed
-                // in the URL bar.
-                Uri fileUri = Uri.fromFile(getFile());
-                Uri shareUri = DownloadUtils.getUriForItem(getFile());
-                String mimeType = Intent.normalizeMimeType(getMimeType());
-
-                Intent intent = DownloadUtils.getMediaViewerIntentForDownloadItem(
-                        fileUri, shareUri, mimeType);
-                IntentHandler.startActivityForTrustedIntent(intent, context);
+            if (DownloadUtils.openFile(getFile(), getMimeType(), isOffTheRecord())) {
                 recordOpenSuccess();
-                return;
-            }
-
-            // Check if any apps can open the file.
-            try {
-                context.startActivity(viewIntent);
-                recordOpenSuccess();
-            } catch (ActivityNotFoundException e) {
-                // Can't launch the Intent.
-                Toast.makeText(context, context.getString(R.string.download_cant_open_file),
-                        Toast.LENGTH_SHORT).show();
+            } else {
                 recordOpenFailure();
             }
         }
@@ -209,7 +275,7 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
         @Override
         public boolean remove() {
             // Tell the DownloadManager to remove the file from history.
-            mBackendProvider.getDownloadDelegate().removeDownload(getId(), mIsOffTheRecord);
+            mBackendProvider.getDownloadDelegate().removeDownload(getId(), isOffTheRecord());
             return false;
         }
 
@@ -220,7 +286,12 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
 
         @Override
         boolean isOffTheRecord() {
-            return mIsOffTheRecord;
+            return mItem.getDownloadInfo().isOffTheRecord();
+        }
+
+        @Override
+        public boolean isComplete() {
+            return mItem.getDownloadInfo().state() == DownloadState.COMPLETE;
         }
     }
 
@@ -293,6 +364,16 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
         }
 
         @Override
+        public int getFileExtensionType() {
+            return FILE_EXTENSION_OTHER;
+        }
+
+        @Override
+        public int getDownloadProgress() {
+            return -1;
+        }
+
+        @Override
         public void open() {
             mBackendProvider.getOfflinePageBridge().openItem(getId(), mComponentName);
             recordOpenSuccess();
@@ -313,6 +394,12 @@ public abstract class DownloadHistoryItemWrapper implements TimedItem {
         @Override
         boolean isOffTheRecord() {
             return false;
+        }
+
+        @Override
+        public boolean isComplete() {
+            // Incomplete offline pages aren't shown yet.
+            return true;
         }
     }
 }

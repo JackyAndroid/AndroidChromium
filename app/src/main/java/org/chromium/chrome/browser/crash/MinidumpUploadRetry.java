@@ -7,8 +7,8 @@ package org.chromium.chrome.browser.crash;
 import android.content.Context;
 import android.os.Handler;
 
+import org.chromium.base.NonThreadSafe;
 import org.chromium.base.annotations.SuppressFBWarnings;
-import org.chromium.chrome.browser.util.NonThreadSafe;
 import org.chromium.net.ConnectionType;
 import org.chromium.net.NetworkChangeNotifier;
 

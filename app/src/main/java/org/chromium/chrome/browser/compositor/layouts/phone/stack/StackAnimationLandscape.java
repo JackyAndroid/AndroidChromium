@@ -28,10 +28,10 @@ class StackAnimationLandscape extends StackAnimation {
     /**
      * Only Constructor.
      */
-    public StackAnimationLandscape(float width, float height, float heightMinusTopControls,
+    public StackAnimationLandscape(float width, float height, float heightMinusBrowserControls,
             float borderFramePaddingTop, float borderFramePaddingTopOpaque,
             float borderFramePaddingLeft) {
-        super(width, height, heightMinusTopControls, borderFramePaddingTop,
+        super(width, height, heightMinusBrowserControls, borderFramePaddingTop,
                 borderFramePaddingTopOpaque, borderFramePaddingLeft);
     }
 
@@ -53,8 +53,8 @@ class StackAnimationLandscape extends StackAnimation {
             final float scrollOffset = StackTab.screenToScroll(i * spacing, warpSize);
 
             addAnimation(set, tab.getLayoutTab(), MAX_CONTENT_HEIGHT,
-                    tab.getLayoutTab().getUnclampedOriginalContentHeight(), mHeightMinusTopControls,
-                    ENTER_STACK_ANIMATION_DURATION, 0);
+                    tab.getLayoutTab().getUnclampedOriginalContentHeight(),
+                    mHeightMinusBrowserControls, ENTER_STACK_ANIMATION_DURATION, 0);
             if (i < focusIndex) {
                 addAnimation(set, tab, SCROLL_OFFSET, initialScrollOffset, scrollOffset,
                         ENTER_STACK_ANIMATION_DURATION, 0);
@@ -135,7 +135,7 @@ class StackAnimationLandscape extends StackAnimation {
                         tab.getLayoutTab().getMaxContentHeight(),
                         tab.getLayoutTab().getUnclampedOriginalContentHeight(),
                         TAB_FOCUSED_ANIMATION_DURATION, 0);
-                tab.setYOutOfStack(mHeight - mHeightMinusTopControls - mBorderTopHeight);
+                tab.setYOutOfStack(mHeight - mHeightMinusBrowserControls - mBorderTopHeight);
 
                 if (layoutTab.shouldStall()) {
                     addAnimation(set, layoutTab, SATURATION, 1.0f, 0.0f,

@@ -98,10 +98,6 @@ class WebsitePreference extends Preference implements FaviconImageCallback {
      */
     private String faviconUrl() {
         String origin = mSite.getAddress().getOrigin();
-        if (origin == null) {
-            return "http://" + mSite.getAddress().getHost();
-        }
-
         Uri uri = Uri.parse(origin);
         if (uri.getPort() != -1) {
             // Remove the port.

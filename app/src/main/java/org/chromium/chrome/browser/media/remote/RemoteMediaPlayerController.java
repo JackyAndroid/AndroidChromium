@@ -200,7 +200,18 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         if (mCurrentRouteController == null) return;
         if (mCurrentRouteController.getMediaStateListener() != player) return;
 
-        showMediaRouteControlDialog(ApplicationStatus.getLastTrackedFocusedActivity());
+        showMediaRouteControlDialog(player, ApplicationStatus.getLastTrackedFocusedActivity());
+    }
+
+    /**
+     * Called when a lower layer requests to stop casting the video.
+     * @param player The player to stop remote playback for.
+     */
+    public void requestRemotePlaybackStop(MediaRouteController.MediaStateListener player) {
+        if (mCurrentRouteController == null) return;
+        if (mCurrentRouteController.getMediaStateListener() != player) return;
+
+        mCurrentRouteController.release();
     }
 
     private void showMediaRouteDialog(MediaStateListener player, MediaRouteController controller,
@@ -225,13 +236,12 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
         f.show(fm, "android.support.v7.mediarouter:MediaRouteChooserDialogFragment");
     }
 
-    private void showMediaRouteControlDialog(Activity activity) {
-
+    private void showMediaRouteControlDialog(MediaStateListener player, Activity activity) {
         FragmentManager fm = ((FragmentActivity) activity).getSupportFragmentManager();
         if (fm == null) {
             throw new IllegalStateException("The activity must be a subclass of FragmentActivity");
         }
-        MediaRouteDialogFactory factory = new MediaRouteControllerDialogFactory();
+        MediaRouteDialogFactory factory = new MediaRouteControllerDialogFactory(player);
 
         if (fm.findFragmentByTag(
                 "android.support.v7.mediarouter:MediaRouteControllerDialogFragment") != null) {

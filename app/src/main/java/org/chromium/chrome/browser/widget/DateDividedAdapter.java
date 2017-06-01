@@ -41,9 +41,25 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
     /**
      * Interface that the {@link Adapter} uses to interact with the items it manages.
      */
-    public interface TimedItem {
+    public abstract static class TimedItem {
+        /** Value indicating that a TimedItem is not currently being displayed. */
+        public static final int INVALID_POSITION = -1;
+
+        /** Position of the TimedItem in the list, or {@link #INVALID_POSITION} if not shown. */
+        private int mPosition = INVALID_POSITION;
+
+        /** See {@link #mPosition}. */
+        private final void setPosition(int position) {
+            mPosition = position;
+        }
+
+        /** See {@link #mPosition}. */
+        public final int getPosition() {
+            return mPosition;
+        }
+
         /** @return The timestamp for this item. */
-        long getTimestamp();
+        public abstract long getTimestamp();
 
         /**
          * Returns an ID that uniquely identifies this TimedItem and doesn't change.
@@ -51,7 +67,7 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
          * bits of the long should be set.
          * @return ID that can uniquely identify the TimedItem.
          */
-        long getStableId();
+        public abstract long getStableId();
     }
 
     private static class DateViewHolder extends RecyclerView.ViewHolder {
@@ -96,6 +112,9 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
         private final Date mDate;
         private final List<TimedItem> mItems = new ArrayList<>();
 
+        /** Index of the header, relative to the full list.  Must be set only once.*/
+        private int mIndex;
+
         private boolean mIsSorted;
 
         public ItemGroup(TimedItem item) {
@@ -107,6 +126,24 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
         public void addItem(TimedItem item) {
             mItems.add(item);
             mIsSorted = false;
+        }
+
+        /** Records the position of all the TimedItems in this group, relative to the full list. */
+        public void setPosition(int index) {
+            assert mIndex == 0;
+            mIndex = index;
+
+            sortIfNeeded();
+            for (TimedItem item : mItems) {
+                index += 1;
+                item.setPosition(index);
+            }
+        }
+
+        /** Unsets the position of all TimedItems in this group. */
+        public void resetPosition() {
+            mIndex = TimedItem.INVALID_POSITION;
+            for (TimedItem item : mItems) item.setPosition(TimedItem.INVALID_POSITION);
         }
 
         /**
@@ -166,7 +203,7 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
     public static final int TYPE_NORMAL = 1;
 
     private int mSize;
-    private SortedSet<ItemGroup> mItems = new TreeSet<>(new Comparator<ItemGroup>() {
+    private SortedSet<ItemGroup> mGroups = new TreeSet<>(new Comparator<ItemGroup>() {
         @Override
         public int compare(ItemGroup lhs, ItemGroup rhs) {
             return compareDate(lhs.mDate, rhs.mDate);
@@ -196,14 +233,18 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
      */
     public void loadItems(List<? extends TimedItem> timedItems) {
         mSize = 0;
-        mItems.clear();
+
+        // Unset the positions of all items in the list.
+        for (ItemGroup group : mGroups) group.resetPosition();
+        mGroups.clear();
+
         for (TimedItem timedItem : timedItems) {
             Date date = new Date(timedItem.getTimestamp());
             boolean found = false;
-            for (ItemGroup item : mItems) {
-                if (item.isSameDay(date)) {
+            for (ItemGroup group : mGroups) {
+                if (group.isSameDay(date)) {
                     found = true;
-                    item.addItem(timedItem);
+                    group.addItem(timedItem);
                     mSize++;
                     break;
                 }
@@ -211,10 +252,18 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
             if (!found) {
                 // Create a new ItemGroup with the date for the new item. This increases the
                 // size by two because we add new views for the date and the item itself.
-                mItems.add(new ItemGroup(timedItem));
+                mGroups.add(new ItemGroup(timedItem));
                 mSize += 2;
             }
         }
+
+        // Tell each group where they start in the list.
+        int startIndex = 0;
+        for (ItemGroup group : mGroups) {
+            group.setPosition(startIndex);
+            startIndex += group.size();
+        }
+
         notifyDataSetChanged();
     }
 
@@ -223,7 +272,7 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
      */
     public void clear() {
         mSize = 0;
-        mItems.clear();
+        mGroups.clear();
         notifyDataSetChanged();
     }
 
@@ -283,7 +332,7 @@ public abstract class DateDividedAdapter extends Adapter<RecyclerView.ViewHolder
     private Pair<ItemGroup, Integer> getGroupAt(int position) {
         // TODO(ianwen): Optimize the performance if the number of groups becomes too large.
         int i = position;
-        for (ItemGroup group : mItems) {
+        for (ItemGroup group : mGroups) {
             if (i >= group.size()) {
                 i -= group.size();
             } else {

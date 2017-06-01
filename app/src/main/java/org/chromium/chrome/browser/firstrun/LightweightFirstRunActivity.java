@@ -78,7 +78,7 @@ public class LightweightFirstRunActivity extends FirstRunActivity {
 
     @Override
     public void completeFirstRunExperience() {
-        FirstRunStatus.setLightweightFirstRunFlowComplete(LightweightFirstRunActivity.this, true);
+        FirstRunStatus.setLightweightFirstRunFlowComplete(true);
         Intent intent = new Intent();
         intent.putExtras(mFreProperties);
         finishAllTheActivities(getLocalClassName(), Activity.RESULT_OK, intent);

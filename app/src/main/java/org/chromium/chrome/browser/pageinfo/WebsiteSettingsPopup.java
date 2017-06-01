@@ -28,6 +28,7 @@ import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.AttributeSet;
@@ -46,6 +47,7 @@ import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.annotations.CalledByNative;
+import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ContentSettingsType;
@@ -64,8 +66,6 @@ import org.chromium.chrome.browser.ssl.SecurityStateModel;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.util.UrlUtilities;
 import org.chromium.components.location.LocationUtils;
-import org.chromium.components.security_state.ConnectionSecurityLevel;
-import org.chromium.components.url_formatter.UrlFormatter;
 import org.chromium.content.browser.ContentViewCore;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.browser.WebContentsObserver;
@@ -245,6 +245,7 @@ public class WebsiteSettingsPopup implements OnClickListener {
     private final Profile mProfile;
     private final WebContents mWebContents;
     private final WindowAndroid mWindowAndroid;
+    private final Tab mTab;
 
     // A pointer to the C++ object for this UI.
     private long mNativeWebsiteSettingsPopup;
@@ -254,10 +255,12 @@ public class WebsiteSettingsPopup implements OnClickListener {
 
     // UI elements in the dialog.
     private final ElidedUrlTextView mUrlTitle;
-    private final TextView mUrlConnectionMessage;
+    private final TextView mConnectionSummary;
+    private final TextView mConnectionMessage;
     private final LinearLayout mPermissionsList;
     private final Button mInstantAppButton;
     private final Button mSiteSettingsButton;
+    private final Button mOpenOnlineButton;
 
     // The dialog the container is placed in.
     private final Dialog mDialog;
@@ -282,12 +285,6 @@ public class WebsiteSettingsPopup implements OnClickListener {
     // The security level of the page (a valid ConnectionSecurityLevel).
     private int mSecurityLevel;
 
-    // Whether the security level of the page was downgraded due to SHA-1.
-    private boolean mDeprecatedSHA1Present;
-
-    // Whether the security level of the page was downgraded due to passive mixed content.
-    private boolean mPassiveMixedContentPresent;
-
     // Permissions available to be displayed in mPermissionsList.
     private List<PageInfoPermissionEntry> mDisplayedPermissions;
 
@@ -304,17 +301,16 @@ public class WebsiteSettingsPopup implements OnClickListener {
      * Creates the WebsiteSettingsPopup, but does not display it. Also initializes the corresponding
      * C++ object and saves a pointer to it.
      * @param activity                 Activity which is used for showing a popup.
-     * @param profile                  Profile of the tab that will show the popup.
-     * @param webContents              The WebContents for which to show Website information. This
-     *                                 information is retrieved for the visible entry.
+     * @param tab                      Tab for which the pop up is shown.
      * @param offlinePageCreationDate  Date when the offline page was created.
      * @param publisher                The name of the content publisher, if any.
      */
-    private WebsiteSettingsPopup(Activity activity, Profile profile, WebContents webContents,
-            String offlinePageCreationDate, String publisher) {
+    private WebsiteSettingsPopup(Activity activity, Tab tab, String offlinePageCreationDate,
+            String publisher) {
         mContext = activity;
-        mProfile = profile;
-        mWebContents = webContents;
+        mProfile = tab.getProfile();
+        mWebContents = tab.getWebContents();
+        mTab = tab;
         if (offlinePageCreationDate != null) {
             mOfflinePageCreationDate = offlinePageCreationDate;
         }
@@ -353,7 +349,9 @@ public class WebsiteSettingsPopup implements OnClickListener {
             }
         });
 
-        mUrlConnectionMessage = (TextView) mContainer
+        mConnectionSummary = (TextView) mContainer
+                .findViewById(R.id.website_settings_connection_summary);
+        mConnectionMessage = (TextView) mContainer
                 .findViewById(R.id.website_settings_connection_message);
         mPermissionsList = (LinearLayout) mContainer
                 .findViewById(R.id.website_settings_permissions_list);
@@ -366,10 +364,53 @@ public class WebsiteSettingsPopup implements OnClickListener {
                 (Button) mContainer.findViewById(R.id.website_settings_site_settings_button);
         mSiteSettingsButton.setOnClickListener(this);
 
+        mOpenOnlineButton =
+                (Button) mContainer.findViewById(R.id.website_settings_open_online_button);
+        mOpenOnlineButton.setOnClickListener(this);
+
         mDisplayedPermissions = new ArrayList<PageInfoPermissionEntry>();
 
         // Hide the permissions list for sites with no permissions.
         setVisibilityOfPermissionsList(false);
+
+        // Work out the URL and connection message and status visibility.
+        mFullUrl = mWebContents.getVisibleUrl();
+        if (isShowingOfflinePage()) {
+            mFullUrl = OfflinePageUtils.stripSchemeFromOnlineUrl(mFullUrl);
+        }
+
+        try {
+            mParsedUrl = new URI(mFullUrl);
+            mIsInternalPage = UrlUtilities.isInternalScheme(mParsedUrl);
+        } catch (URISyntaxException e) {
+            mParsedUrl = null;
+            mIsInternalPage = false;
+        }
+        mSecurityLevel = SecurityStateModel.getSecurityLevelForWebContents(mWebContents);
+
+        SpannableStringBuilder urlBuilder = new SpannableStringBuilder(mFullUrl);
+        OmniboxUrlEmphasizer.emphasizeUrl(urlBuilder, mContext.getResources(), mProfile,
+                mSecurityLevel, mIsInternalPage, true, true);
+        mUrlTitle.setText(urlBuilder);
+
+        if (mParsedUrl == null || mParsedUrl.getScheme() == null
+                || !(mParsedUrl.getScheme().equals("http")
+                           || mParsedUrl.getScheme().equals("https"))) {
+            mSiteSettingsButton.setVisibility(View.GONE);
+        }
+
+        if (isShowingOfflinePage()) {
+            boolean isConnected = OfflinePageUtils.isConnected();
+            RecordHistogram.recordBooleanHistogram(
+                    "OfflinePages.WebsiteSettings.OpenOnlineButtonVisible", isConnected);
+            if (!isConnected) mOpenOnlineButton.setVisibility(View.GONE);
+        } else {
+            mOpenOnlineButton.setVisibility(View.GONE);
+        }
+
+        mInstantAppIntent = (mIsInternalPage || isShowingOfflinePage()) ? null
+                : InstantAppsHandler.getInstance().getInstantAppIntentForUrl(mFullUrl);
+        if (mInstantAppIntent == null) mInstantAppButton.setVisibility(View.GONE);
 
         // Create the dialog.
         mDialog = new Dialog(mContext) {
@@ -413,12 +454,19 @@ public class WebsiteSettingsPopup implements OnClickListener {
         }
 
         // This needs to come after other member initialization.
-        mNativeWebsiteSettingsPopup = nativeInit(this, webContents);
+        mNativeWebsiteSettingsPopup = nativeInit(this, mWebContents);
         final WebContentsObserver webContentsObserver = new WebContentsObserver(mWebContents) {
             @Override
             public void navigationEntryCommitted() {
                 // If a navigation is committed (e.g. from in-page redirect), the data we're showing
                 // is stale so dismiss the dialog.
+                mDialog.dismiss();
+            }
+
+            @Override
+            public void wasHidden() {
+                // The web contents were hidden (potentially by loading another URL via an intent),
+                // so dismiss the dialog).
                 mDialog.dismiss();
             }
 
@@ -441,42 +489,7 @@ public class WebsiteSettingsPopup implements OnClickListener {
             }
         });
 
-        // Work out the URL and connection message and status visibility.
-        mFullUrl = mWebContents.getVisibleUrl();
-        if (isShowingOfflinePage()) {
-            mFullUrl = OfflinePageUtils.stripSchemeFromOnlineUrl(mFullUrl);
-        }
-
-        try {
-            mParsedUrl = new URI(mFullUrl);
-            mIsInternalPage = UrlUtilities.isInternalScheme(mParsedUrl);
-        } catch (URISyntaxException e) {
-            mParsedUrl = null;
-            mIsInternalPage = false;
-        }
-        mSecurityLevel = SecurityStateModel.getSecurityLevelForWebContents(mWebContents);
-        mDeprecatedSHA1Present = SecurityStateModel.isDeprecatedSHA1Present(mWebContents);
-        mPassiveMixedContentPresent = SecurityStateModel.isPassiveMixedContentPresent(mWebContents);
-
-        SpannableStringBuilder urlBuilder = new SpannableStringBuilder(mFullUrl);
-        OmniboxUrlEmphasizer.emphasizeUrl(urlBuilder, mContext.getResources(), mProfile,
-                mSecurityLevel, mIsInternalPage, true, true);
-        mUrlTitle.setText(urlBuilder);
-
-        // Set the URL connection message now, and the URL after layout (so it
-        // can calculate its ideal height).
-        mUrlConnectionMessage.setText(getUrlConnectionMessage());
-        if (isConnectionDetailsLinkVisible()) mUrlConnectionMessage.setOnClickListener(this);
-
-        if (mParsedUrl == null || mParsedUrl.getScheme() == null
-                || !(mParsedUrl.getScheme().equals("http")
-                           || mParsedUrl.getScheme().equals("https"))) {
-            mSiteSettingsButton.setVisibility(View.GONE);
-        }
-
-        mInstantAppIntent = mIsInternalPage ? null
-                : InstantAppsHandler.getInstance().getInstantAppIntentForUrl(mFullUrl);
-        if (mInstantAppIntent == null) mInstantAppButton.setVisibility(View.GONE);
+        showDialog();
     }
 
     /**
@@ -504,92 +517,12 @@ public class WebsiteSettingsPopup implements OnClickListener {
     }
 
     /**
-     * Gets the message to display in the connection message box for the given security level. Does
-     * not apply to DANGEROUS pages, since these have their own coloured/formatted
-     * message.
-     *
-     * @param securityLevel A valid ConnectionSecurityLevel, which is the security
-     *                      level of the page.
-     * @param isInternalPage Whether or not this page is an internal chrome page (e.g. the
-     *                       chrome://settings page).
-     * @return The ID of the message to display in the connection message box.
-     */
-    private int getConnectionMessageId(int securityLevel, boolean isInternalPage) {
-        if (isInternalPage) return R.string.page_info_connection_internal_page;
-
-        switch (securityLevel) {
-            case ConnectionSecurityLevel.NONE:
-                return R.string.page_info_connection_http;
-            case ConnectionSecurityLevel.SECURE:
-            case ConnectionSecurityLevel.EV_SECURE:
-                return R.string.page_info_connection_https;
-            default:
-                assert false : "Invalid security level specified: " + securityLevel;
-                return R.string.page_info_connection_http;
-        }
-    }
-
-    /**
      * Whether to show a 'Details' link to the connection info popup. The link is only shown for
      * HTTPS connections.
      */
     private boolean isConnectionDetailsLinkVisible() {
-        // TODO(tsergeant): If this logic gets any more complicated from additional deprecations,
-        // change it to use something like |SchemeIsCryptographic|.
-        return mContentPublisher == null && !mIsInternalPage
-                && (mSecurityLevel != ConnectionSecurityLevel.NONE || mPassiveMixedContentPresent
-                        || mDeprecatedSHA1Present);
-    }
-
-    /**
-     * Gets the styled connection message to display below the URL.
-     */
-    private Spannable getUrlConnectionMessage() {
-        // Display the appropriate connection message.
-        SpannableStringBuilder messageBuilder = new SpannableStringBuilder();
-        if (mContentPublisher != null) {
-            messageBuilder.append(
-                    mContext.getString(R.string.page_info_domain_hidden, mContentPublisher));
-        } else if (mDeprecatedSHA1Present) {
-            messageBuilder.append(mContext.getString(R.string.page_info_connection_sha1));
-        } else if (mPassiveMixedContentPresent) {
-            messageBuilder.append(mContext.getString(R.string.page_info_connection_mixed));
-        } else if (isShowingOfflinePage()) {
-            messageBuilder.append(String.format(
-                    mContext.getString(R.string.page_info_connection_offline),
-                    mOfflinePageCreationDate));
-        } else if (mSecurityLevel != ConnectionSecurityLevel.DANGEROUS
-                && mSecurityLevel != ConnectionSecurityLevel.SECURITY_WARNING
-                && mSecurityLevel != ConnectionSecurityLevel.SECURE_WITH_POLICY_INSTALLED_CERT) {
-            messageBuilder.append(
-                    mContext.getString(getConnectionMessageId(mSecurityLevel, mIsInternalPage)));
-        } else {
-            String originToDisplay;
-            try {
-                URI parsedUrl = new URI(mFullUrl);
-                originToDisplay = UrlFormatter.formatUrlForSecurityDisplay(parsedUrl, false);
-            } catch (URISyntaxException e) {
-                // The URL is invalid - just display the full URL.
-                originToDisplay = mFullUrl;
-            }
-
-            messageBuilder.append(
-                    mContext.getString(R.string.page_info_connection_broken, originToDisplay));
-        }
-
-        if (isConnectionDetailsLinkVisible()) {
-            messageBuilder.append(" ");
-            SpannableString detailsText = new SpannableString(
-                    mContext.getString(R.string.page_info_details_link));
-            final ForegroundColorSpan blueSpan = new ForegroundColorSpan(
-                    ApiCompatibilityUtils.getColor(mContext.getResources(),
-                            R.color.website_settings_popup_text_link));
-            detailsText.setSpan(
-                    blueSpan, 0, detailsText.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-            messageBuilder.append(detailsText);
-        }
-
-        return messageBuilder;
+        return mContentPublisher == null && !isShowingOfflinePage() && mParsedUrl != null
+                && mParsedUrl.getScheme() != null && mParsedUrl.getScheme().equals("https");
     }
 
     private boolean hasAndroidPermission(int contentSettingType) {
@@ -690,9 +623,46 @@ public class WebsiteSettingsPopup implements OnClickListener {
     }
 
     /**
-     * Displays the WebsiteSettingsPopup.
+     * Sets the connection security summary and detailed description strings. These strings may be
+     * overridden based on the state of the Android UI.
      */
     @CalledByNative
+    private void setSecurityDescription(String summary, String details) {
+        // Display the appropriate connection message.
+        SpannableStringBuilder messageBuilder = new SpannableStringBuilder();
+        if (mContentPublisher != null) {
+            messageBuilder.append(
+                    mContext.getString(R.string.page_info_domain_hidden, mContentPublisher));
+        } else if (isShowingOfflinePage()) {
+            messageBuilder.append(String.format(
+                    mContext.getString(R.string.page_info_connection_offline),
+                    mOfflinePageCreationDate));
+        } else {
+            if (!TextUtils.equals(summary, details)) {
+                mConnectionSummary.setVisibility(View.VISIBLE);
+                mConnectionSummary.setText(summary);
+            }
+            messageBuilder.append(details);
+        }
+
+        if (isConnectionDetailsLinkVisible()) {
+            messageBuilder.append(" ");
+            SpannableString detailsText = new SpannableString(
+                    mContext.getString(R.string.page_info_details_link));
+            final ForegroundColorSpan blueSpan = new ForegroundColorSpan(
+                    ApiCompatibilityUtils.getColor(mContext.getResources(),
+                            R.color.website_settings_popup_text_link));
+            detailsText.setSpan(
+                    blueSpan, 0, detailsText.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+            messageBuilder.append(detailsText);
+        }
+        mConnectionMessage.setText(messageBuilder);
+        if (isConnectionDetailsLinkVisible()) mConnectionMessage.setOnClickListener(this);
+    }
+
+    /**
+     * Displays the WebsiteSettingsPopup.
+     */
     private void showDialog() {
         if (!DeviceFormFactor.isTablet(mContext)) {
             // On smaller screens, make the dialog fill the width of the screen.
@@ -771,7 +741,7 @@ public class WebsiteSettingsPopup implements OnClickListener {
         } else if (view == mUrlTitle) {
             // Expand/collapse the displayed URL title.
             mUrlTitle.toggleTruncation();
-        } else if (view == mUrlConnectionMessage) {
+        } else if (view == mConnectionMessage) {
             runAfterDismiss(new Runnable() {
                 @Override
                 public void run() {
@@ -818,6 +788,19 @@ public class WebsiteSettingsPopup implements OnClickListener {
                     mContext.startActivity(settingsIntent);
                 }
             });
+        } else if (view == mOpenOnlineButton) {
+            runAfterDismiss(new Runnable() {
+                @Override
+                public void run() {
+                    // Attempt to reload to an online version of the viewed offline web page. This
+                    // attempt might fail if the user is offline, in which case an offline copy will
+                    // be reloaded.
+                    RecordHistogram.recordBooleanHistogram(
+                            "OfflinePages.WebsiteSettings.ConnectedWhenOpenOnlineButtonClicked",
+                            OfflinePageUtils.isConnected());
+                    OfflinePageUtils.reload(mTab);
+                }
+            });
         }
     }
 
@@ -827,7 +810,10 @@ public class WebsiteSettingsPopup implements OnClickListener {
     private List<View> collectAnimatableViews() {
         List<View> animatableViews = new ArrayList<View>();
         animatableViews.add(mUrlTitle);
-        animatableViews.add(mUrlConnectionMessage);
+        if (mConnectionSummary.getVisibility() == View.VISIBLE) {
+            animatableViews.add(mConnectionSummary);
+        }
+        animatableViews.add(mConnectionMessage);
         animatableViews.add(mInstantAppButton);
         for (int i = 0; i < mPermissionsList.getChildCount(); i++) {
             animatableViews.add(mPermissionsList.getChildAt(i));
@@ -956,8 +942,7 @@ public class WebsiteSettingsPopup implements OnClickListener {
             offlinePageCreationDate = df.format(creationDate);
         }
 
-        new WebsiteSettingsPopup(activity, tab.getProfile(), tab.getWebContents(),
-                offlinePageCreationDate, contentPublisher);
+        new WebsiteSettingsPopup(activity, tab, offlinePageCreationDate, contentPublisher);
     }
 
     private static native long nativeInit(WebsiteSettingsPopup popup, WebContents webContents);

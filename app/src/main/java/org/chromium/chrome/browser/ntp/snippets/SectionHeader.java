@@ -4,13 +4,14 @@
 
 package org.chromium.chrome.browser.ntp.snippets;
 
-import org.chromium.chrome.browser.ntp.cards.NewTabPageItem;
+import org.chromium.chrome.browser.ntp.cards.ItemViewType;
+import org.chromium.chrome.browser.ntp.cards.Leaf;
 import org.chromium.chrome.browser.ntp.cards.NewTabPageViewHolder;
 
 /**
  * Represents the data for a header of a group of snippets
  */
-public class SectionHeader implements NewTabPageItem {
+public class SectionHeader extends Leaf {
     /** Whether the header should be shown. */
     private final boolean mVisible;
 
@@ -26,8 +27,9 @@ public class SectionHeader implements NewTabPageItem {
     }
 
     @Override
-    public int getType() {
-        return NewTabPageItem.VIEW_TYPE_HEADER;
+    @ItemViewType
+    public int getItemViewType() {
+        return ItemViewType.HEADER;
     }
 
     public boolean isVisible() {
@@ -39,7 +41,7 @@ public class SectionHeader implements NewTabPageItem {
     }
 
     @Override
-    public void onBindViewHolder(NewTabPageViewHolder holder) {
+    protected void onBindViewHolder(NewTabPageViewHolder holder) {
         assert holder instanceof SectionHeaderViewHolder;
         ((SectionHeaderViewHolder) holder).onBindViewHolder(this);
     }

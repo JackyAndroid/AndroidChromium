@@ -31,15 +31,13 @@ public class MostVisitedSites {
                 String[] whitelistIconPaths, int[] sources);
 
         /**
-         * This is called when the list of popular URLs is initially available or updated.
+         * This is called when a previously uncached icon has been fetched.
          * Parameters guaranteed to be non-null.
          *
-         * @param urls Array of popular URLs.
-         * @param faviconUrls Array of URLs for the corresponding favicons (if known).
+         * @param siteUrl URL of site with newly-cached icon.
          */
         @CalledByNative("MostVisitedURLsObserver")
-        public void onPopularURLsAvailable(
-                String[] urls, String[] faviconUrls, String[] largeIconUrls);
+        public void onIconMadeAvailable(String siteUrl);
     }
 
     /**
@@ -80,11 +78,10 @@ public class MostVisitedSites {
                 }
             }
             @Override
-            public void onPopularURLsAvailable(
-                    String[] urls, String[] faviconUrls, String[] largeIconUrls) {
+            public void onIconMadeAvailable(String siteUrl) {
                 // Don't notify observer if we've already been destroyed.
                 if (mNativeMostVisitedSitesBridge != 0) {
-                    observer.onPopularURLsAvailable(urls, faviconUrls, largeIconUrls);
+                    observer.onIconMadeAvailable(siteUrl);
                 }
             }
         };

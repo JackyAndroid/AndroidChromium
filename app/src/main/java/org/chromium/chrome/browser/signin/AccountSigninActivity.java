@@ -104,9 +104,7 @@ public class AccountSigninActivity extends AppCompatActivity
 
         mView = (AccountSigninView) LayoutInflater.from(this).inflate(
                 R.layout.account_signin_view, null);
-        mView.init(getProfileDataCache());
-        mView.setListener(this);
-        mView.setDelegate(this);
+        mView.init(getProfileDataCache(), this, this);
 
         if (getAccessPoint() == SigninAccessPoint.BOOKMARK_MANAGER
                 || getAccessPoint() == SigninAccessPoint.RECENT_TABS) {

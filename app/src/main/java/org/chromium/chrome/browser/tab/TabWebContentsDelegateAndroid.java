@@ -253,12 +253,13 @@ public class TabWebContentsDelegateAndroid extends WebContentsDelegateAndroid {
     }
 
     @Override
-    public void webContentsCreated(WebContents sourceWebContents, long openerRenderFrameId,
-            String frameName, String targetUrl, WebContents newWebContents) {
+    public void webContentsCreated(WebContents sourceWebContents, long openerRenderProcessId,
+            long openerRenderFrameId, String frameName, String targetUrl,
+            WebContents newWebContents) {
         RewindableIterator<TabObserver> observers = mTab.getTabObservers();
         while (observers.hasNext()) {
-            observers.next().webContentsCreated(mTab, sourceWebContents, openerRenderFrameId,
-                    frameName, targetUrl, newWebContents);
+            observers.next().webContentsCreated(mTab, sourceWebContents, openerRenderProcessId,
+                    openerRenderFrameId, frameName, targetUrl, newWebContents);
         }
         // The URL can't be taken from the WebContents if it's paused.  Save it for later.
         assert mWebContentsUrlMapping == null;

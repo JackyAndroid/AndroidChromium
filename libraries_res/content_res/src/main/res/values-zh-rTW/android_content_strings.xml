@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<string name="actionbar_share">"分享"</string>
+<string name="actionbar_web_search">"網頁搜尋"</string>
+<string name="actionbar_textselection_title">"選取文字"</string>
+<string name="media_player_error_title">"無法播放影片"</string>
+<string name="media_player_error_text_invalid_progressive_playback">"很抱歉，這部影片的格式有誤，無法透過這個裝置串流播放。"</string>
+<string name="media_player_error_text_unknown">"很抱歉，無法播放這部影片。"</string>
+<string name="media_player_error_button">"確定"</string>
+<string name="profiler_started_toast">"分析器已啟動"</string>
+<string name="profiler_stopped_toast">"分析器已執行完成，請參閱 %1$s 查看分析結果。"</string>
+<string name="profiler_no_storage_toast">"外部儲存空間尚未準備就緒，因此無法啟動分析器"</string>
+<string name="profiler_error_toast">"無法啟動分析器"</string>
+</resources>

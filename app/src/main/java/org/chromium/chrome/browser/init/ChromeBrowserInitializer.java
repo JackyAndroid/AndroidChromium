@@ -182,7 +182,7 @@ public class ChromeBrowserInitializer {
     private void preInflationStartup() {
         ThreadUtils.assertOnUiThread();
         if (mPreInflationStartupComplete) return;
-        PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX, mApplication);
+        PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX);
 
         // Ensure critical files are available, so they aren't blocked on the file-system
         // behind long-running accesses in next phase.
@@ -208,7 +208,7 @@ public class ChromeBrowserInitializer {
         // Check to see if we need to extract any new resources from the APK. This could
         // be on first run when we need to extract all the .pak files we need, or after
         // the user has switched locale, in which case we want new locale resources.
-        ResourceExtractor.get(mApplication).startExtractingResources();
+        ResourceExtractor.get().startExtractingResources();
 
         mPostInflationStartupComplete = true;
     }

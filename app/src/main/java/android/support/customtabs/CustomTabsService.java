@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;
 import android.os.RemoteException;
+import android.support.annotation.IntDef;
 import android.support.v4.util.ArrayMap;
 
 import java.util.List;
@@ -50,6 +51,14 @@ import java.util.NoSuchElementException;
      public static final String KEY_URL =
              "android.support.customtabs.otherurls.URL";
 
+     @IntDef({RESULT_SUCCESS, RESULT_FAILURE_DISALLOWED,
+         RESULT_FAILURE_REMOTE_ERROR, RESULT_FAILURE_MESSAGING_ERROR})
+     public @interface Result {}
+     public static final int RESULT_SUCCESS = 0;
+     public static final int RESULT_FAILURE_DISALLOWED = -1;
+     public static final int RESULT_FAILURE_REMOTE_ERROR = -2;
+     public static final int RESULT_FAILURE_MESSAGING_ERROR = -3;
+
      private final Map<IBinder, DeathRecipient> mDeathRecipientMap = new ArrayMap<>();
 
      private ICustomTabsService.Stub mBinder = new ICustomTabsService.Stub() {
@@ -63,7 +72,7 @@ import java.util.NoSuchElementException;
          public boolean newSession(ICustomTabsCallback callback) {
              final CustomTabsSessionToken sessionToken = new CustomTabsSessionToken(callback);
              try {
-                 DeathRecipient deathRecipient = new DeathRecipient() {
+                 DeathRecipient deathRecipient = new IBinder.DeathRecipient() {
                      @Override
                      public void binderDied() {
                          cleanUpSession(sessionToken);
@@ -95,6 +104,18 @@ import java.util.NoSuchElementException;
          public boolean updateVisuals(ICustomTabsCallback callback, Bundle bundle) {
              return CustomTabsService.this.updateVisuals(
                      new CustomTabsSessionToken(callback), bundle);
+         }
+
+         @Override
+         public boolean validatePostMessageOrigin(ICustomTabsCallback callback) {
+             return CustomTabsService.this.validatePostMessageOrigin(
+                     new CustomTabsSessionToken(callback));
+         }
+
+         @Override
+         public int postMessage(ICustomTabsCallback callback, String message, Bundle extras) {
+             return CustomTabsService.this.postMessage(
+                     new CustomTabsSessionToken(callback), message, extras);
          }
      };
 
@@ -193,4 +214,32 @@ import java.util.NoSuchElementException;
      */
      protected abstract boolean updateVisuals(CustomTabsSessionToken sessionToken,
              Bundle bundle);
+
+     /**
+      * Sends a request to the implementation to validate and assign a postMessage origin for the
+      * related {@link CustomTabsSession}.
+      *
+      * <p>This also acts as a trigger to setup a postMessage communication channel.
+      *
+      * @param sessionToken The unique identifier for the session. Can not be null.
+      * @return Whether the implementation accepted the validation request. Note that returning true
+      *         here doesn't mean an origin has already been assigned as the validation is
+      *         asynchronous.
+      */
+     protected abstract boolean validatePostMessageOrigin(CustomTabsSessionToken sessionToken);
+
+     /**
+      * Sends a postMessage request using the origin that has been validated and communicated via
+      * {@link CustomTabsCallback#onMessageChannelReady(Uri, Bundle)}. Fails when called
+      * without a preceding
+      * {@link CustomTabsService#validatePostMessageOrigin(CustomTabsSessionToken)}.
+      *
+      * @param sessionToken The unique identifier for the session. Can not be null.
+      * @param message The message that is being sent.
+      * @param extras Reserved for future use.
+      * @return An integer constant about the postMessage request result.
+      */
+     @Result
+     protected abstract int postMessage(
+             CustomTabsSessionToken sessionToken, String message, Bundle extras);
  }

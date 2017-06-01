@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Whether the device is a tablet or large tablet. Used to determine which resources the OS
+         loaded. -->
+    <bool name="is_tablet">true</bool>
+    <bool name="is_large_tablet">true</bool>
+</resources>

@@ -9,7 +9,11 @@
     android:layout_height="match_parent" >
 
     <!-- MAIN CONTENT -->
-    <include layout="@layout/download_content" />
+    <org.chromium.chrome.browser.widget.selection.SelectableListLayout
+        android:id="@+id/selectable_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white" />
 
     <!-- NAVIGATION DRAWER
          We can't assign a paddingStart or paddingEnd because the section highlights are full-bleed.
@@ -21,7 +25,7 @@
         android:layout_gravity="start"
         android:paddingTop="@dimen/drawer_margin_large"
         android:orientation="vertical"
-        android:background="#ffffff" >
+        android:background="@android:color/white" >
 
         <include layout="@layout/download_manager_ui_space_widget"/>
 

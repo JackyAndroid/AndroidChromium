@@ -76,6 +76,19 @@ public class CustomTabsConnectionService extends CustomTabsService {
     }
 
     @Override
+    protected boolean validatePostMessageOrigin(CustomTabsSessionToken sessionToken) {
+        if (!isFirstRunDone()) return false;
+        return mConnection.validatePostMessageOrigin(sessionToken);
+    }
+
+    @Override
+    protected int postMessage(CustomTabsSessionToken sessionToken, String message,
+            Bundle extras) {
+        if (!isFirstRunDone()) return CustomTabsService.RESULT_FAILURE_DISALLOWED;
+        return mConnection.postMessage(sessionToken, message, extras);
+    }
+
+    @Override
     protected boolean cleanUpSession(CustomTabsSessionToken sessionToken) {
         mConnection.cleanUpSession(sessionToken);
         return super.cleanUpSession(sessionToken);

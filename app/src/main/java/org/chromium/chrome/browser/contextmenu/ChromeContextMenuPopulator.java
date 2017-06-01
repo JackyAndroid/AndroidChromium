@@ -13,19 +13,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
 
-import org.chromium.base.Log;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
-import org.chromium.chrome.browser.offlinepages.OfflinePageBridge;
 import org.chromium.chrome.browser.preferences.datareduction.DataReductionProxyUma;
 import org.chromium.chrome.browser.search_engines.TemplateUrlService;
 import org.chromium.chrome.browser.util.UrlUtilities;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 
 /**
@@ -71,7 +67,6 @@ public class ChromeContextMenuPopulator implements ContextMenuPopulator {
             R.id.contextmenu_load_original_image,
             R.id.contextmenu_open_image_in_new_tab,
             R.id.contextmenu_search_by_image,
-            R.id.contextmenu_save_offline,
     };
 
     // Additional items for custom tabs mode.
@@ -224,13 +219,6 @@ public class ChromeContextMenuPopulator implements ContextMenuPopulator {
         menu.findItem(R.id.contextmenu_save_link_as).setVisible(
                 UrlUtilities.isDownloadableScheme(params.getLinkUrl()));
 
-        // Only enable the save as offline feature if OfflinePagesBackgroundLoading is enabled, and
-        // it looks like a web page.
-        boolean showSaveOfflineMenuItem =
-                shouldShowBackgroundLoadingContextMenu(params.getLinkUrl());
-
-        menu.findItem(R.id.contextmenu_save_offline).setVisible(showSaveOfflineMenuItem);
-
         if (params.imageWasFetchedLoFi()
                 || !DataReductionProxySettings.getInstance().wasLoFiModeActiveOnMainFrame()
                 || !DataReductionProxySettings.getInstance().canUseDataReductionProxy(
@@ -368,9 +356,6 @@ public class ChromeContextMenuPopulator implements ContextMenuPopulator {
                 ContextMenuUma.recordSaveLinkTypes(url);
                 helper.startContextMenuDownload(true, false);
             }
-        } else if (itemId == R.id.contextmenu_save_offline) {
-            // This is a temporary hookup point to save a page later.
-            mDelegate.onSavePageLater(params.getLinkUrl());
         } else if (itemId == R.id.contextmenu_search_by_image) {
             ContextMenuUma.record(params, ContextMenuUma.ACTION_SEARCH_BY_IMAGE);
             helper.searchForImage();
@@ -384,36 +369,6 @@ public class ChromeContextMenuPopulator implements ContextMenuPopulator {
         }
 
         return true;
-    }
-
-    /**
-     * Return true if we should show a context menu for background loading.  Make sure the uri looks
-     * like a web page (scheme is http or https) and has mime type of unknown or text.
-     * @param uriString The uri that we are showing a context menu on.
-     */
-    private static boolean shouldShowBackgroundLoadingContextMenu(String uriString) {
-
-        if (!OfflinePageBridge.isBackgroundLoadingEnabled()) return false;
-
-        URI uri = null;
-        try {
-            uri = new URI(uriString);
-        } catch (URISyntaxException e) {
-            Log.e(TAG, "Trying to parse a link that is not a URI " + e);
-            return false;
-        }
-
-        String scheme = uri.getScheme();
-        if (scheme == null) return false;
-
-        String extension = MimeTypeMap.getFileExtensionFromUrl(uriString);
-        String type = null;
-        if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
-
-        return (scheme.equals("http") || scheme.equals("https"))
-                && (type == null || type.startsWith("text"));
     }
 
     private void setHeaderText(Context context, ContextMenu menu, String text) {

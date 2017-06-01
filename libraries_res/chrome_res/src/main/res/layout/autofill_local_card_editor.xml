@@ -13,7 +13,8 @@
         android:labelFor="@+id/credit_card_name_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/pref_autofill_content_spacing">
+        android:layout_marginTop="@dimen/pref_autofill_field_large_top_margin"
+        android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin">
 
         <EditText
             android:id="@+id/credit_card_name_edit"
@@ -31,7 +32,8 @@
         android:labelFor="@+id/credit_card_number_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/pref_autofill_content_spacing">
+        android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
+        android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin">
 
         <EditText
             android:id="@+id/credit_card_number_edit"
@@ -50,6 +52,7 @@
         android:labelFor="@+id/credit_card_expiration_month"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
         android:layout_marginStart="@dimen/pref_autofill_field_horizontal_padding"
         android:layout_marginEnd="@dimen/pref_autofill_field_horizontal_padding"
         android:textAppearance="@style/PreferenceFloatLabelTextAppearance"
@@ -60,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
-        android:layout_marginBottom="@dimen/pref_autofill_content_spacing"
+        android:layout_marginBottom="@dimen/pref_autofill_dropdown_bottom_margin"
         android:layout_marginStart="@dimen/pref_autofill_field_horizontal_padding"
         android:layout_marginEnd="@dimen/pref_autofill_field_horizontal_padding"
         android:orientation="horizontal"

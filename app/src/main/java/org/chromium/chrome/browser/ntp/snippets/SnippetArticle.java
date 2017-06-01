@@ -4,17 +4,16 @@
 package org.chromium.chrome.browser.ntp.snippets;
 
 import android.graphics.Bitmap;
+import android.support.annotation.Nullable;
 
-import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.chrome.browser.ntp.NewTabPageUma;
-import org.chromium.chrome.browser.ntp.cards.NewTabPageItem;
-import org.chromium.chrome.browser.ntp.cards.NewTabPageViewHolder;
 import org.chromium.chrome.browser.ntp.snippets.ContentSuggestionsCardLayout.ContentSuggestionsCardLayoutEnum;
+
+import java.io.File;
 
 /**
  * Represents the data for an article card on the NTP.
  */
-public class SnippetArticle implements NewTabPageItem {
+public class SnippetArticle {
     /** The category of this article. */
     public final int mCategory;
 
@@ -45,7 +44,7 @@ public class SnippetArticle implements NewTabPageItem {
     /** The position of this article within its section. */
     public final int mPosition;
 
-    /** The position of this article in the complete list. Populated by NewTabPageAdapter.*/
+    /** The position of this article in the complete list. Populated by NewTabPageAdapter. */
     public int mGlobalPosition = -1;
 
     /** The layout that should be used to display the snippet. */
@@ -58,8 +57,26 @@ public class SnippetArticle implements NewTabPageItem {
     /** Stores whether impression of this article has been tracked already. */
     private boolean mImpressionTracked;
 
-    /** Specifies ranges of positions for which we store position-specific sub-histograms. */
-    private static final int[] HISTOGRAM_FOR_POSITIONS = {0, 2, 4, 9};
+    /** To be run when the offline status of the article or AMP article changes. */
+    private Runnable mOfflineStatusChangeRunnable;
+
+    /** Whether the linked article represents a downloaded asset. */
+    public boolean mIsDownloadedAsset;
+
+    /** The path to the downloaded asset (only for download asset articles). */
+    private String mDownloadAssetPath;
+
+    /** The downloaded asset (only for download asset articles). */
+    private File mFile;
+
+    /** The mime type of the downloaded asset (only for download asset articles). */
+    private String mDownloadAssetMimeType;
+
+    /** The tab id of the corresponding tab (only for recent tab articles). */
+    private String mRecentTabId;
+
+    /** The offline id of the corresponding offline page, if any. */
+    private Long mOfflinePageOfflineId;
 
     /**
      * Creates a SnippetArticleListItem object that will hold the data.
@@ -92,17 +109,6 @@ public class SnippetArticle implements NewTabPageItem {
         return mCategory ^ mIdWithinCategory.hashCode();
     }
 
-    @Override
-    public int getType() {
-        return NewTabPageItem.VIEW_TYPE_SNIPPET;
-    }
-
-    @Override
-    public void onBindViewHolder(NewTabPageViewHolder holder) {
-        assert holder instanceof SnippetArticleViewHolder;
-        ((SnippetArticleViewHolder) holder).onBindViewHolder(this);
-    }
-
     /**
      * Returns this article's thumbnail as a {@link Bitmap}. Can return {@code null} as it is
      * initially unset.
@@ -116,71 +122,117 @@ public class SnippetArticle implements NewTabPageItem {
         mThumbnailBitmap = bitmap;
     }
 
-    /** Tracks click on this NTP snippet in UMA. */
-    public void trackClick() {
-        // To compare against NewTabPage.Snippets.CardShown for each position.
-        RecordHistogram.recordSparseSlowlyHistogram("NewTabPage.Snippets.CardClicked", mPosition);
-        // To compare against all snippets actions.
-        NewTabPageUma.recordSnippetAction(NewTabPageUma.SNIPPETS_ACTION_CLICKED);
-        // To compare how the user views the article linked to from a snippet (eg. as opposed to
-        // opening in a new tab).
-        NewTabPageUma.recordOpenSnippetMethod(NewTabPageUma.OPEN_SNIPPET_METHODS_PLAIN_CLICK);
-        // To see how users left the NTP.
-        NewTabPageUma.recordAction(NewTabPageUma.ACTION_OPENED_SNIPPET);
-        // To see whether users click on more recent snippets and whether our suggestion algorithm
-        // is accurate.
-        recordAgeAndScore("NewTabPage.Snippets.CardClicked");
-    }
-
-    /** Tracks impression of this NTP snippet. */
+    /** Returns whether to track an impression for this article. */
     public boolean trackImpression() {
         // Track UMA only upon the first impression per life-time of this object.
         if (mImpressionTracked) return false;
-
-        RecordHistogram.recordSparseSlowlyHistogram("NewTabPage.Snippets.CardShown", mPosition);
-        recordAgeAndScore("NewTabPage.Snippets.CardShown");
         mImpressionTracked = true;
         return true;
     }
 
-    /** Returns whether impression of this SnippetArticleListItem has already been tracked. */
-    public boolean impressionTracked() {
-        return mImpressionTracked;
+    /**
+     * Sets the {@link Runnable} to be run when the article's offline status changes.
+     * Pass null to wipe.
+     */
+    public void setOfflineStatusChangeRunnable(Runnable runnable) {
+        mOfflineStatusChangeRunnable = runnable;
     }
 
-    public void recordAgeAndScore(String histogramPrefix) {
-        // Track how the (approx.) position relates to age / score of the snippet that is clicked.
-        int ageInMinutes =
-                (int) ((System.currentTimeMillis() - mPublishTimestampMilliseconds) / 60000L);
-        String histogramAge = histogramPrefix + "Age";
-        String histogramScore = histogramPrefix + "ScoreNew";
+    /** @return whether a snippet is either offline page or asset download. */
+    public boolean isDownload() {
+        return mCategory == KnownCategories.DOWNLOADS;
+    }
 
-        recordAge(histogramAge, ageInMinutes);
-        recordScore(histogramScore, mScore);
-        int startPosition = 0;
-        for (int endPosition : HISTOGRAM_FOR_POSITIONS) {
-            if (mPosition >= startPosition && mPosition <= endPosition) {
-                String suffix = "_" + startPosition + "_" + endPosition;
-                recordAge(histogramAge + suffix, ageInMinutes);
-                recordScore(histogramScore + suffix, mScore);
-                break;
-            }
-            startPosition = endPosition + 1;
+    /**
+     * @return the downloaded asset. May only be called if mIsDownloadedAsset is {@code true} and
+     * this snippet belongs to DOWNLOADS category.
+     */
+    public File getDownloadAssetFile() {
+        assert isDownload();
+        if (mFile == null) mFile = new File(mDownloadAssetPath);
+        return mFile;
+    }
+
+    /**
+     * @return the mime type of the download asset. May only be called if mIsDownloadAsset is
+     * {@code true} and this snippet belongs to DOWNLOADS category.
+     */
+    public String getDownloadAssetMimeType() {
+        assert isDownload();
+        return mDownloadAssetMimeType;
+    }
+
+    /**
+     * Marks the article suggestion as a download asset with the given path and mime type. May only
+     * be called if this snippet belongs to DOWNLOADS category.
+     */
+    public void setDownloadAssetData(String filePath, String mimeType) {
+        assert isDownload();
+        mIsDownloadedAsset = true;
+        mDownloadAssetPath = filePath;
+        mDownloadAssetMimeType = mimeType;
+    }
+
+    /**
+     * Marks the article suggestion as a download offline page with the given id. May only be called
+     * if this snippet belongs to DOWNLOADS category.
+     */
+    public void setDownloadOfflinePageData(long offlinePageId) {
+        assert isDownload();
+        mIsDownloadedAsset = false;
+        setOfflinePageOfflineId(offlinePageId);
+    }
+
+    /**
+    * @return whether a snippet has to be matched with the exact offline page or with the most
+    * recent offline page found by the snippet's URL.
+    */
+    public boolean requiresExactOfflinePage() {
+        return isDownload() || isRecentTab();
+    }
+
+    public boolean isRecentTab() {
+        return mCategory == KnownCategories.RECENT_TABS;
+    }
+
+    /**
+     * @return the corresponding recent tab id. May only be called if this snippet is a recent tab
+     * article.
+     */
+    public String getRecentTabId() {
+        assert isRecentTab();
+        return mRecentTabId;
+    }
+
+    /**
+     * Sets tab id and offline page id for recent tab articles. May only be called if this snippet
+     * is a recent tab article.
+     */
+    public void setRecentTabData(String tabId, long offlinePageId) {
+        assert isRecentTab();
+        mRecentTabId = tabId;
+        setOfflinePageOfflineId(offlinePageId);
+    }
+
+    /** Sets offline id of the corresponding to the snippet offline page. Null to clear.*/
+    public void setOfflinePageOfflineId(@Nullable Long offlineId) {
+        Long previous = mOfflinePageOfflineId;
+        mOfflinePageOfflineId = offlineId;
+
+        if (mOfflineStatusChangeRunnable == null) return;
+        if ((previous == null) ? (mOfflinePageOfflineId != null)
+                               : !previous.equals(mOfflinePageOfflineId)) {
+            mOfflineStatusChangeRunnable.run();
         }
     }
 
-    private static void recordAge(String histogramName, int ageInMinutes) {
-        // Negative values (when the time of the device is set inappropriately) provide no value.
-        if (ageInMinutes >= 0) {
-            // If the max value below (72 hours) were to be changed, the histogram should be renamed
-            // since it will change the shape of buckets.
-            RecordHistogram.recordCustomCountHistogram(histogramName, ageInMinutes, 1, 72 * 60, 50);
-        }
-    }
-
-    private static void recordScore(String histogramName, float score) {
-        int recordedScore = Math.min((int) Math.ceil(score), 100000);
-        RecordHistogram.recordCustomCountHistogram(histogramName, recordedScore, 1, 100000, 50);
+    /**
+     * Gets offline id of the corresponding to the snippet offline page.
+     * Null if there is no corresponding offline page.
+     */
+    @Nullable
+    public Long getOfflinePageOfflineId() {
+        return mOfflinePageOfflineId;
     }
 
     @Override

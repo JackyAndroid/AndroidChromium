@@ -7,4 +7,5 @@
 <string name="sync_confirmation_chrome_sync_message">"您的書籤、歷史紀錄、密碼和其他設定都會在您的 Google 帳戶中保持同步，讓您在所有個人裝置上使用。"</string>
 <string name="sync_confirmation_personalize_services_title">"享有個人化的 Google 服務"</string>
 <string name="sync_confirmation_personalize_services_body">"Google 可能會使用您的瀏覽紀錄，為您提供個人化的搜尋服務、廣告內容和其他各項 Google 服務"</string>
+<string name="sync_disabled_confirmation_chrome_sync_title">"你的管理員停用了同步功能"</string>
 </resources>

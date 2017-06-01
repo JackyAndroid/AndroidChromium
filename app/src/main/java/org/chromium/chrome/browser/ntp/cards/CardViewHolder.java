@@ -6,17 +6,21 @@ package org.chromium.chrome.browser.ntp.cards;
 
 import android.support.annotation.CallSuper;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.Nullable;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnAttachStateChangeListener;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.ntp.ContextMenuManager;
+import org.chromium.chrome.browser.ntp.NewTabPageView.NewTabPageManager;
 import org.chromium.chrome.browser.ntp.UiConfig;
 import org.chromium.chrome.browser.util.MathUtils;
 import org.chromium.chrome.browser.util.ViewUtils;
@@ -38,7 +42,7 @@ import org.chromium.chrome.browser.util.ViewUtils;
  * Note: If a subclass overrides {@link #onBindViewHolder()}, it should call the
  * parent implementation to reset the private state when a card is recycled.
  */
-public class CardViewHolder extends NewTabPageViewHolder {
+public abstract class CardViewHolder extends NewTabPageViewHolder {
     private static final Interpolator TRANSITION_INTERPOLATOR = new FastOutSlowInInterpolator();
 
     /** Value used for max peeking card height and padding. */
@@ -51,10 +55,11 @@ public class CardViewHolder extends NewTabPageViewHolder {
      */
     private final int mCards9PatchAdjustment;
 
-    private final NewTabPageRecyclerView mRecyclerView;
+    protected final NewTabPageRecyclerView mRecyclerView;
 
     private final UiConfig mUiConfig;
     private final MarginResizer mMarginResizer;
+    private final NewTabPageManager mNtpManager;
 
     /**
      * To what extent the card is "peeking". 0 means the card is not peeking at all and spans the
@@ -70,15 +75,15 @@ public class CardViewHolder extends NewTabPageViewHolder {
      * @param recyclerView ViewGroup that will contain the newly created view.
      * @param uiConfig The NTP UI configuration object used to adjust the card UI.
      */
-    public CardViewHolder(
-            int layoutId, final NewTabPageRecyclerView recyclerView, UiConfig uiConfig) {
+    public CardViewHolder(int layoutId, final NewTabPageRecyclerView recyclerView,
+            UiConfig uiConfig, NewTabPageManager ntpManager) {
         super(inflateView(layoutId, recyclerView));
 
         mCards9PatchAdjustment = recyclerView.getResources().getDimensionPixelSize(
                 R.dimen.snippets_card_9_patch_adjustment);
 
         mMaxPeekPadding = recyclerView.getResources().getDimensionPixelSize(
-                R.dimen.snippets_padding_and_peeking_card_height);
+                R.dimen.snippets_padding);
 
         mRecyclerView = recyclerView;
 
@@ -96,9 +101,12 @@ public class CardViewHolder extends NewTabPageViewHolder {
         itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
             @Override
             public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
-                if (!isPeeking()) {
-                    CardViewHolder.this.createContextMenu(menu);
-                }
+                if (isPeeking()) return;
+
+                ContextMenuManager.Delegate delegate = getContextMenuDelegate();
+                if (delegate == null) return;
+
+                mNtpManager.getContextMenuManager().createContextMenu(menu, itemView, delegate);
             }
         });
 
@@ -109,6 +117,8 @@ public class CardViewHolder extends NewTabPageViewHolder {
         // Configure the resizer to use negative margins on regular display to balance out the
         // lateral shadow of the card 9-patch and avoid a rounded corner effect.
         mMarginResizer.setMargins(-mCards9PatchAdjustment);
+
+        mNtpManager = ntpManager;
     }
 
     /**
@@ -129,6 +139,21 @@ public class CardViewHolder extends NewTabPageViewHolder {
         itemView.setAlpha(1f);
         itemView.setTranslationX(0f);
 
+        itemView.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {}
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                // In some cases a view can be removed while a user is interacting with it, without
+                // calling ItemTouchHelper.Callback#clearView(), which we rely on for bottomSpacer
+                // calculations. So we call this explicitly here instead.
+                // See https://crbug.com/664466, b/32900699
+                mRecyclerView.onItemDismissFinished(mRecyclerView.findContainingViewHolder(view));
+                itemView.removeOnAttachStateChangeListener(this);
+            }
+        });
+
         // Make sure we use the right background.
         updateLayoutParams();
     }
@@ -138,13 +163,16 @@ public class CardViewHolder extends NewTabPageViewHolder {
         // Nothing to do for dismissed cards.
         if (getAdapterPosition() == RecyclerView.NO_POSITION) return;
 
+        NewTabPageAdapter adapter = mRecyclerView.getNewTabPageAdapter();
+
         // Each card has the full elevation effect (the shadow) in the 9-patch. If the next item is
         // a card a negative bottom margin is set so the next card is overlaid slightly on top of
         // this one and hides the bottom shadow.
-        boolean hasCardAbove =
-                isCard(mRecyclerView.getAdapter().getItemViewType(getAdapterPosition() - 1));
-        boolean hasCardBelow =
-                isCard(mRecyclerView.getAdapter().getItemViewType(getAdapterPosition() + 1));
+        int abovePosition = getAdapterPosition() - 1;
+        boolean hasCardAbove = abovePosition >= 0 && isCard(adapter.getItemViewType(abovePosition));
+        int belowPosition = getAdapterPosition() + 1;
+        boolean hasCardBelow = belowPosition < adapter.getItemCount()
+                && isCard(adapter.getItemViewType(belowPosition));
 
         getParams().bottomMargin = hasCardBelow ? -mCards9PatchAdjustment : 0;
 
@@ -193,11 +221,11 @@ public class CardViewHolder extends NewTabPageViewHolder {
     protected void onCardTapped() {}
 
     /**
-     * Override this to provide a context menu for the card. This method will not be called if the
-     * card is currently peeking.
-     * @param menu The menu to add menu items to.
+     * @return a context menu delegate for the card, or {@code null} if context menu should not be
+     * supported.
      */
-    protected void createContextMenu(ContextMenu menu) {}
+    @Nullable
+    protected abstract ContextMenuManager.Delegate getContextMenuDelegate();
 
     private void setPeekingPercentage(float peekingPercentage) {
         if (mPeekingPercentage == peekingPercentage) return;
@@ -233,18 +261,19 @@ public class CardViewHolder extends NewTabPageViewHolder {
         return LayoutInflater.from(parent.getContext()).inflate(resourceId, parent, false);
     }
 
-    public static boolean isCard(@NewTabPageItem.ViewType int type) {
+    public static boolean isCard(@ItemViewType int type) {
         switch (type) {
-            case NewTabPageItem.VIEW_TYPE_SNIPPET:
-            case NewTabPageItem.VIEW_TYPE_STATUS:
-            case NewTabPageItem.VIEW_TYPE_ACTION:
-            case NewTabPageItem.VIEW_TYPE_PROMO:
+            case ItemViewType.SNIPPET:
+            case ItemViewType.STATUS:
+            case ItemViewType.ACTION:
+            case ItemViewType.PROMO:
                 return true;
-            case NewTabPageItem.VIEW_TYPE_ABOVE_THE_FOLD:
-            case NewTabPageItem.VIEW_TYPE_HEADER:
-            case NewTabPageItem.VIEW_TYPE_SPACING:
-            case NewTabPageItem.VIEW_TYPE_PROGRESS:
-            case NewTabPageItem.VIEW_TYPE_FOOTER:
+            case ItemViewType.ABOVE_THE_FOLD:
+            case ItemViewType.HEADER:
+            case ItemViewType.SPACING:
+            case ItemViewType.PROGRESS:
+            case ItemViewType.FOOTER:
+            case ItemViewType.ALL_DISMISSED:
                 return false;
             default:
                 assert false;

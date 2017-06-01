@@ -12,7 +12,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import org.chromium.base.SecureRandomInitializer;
-import org.chromium.chrome.browser.metrics.LaunchMetrics.TimesHistogramSample;
+import org.chromium.base.metrics.CachedMetrics.TimesHistogramSample;
 
 import java.io.File;
 import java.io.FileInputStream;

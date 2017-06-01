@@ -4,8 +4,6 @@
 
 package org.chromium.chrome.browser.firstrun;
 
-import android.content.Context;
-
 import org.chromium.base.ContextUtils;
 
 /**
@@ -21,10 +19,9 @@ public class FirstRunStatus {
 
     /**
      * Sets the "main First Run Experience flow complete" preference.
-     * @param context Any context
      * @param isComplete Whether the main First Run Experience flow is complete
      */
-    public static void setFirstRunFlowComplete(Context context, boolean isComplete) {
+    public static void setFirstRunFlowComplete(boolean isComplete) {
         ContextUtils.getAppSharedPreferences()
                 .edit()
                 .putBoolean(FIRST_RUN_FLOW_COMPLETE, isComplete)
@@ -35,35 +32,38 @@ public class FirstRunStatus {
      * Returns whether the main First Run Experience flow is complete.
      * Note: that might NOT include "intro"/"what's new" pages, but it always
      * includes ToS and Sign In pages if necessary.
-     * @param context Any context
      */
-    public static boolean getFirstRunFlowComplete(Context context) {
+    public static boolean getFirstRunFlowComplete() {
         return ContextUtils.getAppSharedPreferences()
                 .getBoolean(FIRST_RUN_FLOW_COMPLETE, false);
     }
 
+    // TODO(tedchoc): Remove once downstream callers migrate to non-param version.
+    public static boolean getFirstRunFlowComplete(
+            @SuppressWarnings("unused") android.content.Context context) {
+        return getFirstRunFlowComplete();
+    }
+
     /**
     * Sets the preference to skip the welcome page from the main First Run Experience.
-    * @param context Any context
-    * @param isSkip Whether the welcome page should be skpped
+     * @param isSkip Whether the welcome page should be skpped
     */
-    public static void setSkipWelcomePage(Context context, boolean isSkip) {
+    public static void setSkipWelcomePage(boolean isSkip) {
         ContextUtils.getAppSharedPreferences().edit().putBoolean(SKIP_WELCOME_PAGE, isSkip).apply();
     }
 
     /**
     * Checks whether the welcome page should be skipped from the main First Run Experience.
     */
-    public static boolean shouldSkipWelcomePage(Context context) {
+    public static boolean shouldSkipWelcomePage() {
         return ContextUtils.getAppSharedPreferences().getBoolean(SKIP_WELCOME_PAGE, false);
     }
 
     /**
      * Sets the "lightweight First Run Experience flow complete" preference.
-     * @param context Any context
      * @param isComplete Whether the lightweight First Run Experience flow is complete
      */
-    public static void setLightweightFirstRunFlowComplete(Context context, boolean isComplete) {
+    public static void setLightweightFirstRunFlowComplete(boolean isComplete) {
         ContextUtils.getAppSharedPreferences()
                 .edit()
                 .putBoolean(LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE, isComplete)
@@ -72,9 +72,8 @@ public class FirstRunStatus {
 
     /**
      * Returns whether the "lightweight First Run Experience flow" is complete.
-     * @param context Any context
      */
-    public static boolean getLightweightFirstRunFlowComplete(Context context) {
+    public static boolean getLightweightFirstRunFlowComplete() {
         return ContextUtils.getAppSharedPreferences().getBoolean(
                 LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE, false);
     }

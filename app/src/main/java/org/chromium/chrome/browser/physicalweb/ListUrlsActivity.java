@@ -315,7 +315,7 @@ public class ListUrlsActivity extends AppCompatActivity implements AdapterView.O
         // Stop the scanning animation, show a "nothing found" message.
         mEmptyListText.setText(R.string.physical_web_empty_list);
 
-        int tintColor = ContextCompat.getColor(this, R.color.physical_web_logo_gray_tint);
+        int tintColor = ContextCompat.getColor(this, R.color.light_grey);
         mScanningImageView.setImageResource(R.drawable.physical_web_logo);
         mScanningImageView.setColorFilter(tintColor, PorterDuff.Mode.SRC_IN);
 

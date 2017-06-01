@@ -10,10 +10,11 @@ import android.text.TextUtils;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.browser.ShortcutHelper;
+import org.chromium.chrome.browser.tab.BrowserControlsVisibilityDelegate;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabDelegateFactory;
+import org.chromium.chrome.browser.tab.TabStateBrowserControlsVisibilityDelegate;
 import org.chromium.chrome.browser.tab.TabWebContentsDelegateAndroid;
-import org.chromium.chrome.browser.tab.TopControlsVisibilityDelegate;
 import org.chromium.chrome.browser.util.UrlUtilities;
 import org.chromium.components.security_state.ConnectionSecurityLevel;
 
@@ -51,38 +52,39 @@ public class WebappDelegateFactory extends FullScreenDelegateFactory {
     }
 
     @VisibleForTesting
-    static class TopControlsDelegate extends TopControlsVisibilityDelegate {
+    static class BrowserControlsDelegate extends TabStateBrowserControlsVisibilityDelegate {
         private final WebappActivity mActivity;
 
-        public TopControlsDelegate(WebappActivity activity, Tab tab) {
+        public BrowserControlsDelegate(WebappActivity activity, Tab tab) {
             super(tab);
             mActivity = activity;
         }
 
         @Override
-        public boolean isShowingTopControlsEnabled() {
-            if (!super.isShowingTopControlsEnabled()) return false;
+        public boolean isShowingBrowserControlsEnabled() {
+            if (!super.isShowingBrowserControlsEnabled()) return false;
 
             String webappStartUrl = mActivity.getWebappInfo().uri().toString();
-            return shouldShowTopControls(webappStartUrl, mTab.getUrl(), mTab.getSecurityLevel());
+            return shouldShowBrowserControls(
+                    webappStartUrl, mTab.getUrl(), mTab.getSecurityLevel());
         }
 
         @Override
-        public boolean isHidingTopControlsEnabled() {
-            return !isShowingTopControlsEnabled();
+        public boolean isHidingBrowserControlsEnabled() {
+            return !isShowingBrowserControlsEnabled();
         }
 
         /**
-         * Returns whether the top controls should be shown when a webapp is navigated to
+         * Returns whether the browser controls should be shown when a webapp is navigated to
          * {@link url}.
          * @param webappStartUrl The webapp's URL when it is opened from the home screen.
          * @param url The webapp's current URL
          * @param securityLevel The security level for the webapp's current URL.
-         * @return Whether the top controls should be shown for {@link url}.
+         * @return Whether the browser controls should be shown for {@link url}.
          */
-        public static boolean shouldShowTopControls(
+        public static boolean shouldShowBrowserControls(
                 String webappStartUrl, String url, int securityLevel) {
-            // Do not show top controls when URL is not ready yet.
+            // Do not show browser controls when URL is not ready yet.
             boolean visible = false;
             if (TextUtils.isEmpty(url)) return false;
 
@@ -106,7 +108,7 @@ public class WebappDelegateFactory extends FullScreenDelegateFactory {
     }
 
     @Override
-    public TopControlsVisibilityDelegate createTopControlsVisibilityDelegate(Tab tab) {
-        return new TopControlsDelegate(mActivity, tab);
+    public BrowserControlsVisibilityDelegate createBrowserControlsVisibilityDelegate(Tab tab) {
+        return new BrowserControlsDelegate(mActivity, tab);
     }
 }

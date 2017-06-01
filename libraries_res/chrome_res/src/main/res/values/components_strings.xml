@@ -27,7 +27,20 @@
 <string name="sad_tab_reload_label">"Reload"</string>
 <string name="snippets_disabled_signed_out_instructions">"To get personalized content suggested by Google, sign in to Chrome."</string>
 <string name="snippets_disabled_generic_prompt">"Get suggested content"</string>
-<string name="ntp_status_card_title_no_suggestions">"Done for now"</string>
-<string name="ntp_status_card_no_bookmarks">"Your recently visited bookmarks will appear here."</string>
-<string name="ntp_status_card_no_articles">"More articles will appear when the time is right."</string>
+<string name="ntp_status_card_title_no_suggestions">"That’s all for now"</string>
+<string name="color_picker_button_more">"More"</string>
+<string name="color_picker_hue">"Hue"</string>
+<string name="color_picker_saturation">"Saturation"</string>
+<string name="color_picker_value">"Value"</string>
+<string name="color_picker_button_set">"Set"</string>
+<string name="color_picker_button_cancel">"Cancel"</string>
+<string name="color_picker_dialog_title">"Select color"</string>
+<string name="color_picker_button_red">"Red"</string>
+<string name="color_picker_button_cyan">"Cyan"</string>
+<string name="color_picker_button_blue">"Blue"</string>
+<string name="color_picker_button_green">"Green"</string>
+<string name="color_picker_button_magenta">"Magenta"</string>
+<string name="color_picker_button_yellow">"Yellow"</string>
+<string name="color_picker_button_black">"Black"</string>
+<string name="color_picker_button_white">"White"</string>
 </resources>

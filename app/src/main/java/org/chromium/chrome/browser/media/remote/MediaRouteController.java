@@ -71,6 +71,12 @@ public interface MediaRouteController {
         void onCastStarting(String routeName);
 
         /**
+         * Tells the rest of Chrome that we're connected to the Cast device and about to resume
+         * playback.
+         */
+        void onCastStarted();
+
+        /**
          * Tells the rest of Chrome that we are no longer casting the video.
          */
         void onCastStopping();

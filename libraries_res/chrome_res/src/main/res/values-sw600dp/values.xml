@@ -33,4 +33,8 @@
     <!-- Compositor Tab Title Text -->
     <bool name="compositor_tab_title_fake_bold_text">false</bool>
 
+    <!-- Whether the device is a tablet or large tablet. Used to determine which resources the OS
+         loaded. -->
+    <bool name="is_tablet">true</bool>
+    <bool name="is_large_tablet">false</bool>
 </resources>

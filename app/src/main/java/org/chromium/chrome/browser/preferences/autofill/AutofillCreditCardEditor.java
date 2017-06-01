@@ -72,4 +72,15 @@ abstract class AutofillCreditCardEditor extends AutofillEditorBase {
 
         return v;
     }
+
+    @Override
+    protected void initializeButtons(View v) {
+        super.initializeButtons(v);
+
+        mBillingAddress.setOnItemSelectedListener(this);
+
+        // Listen for touch events on billing address field. We clear the keyboard when user touches
+        // the billing address field because it is a drop down menu.
+        mBillingAddress.setOnTouchListener(this);
+    }
 }

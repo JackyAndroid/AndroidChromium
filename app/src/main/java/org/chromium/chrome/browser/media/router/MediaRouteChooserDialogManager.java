@@ -6,8 +6,10 @@ package org.chromium.chrome.browser.media.router;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.MediaRouteChooserDialogFragment;
 import android.support.v7.media.MediaRouteSelector;
 
 import org.chromium.chrome.browser.media.router.cast.MediaSink;
@@ -29,15 +31,35 @@ public class MediaRouteChooserDialogManager extends BaseMediaRouteDialogManager 
     /**
      * Fragment implementation for MediaRouteChooserDialogManager.
      */
-    public static class Fragment extends BaseMediaRouteDialogManager.Fragment {
+    public static class Fragment extends MediaRouteChooserDialogFragment {
+        private final Handler mHandler = new Handler();
+        private final SystemVisibilitySaver mVisibilitySaver = new SystemVisibilitySaver();
+        private BaseMediaRouteDialogManager mManager = null;
         private boolean mCancelled;
 
         public Fragment() {
-            super();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Fragment.this.dismiss();
+                }
+            });
         }
 
         public Fragment(BaseMediaRouteDialogManager manager) {
-            super(manager);
+            mManager = manager;
+        }
+
+        @Override
+        public void onStart() {
+            mVisibilitySaver.saveSystemVisibility(getActivity());
+            super.onStart();
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            mVisibilitySaver.restoreSystemVisibility(getActivity());
         }
 
         @Override
@@ -52,8 +74,11 @@ public class MediaRouteChooserDialogManager extends BaseMediaRouteDialogManager 
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
+            if (mManager == null) return;
 
-            if (mCancelled || mManager == null) return;
+            mManager.mDialogFragment = null;
+
+            if (mCancelled) return;
 
             MediaSink newSink =
                     MediaSink.fromRoute(mManager.androidMediaRouter().getSelectedRoute());

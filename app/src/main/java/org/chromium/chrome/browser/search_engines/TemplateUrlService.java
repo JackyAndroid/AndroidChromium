@@ -207,10 +207,23 @@ public class TemplateUrlService {
      * Registers a listener for the callback that indicates that the
      * TemplateURLService has loaded.
      */
-    public void registerLoadListener(LoadListener listener) {
+    public void registerLoadListener(final LoadListener listener) {
         ThreadUtils.assertOnUiThread();
         boolean added = mLoadListeners.addObserver(listener);
         assert added;
+
+        // If the load has already been completed, post a load complete to the observer.  Done
+        // as an asynchronous call to keep the client code predictable in the loaded/unloaded state.
+        if (isLoaded()) {
+            ThreadUtils.postOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (!mLoadListeners.hasObserver(listener)) return;
+
+                    listener.onTemplateUrlServiceLoaded();
+                }
+            });
+        }
     }
 
     /**

@@ -1278,8 +1278,9 @@ public class LocationBarLayout extends FrameLayout implements OnClickListener,
         }
         switch (securityLevel) {
             case ConnectionSecurityLevel.NONE:
-            case ConnectionSecurityLevel.HTTP_SHOW_WARNING:
                 return isSmallDevice ? 0 : R.drawable.omnibox_info;
+            case ConnectionSecurityLevel.HTTP_SHOW_WARNING:
+                return R.drawable.omnibox_info;
             case ConnectionSecurityLevel.SECURITY_WARNING:
                 return R.drawable.omnibox_info;
             case ConnectionSecurityLevel.DANGEROUS:

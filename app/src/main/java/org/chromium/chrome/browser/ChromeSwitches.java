@@ -93,6 +93,11 @@ public abstract class ChromeSwitches {
      */
     public static final String MARKET_URL_FOR_TESTING = "market-url-for-testing";
 
+    /**
+     * Disable multiwindow tab merging for testing.
+     */
+    public static final String DISABLE_TAB_MERGING_FOR_TESTING = "disable-tab-merging";
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Native Switches
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,13 +203,23 @@ public abstract class ChromeSwitches {
     /**
      * Enables "Add to Home screen" to mint a WebApk.
      */
-    public static final String ENABLE_WEBAPK = "enable-webapk";
+    public static final String ENABLE_WEBAPK = "enable-improved-a2hs";
 
     /**
      * Forces the WebAPK runtime dex to be extracted each time that Chrome is started.
      */
     public static final String ALWAYS_EXTRACT_WEBAPK_RUNTIME_DEX_ON_STARTUP =
             "always-extract-webapk-dex-on-startup";
+
+    /**
+     * Forces a check for whether the WebAPK's Web Manifest has changed each time that a WebAPK is
+     * launched.
+     */
+    public static final String CHECK_FOR_WEB_MANIFEST_UPDATE_ON_STARTUP =
+            "check-for-web-manifest-update-on-startup";
+
+    /** Enable Vr Shell development environment. */
+    public static final String ENABLE_VR_SHELL_DEV = "enable-vr-shell-dev";
 
     // Prevent instantiation.
     private ChromeSwitches() {}

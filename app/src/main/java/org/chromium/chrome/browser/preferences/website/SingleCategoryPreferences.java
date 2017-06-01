@@ -215,8 +215,6 @@ public class SingleCategoryPreferences extends PreferenceFragment
             return website.site().getCameraPermission() == ContentSetting.BLOCK;
         } else if (mCategory.showCookiesSites()) {
             return website.site().getCookiePermission() == ContentSetting.BLOCK;
-        } else if (mCategory.showFullscreenSites()) {
-            return website.site().getFullscreenPermission() == ContentSetting.ASK;
         } else if (mCategory.showGeolocationSites()) {
             return website.site().getGeolocationPermission() == ContentSetting.BLOCK;
         } else if (mCategory.showJavaScriptSites()) {
@@ -477,8 +475,6 @@ public class SingleCategoryPreferences extends PreferenceFragment
             } else if (mCategory.showCookiesSites()) {
                 PrefServiceBridge.getInstance().setAllowCookiesEnabled((boolean) newValue);
                 updateThirdPartyCookiesCheckBox();
-            } else if (mCategory.showFullscreenSites()) {
-                PrefServiceBridge.getInstance().setFullscreenAllowed((boolean) newValue);
             } else if (mCategory.showGeolocationSites()) {
                 PrefServiceBridge.getInstance().setAllowLocationEnabled((boolean) newValue);
             } else if (mCategory.showJavaScriptSites()) {
@@ -695,13 +691,6 @@ public class SingleCategoryPreferences extends PreferenceFragment
                 } else if (mCategory.showCookiesSites()) {
                     globalToggle.setChecked(
                             PrefServiceBridge.getInstance().isAcceptCookiesEnabled());
-                } else if (mCategory.showFullscreenSites()) {
-                    globalToggle.setChecked(
-                            PrefServiceBridge.getInstance().isFullscreenAllowed());
-                    // The fullscreen global toggle cannot be disabled.
-                    // TODO(mgiuca): Remove this setting entirely (requires deleting all the data;
-                    // see https://crbug.com/591896).
-                    globalToggle.setEnabled(false);
                 } else if (mCategory.showGeolocationSites()) {
                     globalToggle.setChecked(
                             LocationSettings.getInstance().isChromeLocationSettingEnabled());

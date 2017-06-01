@@ -155,13 +155,12 @@ public class AppBannerInfoBarDelegateAndroid {
     }
 
     @CalledByNative
-    private void openWebApk(String packageName) {
+    private void openWebApk() {
         Context context = ContextUtils.getApplicationContext();
         PackageManager packageManager = getPackageManager(context);
 
-        if (InstallerDelegate.isInstalled(packageManager, packageName)) {
-            mWebApkPackage = null;
-            openApp(context, packageName);
+        if (InstallerDelegate.isInstalled(packageManager, mWebApkPackage)) {
+            openApp(context, mWebApkPackage);
         }
     }
 

@@ -10,10 +10,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.base.CommandLine;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeActivity;
+import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.ShortcutHelper;
 import org.chromium.chrome.browser.UrlConstants;
+import org.chromium.chrome.browser.banners.AppBannerManager;
 import org.chromium.chrome.browser.bookmarks.BookmarkBridge;
 import org.chromium.chrome.browser.download.DownloadUtils;
 import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
@@ -88,6 +91,8 @@ public class AppMenuPropertiesDelegate {
             String url = currentTab.getUrl();
             boolean isChromeScheme = url.startsWith(UrlConstants.CHROME_SCHEME)
                     || url.startsWith(UrlConstants.CHROME_NATIVE_SCHEME);
+            boolean isFileScheme = url.startsWith(UrlConstants.FILE_SCHEME);
+            boolean isContentScheme = url.startsWith(UrlConstants.CONTENT_SCHEME);
             boolean shouldShowIconRow = !mActivity.isTablet()
                     || mActivity.getWindow().getDecorView().getWidth()
                             < DeviceFormFactor.getMinimumTabletWidthPx(mActivity);
@@ -151,15 +156,23 @@ public class AppMenuPropertiesDelegate {
             menu.findItem(R.id.find_in_page_id).setVisible(
                     !currentTab.isNativePage() && currentTab.getWebContents() != null);
 
-            // Hide 'Add to homescreen' on all chrome:// pages -- Android doesn't know how to direct
-            // those URLs.  Also hide it on incognito pages to avoid problems where users create
-            // shortcuts in incognito mode and then open the webapp in regular mode. Also check if
-            // creating shortcuts is supported at all.
+            // Hide 'Add to homescreen' for the following:
+            // * chrome:// pages - Android doesn't know how to direct those URLs.
+            // * incognito pages - To avoid problems where users create shortcuts in incognito
+            //                      mode and then open the webapp in regular mode.
+            // * file:// - After API 24, file: URIs are not supported in VIEW intents and thus
+            //             can not be added to the homescreen.
+            // * content:// - Accessing external content URIs requires the calling app to grant
+            //                access to the resource via FLAG_GRANT_READ_URI_PERMISSION, and that
+            //                is not persisted when adding to the homescreen.
+            // * If creating shortcuts it not supported by the current home screen.
             MenuItem homescreenItem = menu.findItem(R.id.add_to_homescreen_id);
-            boolean canAddShortcutToHomescreen =
-                    ShortcutHelper.isAddToHomeIntentSupported(mActivity);
-            homescreenItem.setVisible(
-                    canAddShortcutToHomescreen && !isChromeScheme && !isIncognito);
+            boolean homescreenItemVisible = ShortcutHelper.isAddToHomeIntentSupported(mActivity)
+                    && !isChromeScheme && !isFileScheme && !isContentScheme && !isIncognito;
+            if (homescreenItemVisible) {
+                homescreenItem.setTitle(AppBannerManager.getHomescreenLanguageOption());
+            }
+            homescreenItem.setVisible(homescreenItemVisible);
 
             // Hide request desktop site on all chrome:// pages except for the NTP. Check request
             // desktop site if it's activated on this page.
@@ -174,8 +187,9 @@ public class AppMenuPropertiesDelegate {
             menu.findItem(R.id.reader_mode_prefs_id)
                     .setVisible(DomDistillerUrlUtils.isDistilledPage(currentTab.getUrl()));
 
-            // Only display the Enter VR button if VR Shell is enabled.
-            menu.findItem(R.id.enter_vr_id).setVisible(mActivity.isVrShellEnabled());
+            // Only display the Enter VR button if VR Shell Dev environment is enabled.
+            menu.findItem(R.id.enter_vr_id).setVisible(
+                    CommandLine.getInstance().hasSwitch(ChromeSwitches.ENABLE_VR_SHELL_DEV));
         }
 
         if (isOverviewMenu) {

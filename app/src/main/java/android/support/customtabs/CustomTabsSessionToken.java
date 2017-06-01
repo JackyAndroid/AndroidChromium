@@ -17,6 +17,7 @@
 package android.support.customtabs;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -35,6 +36,12 @@ public class CustomTabsSessionToken {
     /* package */ static class DummyCallback extends ICustomTabsCallback.Stub {
         @Override
         public void onNavigationEvent(int navigationEvent, Bundle extras) {}
+
+        @Override
+        public void onMessageChannelReady(Uri origin, Bundle extras) {}
+
+        @Override
+        public void onPostMessage(String message, Bundle extras) {}
 
         @Override
         public void extraCallback(String callbackName, Bundle args) {}
@@ -78,6 +85,33 @@ public class CustomTabsSessionToken {
             public void onNavigationEvent(int navigationEvent, Bundle extras) {
                 try {
                     mCallbackBinder.onNavigationEvent(navigationEvent, extras);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "RemoteException during ICustomTabsCallback transaction");
+                }
+            }
+
+            @Override
+            public synchronized void onMessageChannelReady(Uri origin, Bundle extras) {
+                try {
+                    mCallbackBinder.onMessageChannelReady(origin, extras);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "RemoteException during ICustomTabsCallback transaction");
+                }
+            }
+
+            @Override
+            public synchronized void onPostMessage(String message, Bundle extras) {
+                try {
+                    mCallbackBinder.onPostMessage(message, extras);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "RemoteException during ICustomTabsCallback transaction");
+                }
+            }
+
+            @Override
+            public void extraCallback(String callbackName, Bundle args) {
+                try {
+                    mCallbackBinder.extraCallback(callbackName, args);
                 } catch (RemoteException e) {
                     Log.e(TAG, "RemoteException during ICustomTabsCallback transaction");
                 }

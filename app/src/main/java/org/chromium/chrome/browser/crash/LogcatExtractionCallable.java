@@ -10,6 +10,7 @@ import android.util.Patterns;
 
 import org.chromium.base.Log;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.components.minidump_uploader.CrashFileManager;
 
 import java.io.BufferedReader;
 import java.io.File;

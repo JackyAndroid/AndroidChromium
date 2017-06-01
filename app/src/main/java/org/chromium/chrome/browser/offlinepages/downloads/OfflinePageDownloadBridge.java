@@ -7,14 +7,13 @@ package org.chromium.chrome.browser.offlinepages.downloads;
 import android.content.ComponentName;
 import android.support.annotation.Nullable;
 
-import org.chromium.base.ContextUtils;
 import org.chromium.base.ObserverList;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
-import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.DownloadItem;
 import org.chromium.chrome.browser.download.DownloadServiceDelegate;
 import org.chromium.chrome.browser.download.ui.BackendProvider.OfflinePageDelegate;
+import org.chromium.chrome.browser.offlinepages.OfflinePageUtils;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
@@ -23,9 +22,7 @@ import org.chromium.chrome.browser.tabmodel.document.TabDelegate;
 import org.chromium.content_public.browser.LoadUrlParams;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Serves as an interface between Download Home UI and offline page related items that are to be
@@ -175,12 +172,8 @@ public class OfflinePageDownloadBridge implements DownloadServiceDelegate, Offli
         OfflinePageDownloadItem item = getItem(guid);
         if (item == null) return;
 
-        LoadUrlParams params = new LoadUrlParams(item.getUrl());
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put("X-Chrome-offline", "persist=1 reason=download id="
-                        + Long.toString(nativeGetOfflineIdByGuid(
-                                  mNativeOfflinePageDownloadBridge, guid)));
-        params.setExtraHeaders(headers);
+        LoadUrlParams params = OfflinePageUtils.getLoadUrlParamsForOpeningOfflineVersion(
+                item.getUrl(), nativeGetOfflineIdByGuid(mNativeOfflinePageDownloadBridge, guid));
         AsyncTabCreationParams asyncParams = componentName == null
                 ? new AsyncTabCreationParams(params)
                 : new AsyncTabCreationParams(params, componentName);
@@ -198,8 +191,7 @@ public class OfflinePageDownloadBridge implements DownloadServiceDelegate, Offli
      * @param tab a tab contents of which will be saved locally.
      */
     public void startDownload(Tab tab) {
-        nativeStartDownload(mNativeOfflinePageDownloadBridge, tab,
-                ContextUtils.getApplicationContext().getString(R.string.menu_downloads));
+        nativeStartDownload(mNativeOfflinePageDownloadBridge, tab);
     }
 
     /**
@@ -286,6 +278,5 @@ public class OfflinePageDownloadBridge implements DownloadServiceDelegate, Offli
     native void nativeResumeDownload(long nativeOfflinePageDownloadBridge, String guid);
     native void nativeDeleteItemByGuid(long nativeOfflinePageDownloadBridge, String guid);
     native long nativeGetOfflineIdByGuid(long nativeOfflinePageDownloadBridge, String guid);
-    native void nativeStartDownload(
-            long nativeOfflinePageDownloadBridge, Tab tab, String downloadsLabel);
+    native void nativeStartDownload(long nativeOfflinePageDownloadBridge, Tab tab);
 }

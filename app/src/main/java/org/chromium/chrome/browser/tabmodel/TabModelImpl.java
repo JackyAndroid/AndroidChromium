@@ -68,11 +68,11 @@ public class TabModelImpl extends TabModelJniBridge {
      */
     private boolean mIsUndoSupported = true;
 
-    public TabModelImpl(boolean incognito, TabCreator regularTabCreator,
+    public TabModelImpl(boolean incognito, boolean isTabbedActivity, TabCreator regularTabCreator,
             TabCreator incognitoTabCreator, TabModelSelectorUma uma,
             TabModelOrderController orderController, TabContentManager tabContentManager,
             TabPersistentStore tabSaver, TabModelDelegate modelDelegate, boolean supportUndo) {
-        super(incognito);
+        super(incognito, isTabbedActivity);
         initializeNative();
         mRegularTabCreator = regularTabCreator;
         mIncognitoTabCreator = incognitoTabCreator;

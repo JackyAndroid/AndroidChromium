@@ -19,9 +19,9 @@ import java.util.Map;
 
 /**
  * A class that observes events for a tab which has an associated offline page. It is created when
- * the first offline page is loaded in any tab. When there is more offline pages opened, the are all
- * watched by the same observer. This observer will decide when to show a reload snackbar for such
- * tabs. The following conditions need to be met to show the snackbar:
+ * the first offline page is loaded in any tab. When additional offline pages are opened, they are
+ * all watched by the same observer. This observer will decide when to show a reload snackbar for
+ * those tabs. The following conditions need to be met to show the snackbar:
  * <ul>
  *   <li>Tab has to be shown,</li>
  *   <li>Offline page has to be loaded,</li>
@@ -63,7 +63,11 @@ public class OfflinePageTabObserver
     private static OfflinePageTabObserver sInstance;
 
     static void init(Context context, SnackbarManager manager, SnackbarController controller) {
-        sInstance = new OfflinePageTabObserver(context, manager, controller);
+        if (sInstance == null) {
+            sInstance = new OfflinePageTabObserver(context, manager, controller);
+            return;
+        }
+        sInstance.reinitialize(context, manager, controller);
     }
 
     static OfflinePageTabObserver getInstance() {
@@ -93,9 +97,7 @@ public class OfflinePageTabObserver
      */
     OfflinePageTabObserver(Context context, SnackbarManager snackbarManager,
             SnackbarController snackbarController) {
-        mContext = context;
-        mSnackbarManager = snackbarManager;
-        mSnackbarController = snackbarController;
+        reinitialize(context, snackbarManager, snackbarController);
 
         // The first time observer is created snackbar has net yet been shown.
         mIsObservingNetworkChanges = false;
@@ -191,6 +193,16 @@ public class OfflinePageTabObserver
         Log.d(TAG, "Got connectivity event, connectionType: " + connectionType + ", is connected: "
                         + isConnected() + ", controller: " + mSnackbarController);
         maybeShowReloadSnackbar(mCurrentTab, true);
+
+        // Since we are loosing the connection, next time we connect, we still want to show a
+        // snackbar. This works in event that onConnectionTypeChanged happens, while Chrome is not
+        // visible. Making it visible after that would not trigger the snackbar, even though
+        // connection state changed. See http://crbug.com/651410
+        if (!isConnected()) {
+            for (TabState tabState : mObservedTabs.values()) {
+                tabState.wasSnackbarSeen = false;
+            }
+        }
     }
 
     @VisibleForTesting
@@ -218,9 +230,15 @@ public class OfflinePageTabObserver
         return OfflinePageUtils.isConnected();
     }
 
+    @VisibleForTesting
+    boolean isShowingOfflinePreview(Tab tab) {
+        return OfflinePageUtils.isShowingOfflinePreview(tab);
+    }
+
     void maybeShowReloadSnackbar(Tab tab, boolean isNetworkEvent) {
+        // Exclude Offline Previews, as there is a seperate UI for previews.
         if (tab == null || tab.isFrozen() || tab.isHidden() || !tab.isOfflinePage()
-                || !isConnected() || !isLoadedTab(tab)
+                || isShowingOfflinePreview(tab) || !isConnected() || !isLoadedTab(tab)
                 || (wasSnackbarSeen(tab) && !isNetworkEvent)) {
             // Conditions to show a snackbar are not met.
             return;
@@ -244,5 +262,17 @@ public class OfflinePageTabObserver
     @VisibleForTesting
     void stopObservingNetworkChanges() {
         NetworkChangeNotifier.removeConnectionTypeObserver(this);
+    }
+
+    boolean isCurrentContext(Context context) {
+        return mContext == context;
+    }
+
+    void reinitialize(Context context, SnackbarManager manager, SnackbarController controller) {
+        // TODO(fgorski): Work out if we need to also update network changes observer with the
+        // context change.
+        mContext = context;
+        mSnackbarManager = manager;
+        mSnackbarController = controller;
     }
 }

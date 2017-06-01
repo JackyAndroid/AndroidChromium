@@ -4,6 +4,7 @@
 
 package org.chromium.chrome.browser.payments;
 
+import android.content.Context;
 import android.os.Handler;
 import android.text.TextUtils;
 
@@ -11,31 +12,35 @@ import org.chromium.chrome.browser.autofill.PersonalDataManager;
 import org.chromium.chrome.browser.autofill.PersonalDataManager.AutofillProfile;
 import org.chromium.chrome.browser.autofill.PersonalDataManager.CreditCard;
 import org.chromium.content_public.browser.WebContents;
-
-import org.json.JSONObject;
+import org.chromium.payments.mojom.PaymentMethodData;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Provides access to locally stored user credit cards.
  */
 public class AutofillPaymentApp implements PaymentApp {
+    private final Context mContext;
     private final WebContents mWebContents;
 
     /**
      * Builds a payment app backed by autofill cards.
      *
+     * @param context     The context.
      * @param webContents The web contents where PaymentRequest was invoked.
      */
-    public AutofillPaymentApp(WebContents webContents) {
+    public AutofillPaymentApp(Context context, WebContents webContents) {
+        mContext = context;
         mWebContents = webContents;
     }
 
     @Override
-    public void getInstruments(JSONObject unusedDetails, final InstrumentsCallback callback) {
+    public void getInstruments(
+            Map<String, PaymentMethodData> unusedMethodData, final InstrumentsCallback callback) {
         PersonalDataManager pdm = PersonalDataManager.getInstance();
         List<CreditCard> cards = pdm.getCreditCardsToSuggest();
         final List<PaymentInstrument> instruments = new ArrayList<>(cards.size());
@@ -44,7 +49,15 @@ public class AutofillPaymentApp implements PaymentApp {
             CreditCard card = cards.get(i);
             AutofillProfile billingAddress = TextUtils.isEmpty(card.getBillingAddressId())
                     ? null : pdm.getProfile(card.getBillingAddressId());
-            instruments.add(new AutofillPaymentInstrument(mWebContents, card, billingAddress));
+
+            if (billingAddress != null
+                    && AutofillAddress.checkAddressCompletionStatus(billingAddress)
+                            != AutofillAddress.COMPLETE) {
+                billingAddress = null;
+            }
+
+            instruments.add(new AutofillPaymentInstrument(mContext, mWebContents, card,
+                    billingAddress));
         }
 
         new Handler().post(new Runnable() {
@@ -56,7 +69,7 @@ public class AutofillPaymentApp implements PaymentApp {
     }
 
     @Override
-    public Set<String> getSupportedMethodNames() {
+    public Set<String> getAppMethodNames() {
         // https://w3c.github.io/webpayments-methods-card/#method-id
         // The spec also includes more detailed card types, e.g., "visa/credit" and "visa/debit".
         // Autofill does not distinguish between these types of cards, so they are not in the list
@@ -79,7 +92,7 @@ public class AutofillPaymentApp implements PaymentApp {
     }
 
     @Override
-    public String getIdentifier() {
+    public String getAppIdentifier() {
         return "Chrome_Autofill_Payment_App";
     }
 }

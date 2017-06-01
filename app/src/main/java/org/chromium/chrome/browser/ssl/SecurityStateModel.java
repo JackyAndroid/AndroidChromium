@@ -24,27 +24,7 @@ public class SecurityStateModel {
         return nativeGetSecurityLevelForWebContents(webContents);
     }
 
-    /**
-     * @param webContents The web contents to query for deprecated SHA-1 presence.
-     * @return Whether the security level of the page was deprecated due to SHA-1.
-     */
-    public static boolean isDeprecatedSHA1Present(WebContents webContents) {
-        if (webContents == null) return false;
-        return nativeIsDeprecatedSHA1Present(webContents);
-    }
-
-    /**
-     * @param webContents The web contents to query for passive mixed content presence.
-     * @return Whether the page contains passive mixed content.
-     */
-    public static boolean isPassiveMixedContentPresent(WebContents webContents) {
-        if (webContents == null) return false;
-        return nativeIsPassiveMixedContentPresent(webContents);
-    }
-
     private SecurityStateModel() {}
 
     private static native int nativeGetSecurityLevelForWebContents(WebContents webContents);
-    private static native boolean nativeIsDeprecatedSHA1Present(WebContents webContents);
-    private static native boolean nativeIsPassiveMixedContentPresent(WebContents webContents);
 }

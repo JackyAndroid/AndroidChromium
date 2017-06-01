@@ -207,6 +207,7 @@ class CustomButtonParams {
         String description = parseDescriptionFromBundle(bundle);
         if (TextUtils.isEmpty(description)) {
             Log.e(TAG, "Invalid action button: content description not present in bundle!");
+            removeBitmapFromBundle(bundle);
             bitmap.recycle();
             return null;
         }
@@ -224,6 +225,7 @@ class CustomButtonParams {
         // PendingIntent is a must for buttons on the toolbar, but it's optional for bottom bar.
         if (onToolbar && pendingIntent == null) {
             Log.w(TAG, "Invalid action button on toolbar: pending intent not present in bundle!");
+            removeBitmapFromBundle(bundle);
             bitmap.recycle();
             return null;
         }
@@ -240,6 +242,19 @@ class CustomButtonParams {
         Bitmap bitmap = IntentUtils.safeGetParcelable(bundle, CustomTabsIntent.KEY_ICON);
         if (bitmap == null) return null;
         return bitmap;
+    }
+
+    /**
+     * Remove the bitmap contained in the given {@link Bundle}. Used when the bitmap is invalid.
+     */
+    private static void removeBitmapFromBundle(Bundle bundle) {
+        if (bundle == null) return;
+
+        try {
+            bundle.remove(CustomTabsIntent.KEY_ICON);
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to remove icon extra from the intent");
+        }
     }
 
     /**

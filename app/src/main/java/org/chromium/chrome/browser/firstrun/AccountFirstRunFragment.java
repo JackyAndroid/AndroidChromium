@@ -40,7 +40,7 @@ public class AccountFirstRunFragment extends FirstRunPage implements AccountSign
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mView.setListener(new AccountSigninView.Listener() {
+        mView.init(getPageDelegate().getProfileDataCache(), this, new AccountSigninView.Listener() {
             @Override
             public void onAccountSelectionCanceled() {
                 getPageDelegate().refuseSignIn();
@@ -68,9 +68,6 @@ public class AccountFirstRunFragment extends FirstRunPage implements AccountSign
                 getPageDelegate().abortFirstRunExperience();
             }
         });
-        mView.setDelegate(this);
-
-        mView.init(getPageDelegate().getProfileDataCache());
 
         mView.setIsChildAccount(getProperties().getBoolean(IS_CHILD_ACCOUNT));
 

@@ -11,6 +11,9 @@ import android.text.TextUtils;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.content_public.common.MediaMetadata;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Exposes information about the current media notification to the external clients.
  */
@@ -55,6 +58,7 @@ public class MediaNotificationInfo {
         private int mId = INVALID_ID;
         private Intent mContentIntent = null;
         private MediaNotificationListener mListener = null;
+        private Set<Integer> mMediaSessionActions = null;
 
         /**
          * Initializes the builder with the default values.
@@ -68,18 +72,19 @@ public class MediaNotificationInfo {
             assert mListener != null;
 
             return new MediaNotificationInfo(
-                    mMetadata,
-                    mIsPaused,
-                    mOrigin,
-                    mTabId,
-                    mIsPrivate,
-                    mIcon,
-                    mLargeIcon,
-                    mDefaultLargeIcon,
-                    mActions,
-                    mId,
-                    mContentIntent,
-                    mListener);
+                mMetadata,
+                mIsPaused,
+                mOrigin,
+                mTabId,
+                mIsPrivate,
+                mIcon,
+                mLargeIcon,
+                mDefaultLargeIcon,
+                mActions,
+                mId,
+                mContentIntent,
+                mListener,
+                mMediaSessionActions);
         }
 
         public Builder setMetadata(MediaMetadata metadata) {
@@ -139,6 +144,11 @@ public class MediaNotificationInfo {
 
         public Builder setListener(MediaNotificationListener listener) {
             mListener = listener;
+            return this;
+        }
+
+        public Builder setMediaSessionActions(Set<Integer> actions) {
+            mMediaSessionActions = actions;
             return this;
         }
     }
@@ -204,6 +214,11 @@ public class MediaNotificationInfo {
     public final MediaNotificationListener listener;
 
     /**
+     * The actions enabled in MediaSession.
+     */
+    public final Set<Integer> mediaSessionActions;
+
+    /**
      * @return if play/pause actions are supported by this notification.
      */
     public boolean supportsPlayPause() {
@@ -234,19 +249,10 @@ public class MediaNotificationInfo {
      * @param contentIntent the intent to send when the notification is selected.
      * @param listener The listener for the control events.
      */
-    private MediaNotificationInfo(
-            MediaMetadata metadata,
-            boolean isPaused,
-            String origin,
-            int tabId,
-            boolean isPrivate,
-            int icon,
-            Bitmap largeIcon,
-            int defaultLargeIcon,
-            int actions,
-            int id,
-            Intent contentIntent,
-            MediaNotificationListener listener) {
+    private MediaNotificationInfo(MediaMetadata metadata, boolean isPaused, String origin,
+            int tabId, boolean isPrivate, int icon, Bitmap largeIcon, int defaultLargeIcon,
+            int actions, int id, Intent contentIntent, MediaNotificationListener listener,
+            Set<Integer> mediaSessionActions) {
         this.metadata = metadata;
         this.isPaused = isPaused;
         this.origin = origin;
@@ -259,6 +265,9 @@ public class MediaNotificationInfo {
         this.id = id;
         this.contentIntent = contentIntent;
         this.listener = listener;
+        this.mediaSessionActions = (mediaSessionActions != null)
+                ? new HashSet<Integer>(mediaSessionActions)
+                : new HashSet<Integer>();
     }
 
     @Override
@@ -267,22 +276,22 @@ public class MediaNotificationInfo {
         if (!(obj instanceof MediaNotificationInfo)) return false;
 
         MediaNotificationInfo other = (MediaNotificationInfo) obj;
-        return isPaused == other.isPaused
-                && isPrivate == other.isPrivate
-                && tabId == other.tabId
+        return isPaused == other.isPaused && isPrivate == other.isPrivate && tabId == other.tabId
                 && icon == other.icon
                 && (largeIcon == other.largeIcon
-                        || (largeIcon != null && largeIcon.sameAs(other.largeIcon)))
-                && defaultLargeIcon == other.defaultLargeIcon
-                && mActions == other.mActions
+                           || (largeIcon != null && largeIcon.sameAs(other.largeIcon)))
+                && defaultLargeIcon == other.defaultLargeIcon && mActions == other.mActions
                 && id == other.id
                 && (metadata == other.metadata
-                        || (metadata != null && metadata.equals(other.metadata)))
+                           || (metadata != null && metadata.equals(other.metadata)))
                 && TextUtils.equals(origin, other.origin)
                 && (contentIntent == other.contentIntent
-                        || (contentIntent != null && contentIntent.equals(other.contentIntent)))
+                           || (contentIntent != null && contentIntent.equals(other.contentIntent)))
                 && (listener == other.listener
-                        || (listener != null && listener.equals(other.listener)));
+                           || (listener != null && listener.equals(other.listener)))
+                && (mediaSessionActions == other.mediaSessionActions
+                           || (mediaSessionActions != null
+                                      && mediaSessionActions.equals(other.mediaSessionActions)));
     }
 
     @Override
@@ -299,6 +308,7 @@ public class MediaNotificationInfo {
         result = 31 * result + mActions;
         result = 31 * result + id;
         result = 31 * result + listener.hashCode();
+        result = 31 * result + mediaSessionActions.hashCode();
         return result;
     }
 }

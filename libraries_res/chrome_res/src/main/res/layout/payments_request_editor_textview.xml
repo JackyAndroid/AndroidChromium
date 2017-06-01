@@ -23,12 +23,30 @@
             android:imeOptions="flagNoExtractUi" />
     </org.chromium.chrome.browser.widget.CompatibilityTextInputLayout>
 
-    <ImageView
-        android:id="@+id/action_icon"
-        android:layout_width="48dp"
+    <LinearLayout
+        android:id="@+id/icons_layer"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:padding="12dp"
         android:layout_gravity="end"
-        android:contentDescription="@null"
-        android:visibility="gone"/>
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/value_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:clickable="false"
+            android:visibility="gone"/>
+
+        <ImageView
+            android:id="@+id/action_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:contentDescription="@null"
+            android:visibility="gone"/>
+    </LinearLayout>
 </FrameLayout>

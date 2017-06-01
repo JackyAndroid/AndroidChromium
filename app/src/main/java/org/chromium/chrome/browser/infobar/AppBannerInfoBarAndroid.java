@@ -15,6 +15,7 @@ import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.banners.AppBannerManager;
 import org.chromium.chrome.browser.banners.AppData;
 import org.chromium.chrome.browser.widget.DualControlLayout;
 
@@ -174,7 +175,8 @@ public class AppBannerInfoBarAndroid extends ConfirmInfoBar implements View.OnCl
     }
 
     private static String getAddToHomescreenText() {
-        return ContextUtils.getApplicationContext().getString(R.string.menu_add_to_homescreen);
+        return ContextUtils.getApplicationContext().getString(
+                AppBannerManager.getAppBannerLanguageOption());
     }
 
     @CalledByNative

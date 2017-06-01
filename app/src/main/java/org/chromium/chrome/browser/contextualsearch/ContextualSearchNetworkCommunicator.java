@@ -32,17 +32,25 @@ public interface ContextualSearchNetworkCommunicator {
      *            A MID is a unique identifier for an entity in the Search Knowledge Graph.
      * @param doPreventPreload whether to prevent preloading the search result.
      * @param selectionStartAdjust The start offset adjustment of the selection to use to highlight
-     *        the search term.
+     *                             the search term.
      * @param selectionEndAdjust The end offset adjustment of the selection to use to highlight
-     *        the search term.
+     *                           the search term.
      * @param contextLanguage The language of the context, or the empty string if unknown.
      * @param thumbnailUrl The URL of the thumbnail to display in our UX.
      * @param caption The caption to display.
+     * @param quickActionUri The URI for the intent associated with the quick action.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
      */
     void handleSearchTermResolutionResponse(boolean isNetworkUnavailable, int responseCode,
             String searchTerm, String displayText, String alternateTerm, String mid,
             boolean doPreventPreload, int selectionStartAdjust, int selectionEndAdjust,
-            String contextLanguage, String thumbnailUrl, String caption);
+            String contextLanguage, String thumbnailUrl, String caption,
+            String quickActionUri, int quickActionCategory);
+
+    /**
+     * @return Whether the device is currently online.
+     */
+    boolean isOnline();
 
     // --------------------------------------------------------------------------------------------
     // These are non-network actions that need to be stubbed out for testing.

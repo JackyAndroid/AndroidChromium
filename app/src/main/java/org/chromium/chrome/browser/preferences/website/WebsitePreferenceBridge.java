@@ -221,16 +221,6 @@ public abstract class WebsitePreferenceBridge {
     }
 
     /**
-     * @return the list of all sites that have fullscreen permissions in non-incognito mode.
-     */
-    public static List<FullscreenInfo> getFullscreenInfo() {
-        boolean managedOnly = PrefServiceBridge.getInstance().isFullscreenManaged();
-        ArrayList<FullscreenInfo> list = new ArrayList<FullscreenInfo>();
-        nativeGetFullscreenOrigins(list, managedOnly);
-        return list;
-    }
-
-    /**
      * Returns the list of all USB device permissions.
      *
      * There will be one UsbInfo instance for each granted permission. That
@@ -241,15 +231,6 @@ public abstract class WebsitePreferenceBridge {
         ArrayList<UsbInfo> list = new ArrayList<UsbInfo>();
         nativeGetUsbOrigins(list);
         return list;
-    }
-
-    /**
-     * Inserts fullscreen information into a list.
-     */
-    @CalledByNative
-    private static void insertFullscreenInfoIntoList(
-            ArrayList<FullscreenInfo> list, String origin, String embedder) {
-        list.add(new FullscreenInfo(origin, embedder, false));
     }
 
     /**
@@ -304,11 +285,7 @@ public abstract class WebsitePreferenceBridge {
     private static native void nativeFetchStorageInfo(Object callback);
     static native boolean nativeIsContentSettingsPatternValid(String pattern);
     static native boolean nativeUrlMatchesContentSettingsPattern(String url, String pattern);
-    private static native void nativeGetFullscreenOrigins(Object list, boolean managedOnly);
-    static native int nativeGetFullscreenSettingForOrigin(
-            String origin, String embedder, boolean isIncognito);
-    static native void nativeSetFullscreenSettingForOrigin(
-            String origin, String embedder, int value, boolean isIncognito);
     static native void nativeGetUsbOrigins(Object list);
     static native void nativeRevokeUsbPermission(String origin, String embedder, String object);
+    static native void nativeClearBannerData(String origin);
 }

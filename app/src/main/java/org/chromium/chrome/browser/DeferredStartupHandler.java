@@ -29,7 +29,6 @@ import org.chromium.base.TraceEvent;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.bookmarkswidget.BookmarkWidgetProvider;
-import org.chromium.chrome.browser.crash.CrashFileManager;
 import org.chromium.chrome.browser.crash.MinidumpUploadService;
 import org.chromium.chrome.browser.init.ProcessInitializationHandler;
 import org.chromium.chrome.browser.locale.LocaleManager;
@@ -48,6 +47,8 @@ import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager
 import org.chromium.chrome.browser.share.ShareHelper;
 import org.chromium.chrome.browser.webapps.ChromeWebApkHost;
 import org.chromium.chrome.browser.webapps.WebApkVersionManager;
+import org.chromium.chrome.browser.webapps.WebappRegistry;
+import org.chromium.components.minidump_uploader.CrashFileManager;
 import org.chromium.content.browser.ChildProcessLauncher;
 
 import java.util.ArrayList;
@@ -238,6 +239,11 @@ public class DeferredStartupHandler {
                 try {
                     TraceEvent.begin("ChromeBrowserInitializer.onDeferredStartup.doInBackground");
                     long asyncTaskStartTime = SystemClock.uptimeMillis();
+
+                    // Initialize the WebappRegistry if it's not already initialized. Must be in
+                    // async task due to shared preferences disk access on N.
+                    WebappRegistry.getInstance();
+
                     boolean crashDumpDisabled = CommandLine.getInstance().hasSwitch(
                             ChromeSwitches.DISABLE_CRASH_DUMP_UPLOAD);
                     if (!crashDumpDisabled) {
@@ -276,10 +282,20 @@ public class DeferredStartupHandler {
                             SystemClock.uptimeMillis() - asyncTaskStartTime,
                             TimeUnit.MILLISECONDS);
 
+                    // Warm up all web app shared prefs. This must be run after the WebappRegistry
+                    // instance is initialized.
+                    WebappRegistry.warmUpSharedPrefs();
+
                     return null;
                 } finally {
                     TraceEvent.end("ChromeBrowserInitializer.onDeferredStartup.doInBackground");
                 }
+            }
+
+            @Override
+            protected void onPostExecute(Void params) {
+                // Must be run on the UI thread after the WebappRegistry has been completely warmed.
+                WebappRegistry.getInstance().unregisterOldWebapps(System.currentTimeMillis());
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }

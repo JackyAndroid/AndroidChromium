@@ -25,6 +25,7 @@ import org.chromium.base.CommandLineInitUtil;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.base.TraceEvent;
+import org.chromium.base.metrics.CachedMetrics;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.ChromeSwitches;
@@ -42,7 +43,6 @@ import org.chromium.chrome.browser.firstrun.FirstRunActivity;
 import org.chromium.chrome.browser.firstrun.FirstRunFlowSequencer;
 import org.chromium.chrome.browser.firstrun.LightweightFirstRunActivity;
 import org.chromium.chrome.browser.instantapps.InstantAppsHandler;
-import org.chromium.chrome.browser.metrics.LaunchMetrics;
 import org.chromium.chrome.browser.metrics.MediaNotificationUma;
 import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
 import org.chromium.chrome.browser.notifications.NotificationPlatformBridge;
@@ -55,6 +55,7 @@ import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.chrome.browser.util.UrlUtilities;
 import org.chromium.chrome.browser.webapps.ActivityAssigner;
 import org.chromium.chrome.browser.webapps.WebappLauncherActivity;
+import org.chromium.ui.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
@@ -87,8 +88,8 @@ public class ChromeLauncherActivity extends Activity
      */
     private static final int PARTNER_BROWSER_CUSTOMIZATIONS_TIMEOUT_MS = 10000;
 
-    private static final LaunchMetrics.SparseHistogramSample sIntentFlagsHistogram =
-            new LaunchMetrics.SparseHistogramSample("Launch.IntentFlags");
+    private static final CachedMetrics.SparseHistogramSample sIntentFlagsHistogram =
+            new CachedMetrics.SparseHistogramSample("Launch.IntentFlags");
 
     private IntentHandler mIntentHandler;
     private boolean mIsInLegacyMultiInstanceMode;
@@ -112,13 +113,13 @@ public class ChromeLauncherActivity extends Activity
      * you add _absolutely has_ to be here.
      */
     @Override
-    @SuppressLint("MissingSuperCall") // Called in doOnCreate.
     public void onCreate(Bundle savedInstanceState) {
         // Third-party code adds disk access to Activity.onCreate. http://crbug.com/619824
         StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
         TraceEvent.begin("ChromeLauncherActivity");
         TraceEvent.begin("ChromeLauncherActivity.onCreate");
         try {
+            super.onCreate(savedInstanceState);
             doOnCreate(savedInstanceState);
         } finally {
             StrictMode.setThreadPolicy(oldPolicy);
@@ -127,13 +128,13 @@ public class ChromeLauncherActivity extends Activity
     }
 
     private final void doOnCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         // This Activity is only transient. It launches another activity and
         // terminates itself. However, some of the work is performed outside of
         // {@link Activity#onCreate()}. To capture this, the TraceEvent starts
         // in onCreate(), and ends in onPause().
         // Needs to be called as early as possible, to accurately capture the
         // time at which the intent was received.
+        setIntent(IntentUtils.sanitizeIntent(getIntent()));
         IntentHandler.addTimestampToIntent(getIntent());
         // Initialize the command line in case we've disabled document mode from there.
         CommandLineInitUtil.initCommandLine(this, ChromeApplication.COMMAND_LINE_FILE);
@@ -455,14 +456,16 @@ public class ChromeLauncherActivity extends Activity
             newIntent.addFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS);
         }
         Uri uri = newIntent.getData();
+        boolean isContentScheme = false;
         if (uri != null && "content".equals(uri.getScheme())) {
+            isContentScheme = true;
             newIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
         if (mIsInLegacyMultiInstanceMode) {
             MultiWindowUtils.getInstance().makeLegacyMultiInstanceIntent(this, newIntent);
         }
         if (skipFre) {
-            newIntent.putExtra(ChromeTabbedActivity.SKIP_FIRST_RUN_EXPERIENCE, true);
+            newIntent.putExtra(FirstRunFlowSequencer.SKIP_FIRST_RUN_EXPERIENCE, true);
         }
 
         // This system call is often modified by OEMs and not actionable. http://crbug.com/619646.
@@ -470,6 +473,14 @@ public class ChromeLauncherActivity extends Activity
         StrictMode.allowThreadDiskWrites();
         try {
             startActivity(newIntent);
+        } catch (SecurityException ex) {
+            if (isContentScheme) {
+                Toast.makeText(
+                        this, R.string.external_app_restricted_access_error,
+                        Toast.LENGTH_LONG).show();
+            } else {
+                throw ex;
+            }
         } finally {
             StrictMode.setThreadPolicy(oldPolicy);
         }
@@ -557,6 +568,7 @@ public class ChromeLauncherActivity extends Activity
             // Add a PendingIntent so that the intent used to launch Chrome will be resent when
             // first run is completed or canceled.
             FirstRunFlowSequencer.addPendingIntent(this, freIntent, getIntent());
+            freIntent.putExtra(FirstRunActivity.EXTRA_FINISH_ON_TOUCH_OUTSIDE, !forTabbedMode);
             startActivity(freIntent);
         } else {
             Intent newIntent = new Intent(getIntent());

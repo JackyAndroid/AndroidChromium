@@ -6,10 +6,10 @@ package org.chromium.chrome.browser.net.qualityprovider;
 
 import android.content.Context;
 
+import org.chromium.base.NonThreadSafe;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.chrome.browser.ChromeApplication;
-import org.chromium.chrome.browser.util.NonThreadSafe;
 
 /**
  * This class provides a base class implementation and may be overridden on operating systems that

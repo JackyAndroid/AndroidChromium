@@ -8,6 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <!-- Country -->
+    <!-- The top margin of this dropdown is already very large -->
     <include layout="@layout/payment_request_editor_dropdown" />
 
     <!-- Country specific address information
@@ -24,7 +25,8 @@
         android:id="@+id/phone_number_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/pref_autofill_content_spacing" >
+        android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
+        android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin" >
 
         <EditText
             android:id="@+id/phone_number_edit"
@@ -41,7 +43,9 @@
     <org.chromium.chrome.browser.widget.CompatibilityTextInputLayout
         android:id="@+id/email_address_label"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
+        android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin" >
 
         <EditText
             android:id="@+id/email_address_edit"

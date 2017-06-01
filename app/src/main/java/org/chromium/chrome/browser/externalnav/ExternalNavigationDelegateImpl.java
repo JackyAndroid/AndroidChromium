@@ -17,12 +17,10 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
-import android.os.TransactionTooLargeException;
 import android.provider.Browser;
 import android.provider.Telephony;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import org.chromium.base.ApplicationState;
@@ -41,6 +39,7 @@ import org.chromium.chrome.browser.externalnav.ExternalNavigationHandler.Overrid
 import org.chromium.chrome.browser.instantapps.AuthenticatedProxyActivity;
 import org.chromium.chrome.browser.instantapps.InstantAppsHandler;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.chrome.browser.util.UrlUtilities;
 import org.chromium.chrome.browser.webapps.WebappActivity;
 import org.chromium.content_public.browser.LoadUrlParams;
@@ -59,7 +58,10 @@ import java.util.List;
  * The main implementation of the {@link ExternalNavigationDelegate}.
  */
 public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegate {
-    private static final String TAG = "ExternalNavigationDelegateImpl";
+    // Instant Apps system resolver activity on N-MR1+.
+    @VisibleForTesting
+    static final String EPHEMERAL_INSTALLER_CLASS =
+            "com.google.android.gms.instantapps.routing.EphemeralInstallerActivity";
     private static final String PDF_VIEWER = "com.google.android.apps.docs";
     private static final String PDF_MIME = "application/pdf";
     private static final String PDF_SUFFIX = ".pdf";
@@ -156,7 +158,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             }
             return activityResolved;
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
         }
         return false;
     }
@@ -185,7 +187,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             PackageManager pm = context.getPackageManager();
             return pm.resolveActivity(intent, 0);
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
         }
         return null;
     }
@@ -216,7 +218,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             return info != null
                     && info.activityInfo.packageName.equals(context.getPackageName());
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
             return false;
         }
     }
@@ -228,6 +230,9 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
         try {
             return mApplicationContext.getPackageManager().queryIntentActivities(intent,
                     PackageManager.GET_RESOLVED_FILTER);
+        } catch (RuntimeException e) {
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
+            return null;
         } finally {
             StrictMode.setThreadPolicy(oldPolicy);
         }
@@ -266,7 +271,6 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             return result;
         }
 
-        int count = 0;
         for (ResolveInfo info : infos) {
             IntentFilter filter = info.filter;
             if (filter == null) {
@@ -284,7 +288,16 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
                 continue;
             }
 
-            result.add(info.activityInfo != null ? info.activityInfo.packageName : "");
+            if (info.activityInfo != null) {
+                if (EPHEMERAL_INSTALLER_CLASS.equals(info.activityInfo.name)) {
+                    // Don't consider the Instant Apps resolver a specialized application.
+                    continue;
+                }
+
+                result.add(info.activityInfo.packageName);
+            } else {
+                result.add("");
+            }
         }
         return result;
     }
@@ -305,7 +318,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
                     intent, PackageManager.GET_RESOLVED_FILTER);
             return getSpecializedHandlersWithFilter(handlers, packageName).size() > 0;
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
         }
         return false;
     }
@@ -333,7 +346,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             }
             recordExternalNavigationDispatched(intent);
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
         }
     }
 
@@ -359,7 +372,7 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
             if (activityWasLaunched) recordExternalNavigationDispatched(intent);
             return activityWasLaunched;
         } catch (RuntimeException e) {
-            logTransactionTooLargeOrRethrow(e, intent);
+            IntentUtils.logTransactionTooLargeOrRethrow(e, intent);
             return false;
         } finally {
             StrictMode.setThreadPolicy(oldPolicy);
@@ -374,29 +387,6 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
         }
     }
 
-    /**
-     * Shows an alert dialog prompting the user to leave incognito mode.
-     *
-     * @param activity The {@link Activity} to launch the dialog from.
-     * @param onAccept Will be called when the user chooses to leave incognito.
-     * @param onCancel Will be called when the user declines to leave incognito.
-     */
-    public static void showLeaveIncognitoWarningDialog(Activity activity,
-            final OnClickListener onAccept, final OnCancelListener onCancel) {
-        new AlertDialog.Builder(activity, R.style.AlertDialogTheme)
-            .setTitle(R.string.external_app_leave_incognito_warning_title)
-            .setMessage(R.string.external_app_leave_incognito_warning)
-            .setPositiveButton(R.string.ok, onAccept)
-            .setNegativeButton(R.string.cancel, new OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        onCancel.onCancel(dialog);
-                    }
-                })
-            .setOnCancelListener(onCancel)
-            .show();
-    }
-
     @Override
     public void startIncognitoIntent(final Intent intent, final String referrerUrl,
             final String fallbackUrl, final Tab tab, final boolean needsToCloseTab,
@@ -404,8 +394,11 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
         Context context = tab.getWindowAndroid().getContext().get();
         if (!(context instanceof Activity)) return;
 
-        showLeaveIncognitoWarningDialog((Activity) context,
-                new OnClickListener() {
+        Activity activity = (Activity) context;
+        new AlertDialog.Builder(activity, R.style.AlertDialogTheme)
+            .setTitle(R.string.external_app_leave_incognito_warning_title)
+            .setMessage(R.string.external_app_leave_incognito_warning)
+            .setPositiveButton(R.string.ok, new OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(intent, proxy);
@@ -414,13 +407,20 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
                             closeTab(tab);
                         }
                     }
-                },
-                new OnCancelListener() {
+                })
+            .setNegativeButton(R.string.cancel, new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        loadIntent(intent, referrerUrl, fallbackUrl, tab, needsToCloseTab, true);
+                    }
+                })
+            .setOnCancelListener(new OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         loadIntent(intent, referrerUrl, fallbackUrl, tab, needsToCloseTab, true);
                     }
-                });
+                })
+            .show();
     }
 
     @Override
@@ -540,15 +540,6 @@ public class ExternalNavigationDelegateImpl implements ExternalNavigationDelegat
     public String getDefaultSmsPackageName() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return null;
         return Telephony.Sms.getDefaultSmsPackage(mApplicationContext);
-    }
-
-    private static void logTransactionTooLargeOrRethrow(RuntimeException e, Intent intent) {
-        // See http://crbug.com/369574.
-        if (e.getCause() instanceof TransactionTooLargeException) {
-            Log.e(TAG, "Could not resolve Activity for intent " + intent.toString(), e);
-        } else {
-            throw e;
-        }
     }
 
     private void closeTab(Tab tab) {

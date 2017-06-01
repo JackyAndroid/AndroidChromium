@@ -26,6 +26,7 @@ import org.chromium.chrome.browser.compositor.scene_layer.ContextualSearchSceneL
 import org.chromium.chrome.browser.compositor.scene_layer.SceneOverlayLayer;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchManagementDelegate;
 import org.chromium.chrome.browser.util.MathUtils;
+import org.chromium.ui.base.LocalizationUtils;
 import org.chromium.ui.resources.ResourceManager;
 
 /**
@@ -68,6 +69,11 @@ public class ContextualSearchPanel extends OverlayPanel {
      */
     private ContextualSearchSceneLayer mSceneLayer;
 
+    /**
+     * The distance of the divider from the end of the bar, in dp.
+     */
+    private final float mEndButtonWidthDp;
+
     // ============================================================================================
     // Constructor
     // ============================================================================================
@@ -86,6 +92,8 @@ public class ContextualSearchPanel extends OverlayPanel {
 
         mBarShadowHeightPx = ApiCompatibilityUtils.getDrawable(mContext.getResources(),
                 R.drawable.contextual_search_bar_shadow).getIntrinsicHeight();
+        mEndButtonWidthDp = mPxToDp * (float) mContext.getResources().getDimensionPixelSize(
+                R.dimen.contextual_search_end_button_width);
     }
 
     @Override
@@ -252,7 +260,7 @@ public class ContextualSearchPanel extends OverlayPanel {
 
         setProgressBarCompletion(0);
         setProgressBarVisible(false);
-        getImageControl().hideThumbnail(false);
+        getImageControl().hideStaticImage(false);
 
         super.onClosed(reason);
 
@@ -263,13 +271,34 @@ public class ContextualSearchPanel extends OverlayPanel {
     // Generic Event Handling
     // ============================================================================================
 
+    private boolean isCoordinateInsideActionTarget(float x) {
+        if (LocalizationUtils.isLayoutRtl()) {
+            return x >= getContentX() + mEndButtonWidthDp;
+        } else {
+            return x <= getContentX() + getWidth() - mEndButtonWidthDp;
+        }
+    }
+
+    /**
+     * Handles a bar click. The position is given in dp.
+     */
     @Override
     public void handleBarClick(long time, float x, float y) {
-        super.handleBarClick(time, x, y);
-        if (isExpanded() || isMaximized()) {
+        getSearchBarControl().onSearchBarClick(x);
+
+        if (isPeeking()) {
+            if (getSearchBarControl().getQuickActionControl().hasQuickAction()
+                    && isCoordinateInsideActionTarget(x)) {
+                mPanelMetrics.setWasQuickActionClicked();
+                getSearchBarControl().getQuickActionControl().sendIntent();
+            } else {
+                // super takes care of expanding the Panel when peeking.
+                super.handleBarClick(time, x, y);
+            }
+        } else if (isExpanded() || isMaximized()) {
             if (isCoordinateInsideCloseButton(x)) {
                 closePanel(StateChangeReason.CLOSE_BUTTON, true);
-            } else if (!mActivity.isCustomTab() && canDisplayContentInPanel()) {
+            } else if (canPromoteToNewTab()) {
                 mManagementDelegate.promoteToTab();
             }
         }
@@ -294,6 +323,12 @@ public class ContextualSearchPanel extends OverlayPanel {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onShowPress(float x, float y) {
+        if (isCoordinateInsideBar(x, y)) getSearchBarControl().onShowPress(x);
+        super.onShowPress(x, y);
     }
 
     // ============================================================================================
@@ -490,7 +525,7 @@ public class ContextualSearchPanel extends OverlayPanel {
      * @param searchTerm The string that represents the search term.
      */
     public void setSearchTerm(String searchTerm) {
-        getImageControl().hideThumbnail(true);
+        getImageControl().hideStaticImage(true);
         getSearchBarControl().setSearchTerm(searchTerm);
         mPanelMetrics.onSearchRequestStarted();
     }
@@ -501,7 +536,7 @@ public class ContextualSearchPanel extends OverlayPanel {
      * @param end The portion of the context from the selection to its end.
      */
     public void setSearchContext(String selection, String end) {
-        getImageControl().hideThumbnail(true);
+        getImageControl().hideStaticImage(true);
         getSearchBarControl().setSearchContext(selection, end);
         mPanelMetrics.onSearchRequestStarted();
     }
@@ -519,11 +554,15 @@ public class ContextualSearchPanel extends OverlayPanel {
      * Handles showing the resolved search term in the SearchBar.
      * @param searchTerm The string that represents the search term.
      * @param thumbnailUrl The URL of the thumbnail to display.
+     * @param quickActionUri The URI for the intent associated with the quick action.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
      */
-    public void onSearchTermResolved(String searchTerm, String thumbnailUrl) {
+    public void onSearchTermResolved(String searchTerm, String thumbnailUrl, String quickActionUri,
+            int quickActionCategory) {
         mPanelMetrics.onSearchTermResolved();
         getSearchBarControl().setSearchTerm(searchTerm);
         getSearchBarControl().animateSearchTermResolution();
+        getSearchBarControl().setQuickAction(quickActionUri, quickActionCategory);
         getImageControl().setThumbnailUrl(thumbnailUrl);
     }
 
@@ -566,6 +605,7 @@ public class ContextualSearchPanel extends OverlayPanel {
 
         getPromoControl().onUpdateFromCloseToPeek(percentage);
         getPeekPromoControl().onUpdateFromCloseToPeek(percentage);
+        getSearchBarControl().onUpdateFromCloseToPeek(percentage);
     }
 
     @Override
@@ -574,6 +614,7 @@ public class ContextualSearchPanel extends OverlayPanel {
 
         getPromoControl().onUpdateFromPeekToExpand(percentage);
         getPeekPromoControl().onUpdateFromPeekToExpand(percentage);
+        getSearchBarControl().onUpdateFromPeekToExpand(percentage);
     }
 
     @Override
@@ -639,7 +680,7 @@ public class ContextualSearchPanel extends OverlayPanel {
      * Creates the ContextualSearchBarControl, if needed. The Views are set to INVISIBLE, because
      * they won't actually be displayed on the screen (their snapshots will be displayed instead).
      */
-    protected ContextualSearchBarControl getSearchBarControl() {
+    public ContextualSearchBarControl getSearchBarControl() {
         if (mSearchBarControl == null) {
             mSearchBarControl =
                     new ContextualSearchBarControl(this, mContext, mContainerView, mResourceLoader);
@@ -660,17 +701,11 @@ public class ContextualSearchPanel extends OverlayPanel {
     // ============================================================================================
     // Image Control
     // ============================================================================================
-
-    private ContextualSearchImageControl mImageControl;
-
     /**
      * @return The {@link ContextualSearchImageControl} for the panel.
      */
     public ContextualSearchImageControl getImageControl() {
-        if (mImageControl == null) {
-            mImageControl = new ContextualSearchImageControl(this, mContext);
-        }
-        return mImageControl;
+        return getSearchBarControl().getImageControl();
     }
 
     // ============================================================================================
@@ -797,5 +832,39 @@ public class ContextualSearchPanel extends OverlayPanel {
      */
     public void destroyContent() {
         super.destroyOverlayPanelContent();
+    }
+
+    /**
+     * @return Whether the panel content can be displayed in a new tab.
+     */
+    boolean canPromoteToNewTab() {
+        return !mActivity.isCustomTab() && canDisplayContentInPanel();
+    }
+
+    // ============================================================================================
+    // Testing Support
+    // ============================================================================================
+
+    /**
+     * Simulates a tap on the panel's end button.
+     */
+    @VisibleForTesting
+    public void simulateTapOnEndButton() {
+        // Finish all currently running animations.
+        onUpdateAnimation(System.currentTimeMillis(), true);
+
+        // Determine the x-position for the simulated tap.
+        float xPosition;
+        if (LocalizationUtils.isLayoutRtl()) {
+            xPosition = getContentX() + (mEndButtonWidthDp / 2);
+        } else {
+            xPosition = getContentX() + getWidth() - (mEndButtonWidthDp / 2);
+        }
+
+        // Determine the y-position for the simulated tap.
+        float yPosition = getOffsetY() + (getHeight() / 2);
+
+        // Simulate the tap.
+        handleClick(System.currentTimeMillis(), xPosition, yPosition);
     }
 }

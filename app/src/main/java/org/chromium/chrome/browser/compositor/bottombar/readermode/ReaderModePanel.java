@@ -143,8 +143,8 @@ public class ReaderModePanel extends OverlayPanel {
     @Override
     public boolean updateOverlay(long time, long dt) {
         // This will cause the ContentViewCore to size itself appropriately for the panel (includes
-        // top controls height).
-        updateTopControlsState();
+        // browser controls height).
+        updateBrowserControlsState();
 
         return super.updateOverlay(time, dt);
     }
@@ -307,9 +307,9 @@ public class ReaderModePanel extends OverlayPanel {
         // Do not attempt to auto-hide the reader mode bar if the toolbar is less than a certain
         // height.
         boolean shouldAutoHide = getToolbarHeight() >= getBarHeightPeeking();
-        // This will cause the reader mode bar to behave like the top controls; sliding out of
+        // This will cause the reader mode bar to behave like the browser controls; sliding out of
         // view as the page scrolls.
-        return super.getOffsetY() + (shouldAutoHide ? getTopControlsOffsetDp() : 0.0f);
+        return super.getOffsetY() + (shouldAutoHide ? getBrowserControlsOffsetDp() : 0.0f);
     }
 
     @Override

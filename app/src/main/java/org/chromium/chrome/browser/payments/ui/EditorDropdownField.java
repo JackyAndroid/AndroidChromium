@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.preferences.autofill.AutofillProfileBridge.DropdownKeyValue;
+import org.chromium.ui.UiUtils;
 
 import java.util.List;
 
@@ -55,8 +56,21 @@ class EditorDropdownField implements EditorFieldView {
         final List<DropdownKeyValue> dropdownKeyValues = mFieldModel.getDropdownKeyValues();
         mSelectedIndex = getDropdownIndex(dropdownKeyValues, mFieldModel.getValue());
 
-        ArrayAdapter<DropdownKeyValue> adapter = new ArrayAdapter<DropdownKeyValue>(
-                context, R.layout.multiline_spinner_item, dropdownKeyValues);
+        ArrayAdapter<DropdownKeyValue> adapter;
+        if (mFieldModel.getHint() != null) {
+            // Use the BillingAddressAdapter and pass it a hint to be displayed as default.
+            adapter = new BillingAddressAdapter<DropdownKeyValue>(
+                    context, R.layout.multiline_spinner_item, dropdownKeyValues,
+                    new DropdownKeyValue("", mFieldModel.getHint().toString()));
+
+            // If no value is selected, select the hint entry which is the last item in the adapter.
+            // Using getCount will not result in an out of bounds index because the hint value is
+            // ommited in the count.
+            if (mFieldModel.getValue() == null) mSelectedIndex = adapter.getCount();
+        } else {
+            adapter = new ArrayAdapter<DropdownKeyValue>(
+                    context, R.layout.multiline_spinner_item, dropdownKeyValues);
+        }
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         mDropdown = (Spinner) mLayout.findViewById(R.id.spinner);
@@ -69,7 +83,8 @@ class EditorDropdownField implements EditorFieldView {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (mSelectedIndex != position) {
                     mSelectedIndex = position;
-                    mFieldModel.setDropdownKey(dropdownKeyValues.get(position).getKey(),
+                    mFieldModel.setDropdownKey(
+                            mFieldModel.getDropdownKeyValues().get(position).getKey(),
                             changedCallback);
                 }
             }
@@ -114,6 +129,8 @@ class EditorDropdownField implements EditorFieldView {
 
     @Override
     public void scrollToAndFocus() {
+        updateDisplayedError(!isValid());
+        UiUtils.hideKeyboard(mDropdown);
         ViewGroup parent = (ViewGroup) mDropdown.getParent();
         if (parent != null) parent.requestChildFocus(mDropdown, mDropdown);
         mDropdown.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
@@ -121,8 +138,15 @@ class EditorDropdownField implements EditorFieldView {
 
     @Override
     public void update() {
-        mSelectedIndex =
+        // If the adapter supports a hint and no value was selected, select the hint.
+        if (mFieldModel.getHint() != null && mFieldModel.getValue() == null) {
+            // The hint is hidden right after the last element.
+            mSelectedIndex = mFieldModel.getDropdownKeyValues().size();
+        } else {
+            mSelectedIndex =
                 getDropdownIndex(mFieldModel.getDropdownKeyValues(), mFieldModel.getValue());
+        }
+
         mDropdown.setSelection(mSelectedIndex);
     }
 

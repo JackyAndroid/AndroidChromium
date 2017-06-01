@@ -7,26 +7,24 @@ package org.chromium.chrome.browser.payments;
 import android.app.Activity;
 
 import org.chromium.chrome.browser.ChromeFeatureList;
-import org.chromium.chrome.browser.payments.PaymentRequestImpl.PaymentRequestDismissObserver;
 import org.chromium.content.browser.ContentViewCore;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.mojo.system.MojoException;
+import org.chromium.payments.mojom.CanMakePaymentQueryResult;
 import org.chromium.payments.mojom.PaymentDetails;
 import org.chromium.payments.mojom.PaymentErrorReason;
 import org.chromium.payments.mojom.PaymentMethodData;
 import org.chromium.payments.mojom.PaymentOptions;
 import org.chromium.payments.mojom.PaymentRequest;
 import org.chromium.payments.mojom.PaymentRequestClient;
-import org.chromium.services.shell.InterfaceFactory;
+import org.chromium.services.service_manager.InterfaceFactory;
 import org.chromium.ui.base.WindowAndroid;
 
 /**
  * Creates instances of PaymentRequest.
  */
-public class PaymentRequestFactory
-        implements InterfaceFactory<PaymentRequest>, PaymentRequestDismissObserver {
+public class PaymentRequestFactory implements InterfaceFactory<PaymentRequest> {
     private final WebContents mWebContents;
-    private boolean mIsPaymentRequestRunning;
 
     /**
      * An implementation of PaymentRequest that immediately rejects all connections.
@@ -57,6 +55,13 @@ public class PaymentRequestFactory
 
         @Override
         public void complete(int result) {}
+
+        @Override
+        public void canMakePayment() {
+            if (mClient != null) {
+                mClient.onCanMakePayment(CanMakePaymentQueryResult.CANNOT_MAKE_PAYMENT);
+            }
+        }
 
         @Override
         public void close() {}
@@ -91,14 +96,6 @@ public class PaymentRequestFactory
         Activity context = window.getActivity().get();
         if (context == null) return new InvalidPaymentRequest();
 
-        if (mIsPaymentRequestRunning) return new InvalidPaymentRequest();
-        mIsPaymentRequestRunning = true;
-
-        return new PaymentRequestImpl(context, mWebContents, this);
-    }
-
-    @Override
-    public void onPaymentRequestDismissed() {
-        mIsPaymentRequestRunning = false;
+        return new PaymentRequestImpl(context, mWebContents);
     }
 }

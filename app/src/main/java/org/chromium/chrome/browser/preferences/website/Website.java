@@ -30,7 +30,6 @@ public class Website implements Serializable {
     private ContentSettingException mBackgroundSyncExceptionInfo;
     private CameraInfo mCameraInfo;
     private ContentSettingException mCookieException;
-    private FullscreenInfo mFullscreenInfo;
     private GeolocationInfo mGeolocationInfo;
     private ContentSettingException mJavaScriptException;
     private KeygenInfo mKeygenInfo;
@@ -183,40 +182,6 @@ public class Website implements Serializable {
     public void setCookiePermission(ContentSetting value) {
         if (mCookieException != null) {
             mCookieException.setContentSetting(value);
-        }
-    }
-
-    /**
-     * Set fullscreen permission information class.
-     *
-     * @param info Fullscreen information about the website.
-     */
-    public void setFullscreenInfo(FullscreenInfo info) {
-        mFullscreenInfo = info;
-    }
-
-    /**
-     * @return fullscreen information of the site.
-     */
-    public FullscreenInfo getFullscreenInfo() {
-        return mFullscreenInfo;
-    }
-
-    /**
-     * @return what permission governs fullscreen access.
-     */
-    public ContentSetting getFullscreenPermission() {
-        return mFullscreenInfo != null ? mFullscreenInfo.getContentSetting() : null;
-    }
-
-    /**
-     * Configure fullscreen setting for this site.
-     *
-     * @param value Content setting for fullscreen permission.
-     */
-    public void setFullscreenPermission(ContentSetting value) {
-        if (mFullscreenInfo != null) {
-            mFullscreenInfo.setContentSetting(value);
         }
     }
 

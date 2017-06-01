@@ -47,7 +47,7 @@ public class NewTabPageToolbar extends LinearLayout {
         ((TextView) mBookmarksButton.getChildAt(0)).setContentDescription(getResources().getString(
                 R.string.accessibility_ntp_toolbar_btn_bookmarks));
 
-        setBackgroundColor(NtpStyleUtils.getToolbarBackgroundColorResource(getResources()));
+        setBackgroundColor(ApiCompatibilityUtils.getColor(getResources(), R.color.ntp_bg));
     }
 
     private ViewGroup initButton(int buttonId, int drawableId) {

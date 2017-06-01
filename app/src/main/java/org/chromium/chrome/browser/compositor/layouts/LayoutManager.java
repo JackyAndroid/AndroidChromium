@@ -86,9 +86,12 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
     protected final RectF mLastVisibleViewportDp = new RectF();
     protected final RectF mLastFullscreenViewportDp = new RectF();
 
+    // Used to store the visible viewport and not create a new Rect object every frame.
+    private final Rect mCachedVisibleViewport;
+
     protected float mLastContentWidthDp;
     protected float mLastContentHeightDp;
-    protected float mLastHeightMinusTopControlsDp;
+    protected float mLastHeightMinusBrowserControlsDp;
 
     private final RectF mCachedRectF = new RectF();
     private final Rect mCachedRect = new Rect();
@@ -115,7 +118,9 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
         mLastVisibleViewportDp.set(0, 0, mLastContentWidthDp, mLastContentHeightDp);
         mLastFullscreenViewportDp.set(0, 0, mLastContentWidthDp, mLastContentHeightDp);
 
-        mLastHeightMinusTopControlsDp = mLastContentHeightDp;
+        mCachedVisibleViewport = new Rect();
+
+        mLastHeightMinusBrowserControlsDp = mLastContentHeightDp;
     }
 
     /**
@@ -273,10 +278,16 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
     }
 
     @Override
-    public SceneLayer getUpdatedActiveSceneLayer(Rect viewport, Rect contentViewport,
-            LayerTitleCache layerTitleCache, TabContentManager tabContentManager,
-            ResourceManager resourceManager, ChromeFullscreenManager fullscreenManager) {
-        return mActiveLayout.getUpdatedSceneLayer(viewport, contentViewport, layerTitleCache,
+    public SceneLayer getUpdatedActiveSceneLayer(Rect viewport, LayerTitleCache layerTitleCache,
+            TabContentManager tabContentManager, ResourceManager resourceManager,
+            ChromeFullscreenManager fullscreenManager) {
+        getViewportPixel(mCachedVisibleViewport);
+        // TODO(mdjones): The concept of visible viewport is pretty confising since |viewport| can
+        // also take the browser controls into consideration; this should be made more clear.
+        // Furthermore, the below adjustments should not be necessary.
+        mCachedVisibleViewport.right = mCachedVisibleViewport.left + mHost.getWidth();
+        mCachedVisibleViewport.bottom = mCachedVisibleViewport.top + mHost.getHeight();
+        return mActiveLayout.getUpdatedSceneLayer(viewport, mCachedVisibleViewport, layerTitleCache,
                 tabContentManager, resourceManager, fullscreenManager);
     }
 
@@ -288,20 +299,20 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
     protected void onViewportChanged(RectF viewportDp) {
         if (getActiveLayout() != null) {
             getActiveLayout().sizeChanged(mLastVisibleViewportDp, mLastFullscreenViewportDp,
-                    mLastHeightMinusTopControlsDp, getOrientation());
+                    mLastHeightMinusBrowserControlsDp, getOrientation());
         }
     }
 
     /**
      * Should be called from an external source when the viewport changes.  {@code viewport} and
-     * {@code visibleViewport} are different, as the top controls might be covering part of the
+     * {@code visibleViewport} are different, as the browser controls might be covering part of the
      * viewport but a {@link Layout} might want to consume the whole space (or not).
      * @param viewport               The new viewport in px.
      * @param visibleViewport        The new visible viewport in px.
-     * @param heightMinusTopControls The height of the viewport minus the top controls.
+     * @param heightMinusBrowserControls The height of the viewport minus the browser controls.
      */
     public final void pushNewViewport(
-            Rect viewport, Rect visibleViewport, int heightMinusTopControls) {
+            Rect viewport, Rect visibleViewport, int heightMinusBrowserControls) {
         mLastViewportPx.set(viewport);
         mLastVisibleViewportPx.set(visibleViewport);
 
@@ -310,7 +321,7 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
         mLastVisibleViewportDp.set(visibleViewport.left * mPxToDp, visibleViewport.top * mPxToDp,
                 visibleViewport.right * mPxToDp, visibleViewport.bottom * mPxToDp);
         mLastFullscreenViewportDp.set(0, 0, viewport.right * mPxToDp, viewport.bottom * mPxToDp);
-        mLastHeightMinusTopControlsDp = heightMinusTopControls * mPxToDp;
+        mLastHeightMinusBrowserControlsDp = heightMinusBrowserControls * mPxToDp;
 
         propagateViewportToActiveLayout();
     }
@@ -352,12 +363,10 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
     }
 
     @Override
-    public RectF getViewportDp(RectF rect) {
-        if (rect == null) rect = new RectF();
-
+    public void getViewportDp(RectF rect) {
         if (getActiveLayout() == null) {
             rect.set(mLastViewportDp);
-            return rect;
+            return;
         }
 
         final int flags = getActiveLayout().getSizingFlags();
@@ -368,17 +377,13 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
         } else {
             rect.set(mLastVisibleViewportDp);
         }
-
-        return rect;
     }
 
     @Override
-    public Rect getViewportPixel(Rect rect) {
-        if (rect == null) rect = new Rect();
-
+    public void getViewportPixel(Rect rect) {
         if (getActiveLayout() == null) {
             rect.set(mLastViewportPx);
-            return rect;
+            return;
         }
 
         final int flags = getActiveLayout().getSizingFlags();
@@ -389,7 +394,6 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
         } else {
             rect.set(mLastVisibleViewportPx);
         }
-        return rect;
     }
 
     @Override
@@ -455,17 +459,19 @@ public abstract class LayoutManager implements LayoutUpdateHost, LayoutProvider,
         ChromeFullscreenManager fullscreenManager = mHost.getFullscreenManager();
         if (fullscreenManager != null) {
             // Release any old fullscreen token we were holding.
-            fullscreenManager.hideControlsPersistent(mFullscreenToken);
+            fullscreenManager.getBrowserVisibilityDelegate().hideControlsPersistent(
+                    mFullscreenToken);
             mFullscreenToken = FullscreenManager.INVALID_TOKEN;
 
             // Grab a new fullscreen token if this layout can't be in fullscreen.
             final int flags = getActiveLayout().getSizingFlags();
             if ((flags & SizingFlags.ALLOW_TOOLBAR_HIDE) == 0) {
-                mFullscreenToken = fullscreenManager.showControlsPersistent();
+                mFullscreenToken =
+                        fullscreenManager.getBrowserVisibilityDelegate().showControlsPersistent();
             }
 
             // Hide the toolbar immediately if the layout wants it gone quickly.
-            fullscreenManager.setTopControlsPermamentlyHidden(
+            fullscreenManager.setBrowserControlsPermamentlyHidden(
                     flags == SizingFlags.HELPER_HIDE_TOOLBAR_IMMEDIATE);
         }
 

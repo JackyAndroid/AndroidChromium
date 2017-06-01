@@ -86,7 +86,7 @@ public class EditorView extends AlwaysDismissedDialog
      * @param observerForTest Optional event observer for testing.
      */
     public EditorView(Activity activity, PaymentRequestObserverForTest observerForTest) {
-        super(activity, R.style.FullscreenWhiteDialog);
+        super(activity, R.style.FullscreenWhite);
         mContext = activity;
         mObserverForTest = observerForTest;
         mHandler = new Handler();

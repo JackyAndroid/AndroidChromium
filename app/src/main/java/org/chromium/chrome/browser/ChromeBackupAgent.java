@@ -4,289 +4,300 @@
 
 package org.chromium.chrome.browser;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.backup.BackupAgent;
 import android.app.backup.BackupDataInput;
 import android.app.backup.BackupDataOutput;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.ParcelFileDescriptor;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
-import org.chromium.base.StreamUtil;
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.SuppressFBWarnings;
+import org.chromium.base.library_loader.ProcessInitException;
+import org.chromium.chrome.browser.firstrun.FirstRunGlueImpl;
 import org.chromium.chrome.browser.firstrun.FirstRunSignInProcessor;
 import org.chromium.chrome.browser.firstrun.FirstRunStatus;
 import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
 import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager;
+import org.chromium.components.signin.AccountManagerHelper;
 import org.chromium.components.signin.ChromeSigninController;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
- * Backup agent for Chrome, filters the restored backup to remove preferences that should not have
- * been restored. Note: Nothing in this class can depend on the ChromeApplication instance having
- * been created. During restore Android creates a special instance of the Chrome application with
- * its own Android defined application class, which is not derived from ChromeApplication.
+ * Backup agent for Chrome, using Android key/value backup.
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+
 public class ChromeBackupAgent extends BackupAgent {
+    private static final String ANDROID_DEFAULT_PREFIX = "AndroidDefault.";
+    private static final String NATIVE_PREF_PREFIX = "native.";
 
     private static final String TAG = "ChromeBackupAgent";
 
     // Lists of preferences that should be restored unchanged.
 
-    private static final String[] RESTORED_ANDROID_PREFS = {
+    static final String[] BACKUP_ANDROID_BOOL_PREFS = {
+            FirstRunGlueImpl.CACHED_TOS_ACCEPTED_PREF,
             FirstRunStatus.FIRST_RUN_FLOW_COMPLETE,
             FirstRunStatus.LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE,
             FirstRunSignInProcessor.FIRST_RUN_FLOW_SIGNIN_SETUP,
             PrivacyPreferencesManager.PREF_METRICS_REPORTING,
     };
 
-    // Sync preferences, all in C++ syncer::prefs namespace.
-    //
-    // TODO(aberent): These should ideally use the constants that are used to access the preferences
-    // elsewhere, but those are currently only exist in C++, so doing so would require some
-    // reorganization.
-    private static final String[][] RESTORED_CHROME_PREFS = {
-            // kSyncFirstSetupComplete
-            {"sync", "has_setup_completed"},
-            // kSyncKeepEverythingSynced
-            {"sync", "keep_everything_synced"},
-            // kSyncAutofillProfile
-            {"sync", "autofill_profile"},
-            // kSyncAutofillWallet
-            {"sync", "autofill_wallet"},
-            // kSyncAutofillWalletMetadata
-            {"sync", "autofill_wallet_metadata"},
-            // kSyncAutofill
-            {"sync", "autofill"},
-            // kSyncBookmarks
-            {"sync", "bookmarks"},
-            // kSyncDeviceInfo
-            {"sync", "device_info"},
-            // kSyncFaviconImages
-            {"sync", "favicon_images"},
-            // kSyncFaviconTracking
-            {"sync", "favicon_tracking"},
-            // kSyncHistoryDeleteDirectives
-            {"sync", "history_delete_directives"},
-            // kSyncPasswords
-            {"sync", "passwords"},
-            // kSyncPreferences
-            {"sync", "preferences"},
-            // kSyncPriorityPreferences
-            {"sync", "priority_preferences"},
-            // kSyncSessions
-            {"sync", "sessions"},
-            // kSyncSupervisedUserSettings
-            {"sync", "managed_user_settings"},
-            // kSyncSupervisedUserSharedSettings
-            {"sync", "managed_user_shared_settings"},
-            // kSyncSupervisedUserWhitelists
-            {"sync", "managed_user_whitelists"},
-            // kSyncTabs
-            {"sync", "tabs"},
-            // kSyncTypedUrls
-            {"sync", "typed_urls"},
-            // kSyncSuppressStart
-            {"sync", "suppress_start"},
-    };
+    /**
+     * Class to save and restore the backup state, used to decide if backups are needed. Since the
+     * backup data is small, and stored as private data by the backup service, this can simply store
+     * and compare a copy of the data.
+     */
+    @SuppressFBWarnings(value = {"HE_EQUALS_USE_HASHCODE"},
+            justification = "Only local use, hashcode never used")
+    private static final class BackupState {
+        private ArrayList<String> mNames;
+        private ArrayList<byte[]> mValues;
 
-    private static final String[] DEFAULT_JSON_PREFS_FILE = {
-            // chrome::kInitialProfile
-            "Default",
-            // chrome::kPreferencesFilename
-            "Preferences",
-    };
+        @SuppressFBWarnings(value = {"OS_OPEN_STREAM"}, justification = "Closed by backup system")
+        @SuppressWarnings("unchecked")
+        public BackupState(ParcelFileDescriptor parceledState) throws IOException {
+            if (parceledState == null) return;
+            try {
+                FileInputStream instream = new FileInputStream(parceledState.getFileDescriptor());
+                ObjectInputStream in = new ObjectInputStream(instream);
+                mNames = (ArrayList<String>) in.readObject();
+                mValues = (ArrayList<byte[]>) in.readObject();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-    private static boolean sAllowChromeApplication = false;
+        public BackupState(ArrayList<String> names, ArrayList<byte[]> values) {
+            mNames = names;
+            mValues = values;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof BackupState)) return false;
+            BackupState otherBackupState = (BackupState) other;
+            return mNames.equals(otherBackupState.mNames)
+                    && Arrays.deepEquals(mValues.toArray(), otherBackupState.mValues.toArray());
+        }
+
+        @SuppressFBWarnings(value = {"OS_OPEN_STREAM"}, justification = "Closed by backup system")
+        public void save(ParcelFileDescriptor parceledState) throws IOException {
+            FileOutputStream outstream = new FileOutputStream(parceledState.getFileDescriptor());
+            ObjectOutputStream out = new ObjectOutputStream(outstream);
+            out.writeObject(mNames);
+            out.writeObject(mValues);
+        }
+    }
+
+    @VisibleForTesting
+    protected boolean accountExistsOnDevice(String userName) {
+        return AccountManagerHelper.get(this).getAccountFromName(userName) != null;
+    }
+
+    @VisibleForTesting
+    protected boolean initializeBrowser(Context context) {
+        try {
+            ChromeBrowserInitializer.getInstance(context).handleSynchronousStartup();
+        } catch (ProcessInitException e) {
+            Log.w(TAG, "Browser launch failed on restore: " + e);
+            return false;
+        }
+        return true;
+    }
+
+    private static byte[] booleanToBytes(boolean value) {
+        return value ? new byte[] {1} : new byte[] {0};
+    }
+
+    private static boolean bytesToBoolean(byte[] bytes) {
+        return bytes[0] != 0;
+    }
 
     @Override
     public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data,
             ParcelFileDescriptor newState) throws IOException {
-        // No implementation needed for Android 6.0 Auto Backup. Used only on older versions of
-        // Android Backup
+        final ChromeBackupAgent backupAgent = this;
+
+        final ArrayList<String> backupNames = new ArrayList<>();
+        final ArrayList<byte[]> backupValues = new ArrayList<>();
+
+        // The native preferences can only be read on the UI thread.
+        if (!ThreadUtils.runOnUiThreadBlockingNoException(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    // Start the browser if necessary, so that Chrome can access the native
+                    // preferences. Although Chrome requests the backup, it doesn't happen
+                    // immediately, so by the time it does Chrome may not be running.
+                    if (!initializeBrowser(backupAgent)) return false;
+
+                    String[] nativeBackupNames = nativeGetBoolBackupNames();
+                    boolean[] nativeBackupValues = nativeGetBoolBackupValues();
+                    assert nativeBackupNames.length == nativeBackupValues.length;
+
+                    for (String name : nativeBackupNames) {
+                        backupNames.add(NATIVE_PREF_PREFIX + name);
+                    }
+                    for (boolean val : nativeBackupValues) {
+                        backupValues.add(booleanToBytes(val));
+                    }
+                    return true;
+                }
+            })) {
+            // Something went wrong reading the native preferences, skip the backup.
+            return;
+        }
+        // Add the Android boolean prefs.
+        SharedPreferences sharedPrefs = ContextUtils.getAppSharedPreferences();
+        for (String prefName : BACKUP_ANDROID_BOOL_PREFS) {
+            if (sharedPrefs.contains(prefName)) {
+                backupNames.add(ANDROID_DEFAULT_PREFIX + prefName);
+                backupValues.add(booleanToBytes(sharedPrefs.getBoolean(prefName, false)));
+            }
+        }
+
+        // Finally add the user id.
+        backupNames.add(ANDROID_DEFAULT_PREFIX + ChromeSigninController.SIGNED_IN_ACCOUNT_KEY);
+        backupValues.add(
+                sharedPrefs.getString(ChromeSigninController.SIGNED_IN_ACCOUNT_KEY, "").getBytes());
+
+        BackupState newBackupState = new BackupState(backupNames, backupValues);
+
+        // Check if a backup is actually needed.
+        try {
+            BackupState oldBackupState = new BackupState(oldState);
+            if (newBackupState.equals(oldBackupState)) {
+                Log.i(TAG, "Nothing has changed since the last backup. Backup skipped.");
+                newBackupState.save(newState);
+                return;
+            }
+        } catch (IOException e) {
+            // This will happen if Chrome has never written backup data, or if the backup status is
+            // corrupt. Create a new backup in either case.
+            Log.i(TAG, "Can't read backup status file");
+        }
+        // Write the backup data
+        for (int i = 0; i < backupNames.size(); i++) {
+            data.writeEntityHeader(backupNames.get(i), backupValues.get(i).length);
+            data.writeEntityData(backupValues.get(i), backupValues.get(i).length);
+        }
+        // Remember the backup state.
+        newBackupState.save(newState);
+
+        Log.i(TAG, "Backup complete");
     }
 
     @Override
     public void onRestore(BackupDataInput data, int appVersionCode, ParcelFileDescriptor newState)
             throws IOException {
-        // No implementation needed for Android 6.0 Auto Backup. Used only on older versions of
-        // Android Backup
-    }
-
-    // May be overriden by downstream products that access account information in a different way.
-    protected Account[] getAccounts() {
-        Log.d(TAG, "Getting accounts from AccountManager");
-        AccountManager manager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
-        return manager.getAccounts();
-    }
-
-    private boolean accountExistsOnDevice(String userName) {
-        // This cannot use AccountManagerHelper, since that depends on ChromeApplication.
-        for (Account account : getAccounts()) {
-            if (account.name.equals(userName)) return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onRestoreFinished() {
-        if (getApplicationContext() instanceof ChromeApplication && !sAllowChromeApplication) {
-            // This should never happen in real use, but will happen during testing if Chrome is
-            // already running (even in background, started to provide a service, for example).
-            Log.w(TAG, "Running with wrong type of Application class");
-            return;
-        }
-        // This is running without a ChromeApplication instance, so this has to be done here.
-        ContextUtils.initApplicationContext(getApplicationContext());
+        // Check that the user hasn't already seen FRE (not sure if this can ever happen, but if it
+        // does then restoring the backup will overwrite the user's choices).
         SharedPreferences sharedPrefs = ContextUtils.getAppSharedPreferences();
-        // Save the user name for later restoration.
-        String userName = sharedPrefs.getString(ChromeSigninController.SIGNED_IN_ACCOUNT_KEY, null);
-        Log.d(TAG, "Previous signed in user name = " + userName);
-
-        File prefsFile = this.getDir(ChromeBrowserInitializer.PRIVATE_DATA_DIRECTORY_SUFFIX,
-                Context.MODE_PRIVATE);
-        for (String name : DEFAULT_JSON_PREFS_FILE) {
-            prefsFile = new File(prefsFile, name);
+        if (sharedPrefs.getBoolean(FirstRunStatus.FIRST_RUN_FLOW_COMPLETE, false)
+                || sharedPrefs.getBoolean(
+                           FirstRunStatus.LIGHTWEIGHT_FIRST_RUN_FLOW_COMPLETE, false)) {
+            Log.w(TAG, "Restore attempted after first run");
+            return;
         }
 
+        final ArrayList<String> backupNames = new ArrayList<>();
+        final ArrayList<byte[]> backupValues = new ArrayList<>();
+
+        String restoredUserName = null;
+        while (data.readNextHeader()) {
+            String key = data.getKey();
+            int dataSize = data.getDataSize();
+            byte[] buffer = new byte[dataSize];
+            data.readEntityData(buffer, 0, dataSize);
+            if (key.equals(ANDROID_DEFAULT_PREFIX + ChromeSigninController.SIGNED_IN_ACCOUNT_KEY)) {
+                restoredUserName = new String(buffer);
+            } else {
+                backupNames.add(key);
+                backupValues.add(buffer);
+            }
+        }
+
+        // Chrome has to be running before it can check if the account exists.
+        final ChromeBackupAgent backupAgent = this;
+        if (!ThreadUtils.runOnUiThreadBlockingNoException(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    // Start the browser if necessary.
+                    return initializeBrowser(backupAgent);
+                }
+            })) {
+            // Something went wrong starting Chrome, skip the restore.
+            return;
+        }
         // If the user hasn't signed in, or can't sign in, then don't restore anything.
-        if (userName == null || !accountExistsOnDevice(userName)) {
-            clearAllPrefs(sharedPrefs, prefsFile);
-            Log.d(TAG, "onRestoreFinished complete, nothing restored");
+        if (restoredUserName == null || !accountExistsOnDevice(restoredUserName)) {
+            Log.i(TAG, "Chrome was not signed in with a known account name, not restoring");
             return;
         }
+        // Restore the native preferences on the UI thread
+        ThreadUtils.runOnUiThreadBlocking(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<String> nativeBackupNames = new ArrayList<>();
+                boolean[] nativeBackupValues = new boolean[backupNames.size()];
+                int count = 0;
+                int prefixLength = NATIVE_PREF_PREFIX.length();
+                for (int i = 0; i < backupNames.size(); i++) {
+                    String name = backupNames.get(i);
+                    if (name.startsWith(NATIVE_PREF_PREFIX)) {
+                        nativeBackupNames.add(name.substring(prefixLength));
+                        nativeBackupValues[count] = bytesToBoolean(backupValues.get(i));
+                        count++;
+                    }
+                }
+                nativeSetBoolBackupPrefs(nativeBackupNames.toArray(new String[count]),
+                        Arrays.copyOf(nativeBackupValues, count));
+            }
+        });
 
-        // Check that the file has been restored.
-        if (!filterChromePrefs(prefsFile)) {
-            // The preferences are corrupt, for safety delete all of them
-            clearAllPrefs(sharedPrefs, prefsFile);
-            Log.d(TAG, "onRestoreFinished failed");
-            return;
-        }
-        restoreAndroidPrefs(sharedPrefs, userName);
-
-        Log.d(TAG, "onRestoreFinished complete");
-    }
-
-    @SuppressLint("CommitPrefEdits")
-    private void clearAllPrefs(SharedPreferences sharedPrefs, File prefsFile) {
-        deleteFileIfPossible(prefsFile);
-        // Android restore closes down the process immediately, so we want to make sure that the
-        // prefs changes are committed to disk before exiting.
-        sharedPrefs.edit().clear().commit();
-    }
-
-    @SuppressLint("CommitPrefEdits")
-    private void restoreAndroidPrefs(SharedPreferences sharedPrefs, String userName) {
-        Set<String> prefNames = sharedPrefs.getAll().keySet();
+        // Now that everything looks good so restore the Android preferences.
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        // Throw away prefs we don't want to restore.
-        Set<String> restoredPrefs = new HashSet<>(Arrays.asList(RESTORED_ANDROID_PREFS));
-        for (String pref : prefNames) {
-            if (!restoredPrefs.contains(pref)) editor.remove(pref);
+        // Only restore preferences that we know about.
+        int prefixLength = ANDROID_DEFAULT_PREFIX.length();
+        for (int i = 0; i < backupNames.size(); i++) {
+            String name = backupNames.get(i);
+            if (name.startsWith(ANDROID_DEFAULT_PREFIX)
+                    && Arrays.asList(BACKUP_ANDROID_BOOL_PREFS)
+                               .contains(name.substring(prefixLength))) {
+                editor.putBoolean(
+                        name.substring(prefixLength), bytesToBoolean(backupValues.get(i)));
+            }
         }
+
         // Because FirstRunSignInProcessor.FIRST_RUN_FLOW_SIGNIN_COMPLETE is not restored Chrome
         // will sign in the user on first run to the account in FIRST_RUN_FLOW_SIGNIN_ACCOUNT_NAME
         // if any. If the rest of FRE has been completed this will happen silently.
-        editor.putString(FirstRunSignInProcessor.FIRST_RUN_FLOW_SIGNIN_ACCOUNT_NAME, userName);
-        // Android restore closes down the process immediately, so we want to make sure that the
-        // prefs changes are committed to disk before exiting.
-        editor.commit();
-    }
+        editor.putString(
+                FirstRunSignInProcessor.FIRST_RUN_FLOW_SIGNIN_ACCOUNT_NAME, restoredUserName);
+        editor.apply();
 
-    private boolean filterChromePrefs(File prefsFile) {
-        InputStream inputStream = null;
-        OutputStream outputStream = null;
-        try {
-            inputStream = openInputStream(prefsFile);
-            int fileLength = (int) getFileLength(prefsFile);
-            byte[] buffer = new byte[fileLength];
-            if (inputStream.read(buffer) != fileLength) return false;
-            JSONObject jsonInput = new JSONObject(new String(buffer, "UTF-8"));
-            JSONObject jsonOutput = new JSONObject();
-            for (String[] pref : RESTORED_CHROME_PREFS) {
-                Object prefValue = readChromePref(jsonInput, pref);
-                if (prefValue != null) writeChromePref(jsonOutput, pref, prefValue);
-            }
-            byte[] outputBytes = jsonOutput.toString().getBytes("UTF-8");
-            outputStream = openOutputStream(prefsFile);
-            outputStream.write(outputBytes);
-            return true;
-        } catch (IOException | JSONException e) {
-            Log.d(TAG, "Filtering preferences failed with %s", e.getMessage());
-            return false;
-        } finally {
-            StreamUtil.closeQuietly(inputStream);
-            StreamUtil.closeQuietly(outputStream);
-        }
+        // The silent first run will change things, so there is no point in trying to prevent
+        // additional backups at this stage. Don't write anything to |newState|.
+        Log.i(TAG, "Restore complete");
     }
 
     @VisibleForTesting
-    protected long getFileLength(File prefsFile) {
-        return prefsFile.length();
-    }
+    protected native String[] nativeGetBoolBackupNames();
 
     @VisibleForTesting
-    protected InputStream openInputStream(File prefsFile) throws FileNotFoundException {
-        return new FileInputStream(prefsFile);
-    }
+    protected native boolean[] nativeGetBoolBackupValues();
 
     @VisibleForTesting
-    protected OutputStream openOutputStream(File prefsFile) throws FileNotFoundException {
-        return new FileOutputStream(prefsFile);
-    }
-
-    private Object readChromePref(JSONObject json, String pref[]) {
-        JSONObject finalParent = json;
-        for (int i = 0; i < pref.length - 1; i++) {
-            finalParent = finalParent.optJSONObject(pref[i]);
-            if (finalParent == null) return null;
-        }
-        return finalParent.opt(pref[pref.length - 1]);
-    }
-
-    private void writeChromePref(JSONObject json, String[] prefPath, Object value)
-            throws JSONException {
-        JSONObject finalParent = json;
-        for (int i = 0; i < prefPath.length - 1; i++) {
-            JSONObject prevParent = finalParent;
-            finalParent = prevParent.optJSONObject(prefPath[i]);
-            if (finalParent == null) {
-                finalParent = new JSONObject();
-                prevParent.put(prefPath[i], finalParent);
-            }
-        }
-        finalParent.put(prefPath[prefPath.length - 1], value);
-    }
-
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-    private void deleteFileIfPossible(File file) {
-        // Ignore result. There is nothing else we can do if the delete fails.
-        file.delete();
-    }
-
-    @VisibleForTesting
-    static void allowChromeApplicationForTesting() {
-        sAllowChromeApplication = true;
-    }
+    protected native void nativeSetBoolBackupPrefs(String[] name, boolean[] value);
 }

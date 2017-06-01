@@ -30,6 +30,7 @@ import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.components.bookmarks.BookmarkId;
 import org.chromium.components.bookmarks.BookmarkType;
 import org.chromium.ui.base.DeviceFormFactor;
+import org.chromium.ui.base.PageTransition;
 
 /**
  * A class holding static util functions for bookmark.
@@ -253,6 +254,7 @@ public class BookmarkUtils {
         intent.putExtra(Browser.EXTRA_APPLICATION_ID,
                 activity.getApplicationContext().getPackageName());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(IntentHandler.EXTRA_PAGE_TRANSITION_TYPE, PageTransition.AUTO_BOOKMARK);
 
         if (componentName != null) {
             intent.setComponent(componentName);

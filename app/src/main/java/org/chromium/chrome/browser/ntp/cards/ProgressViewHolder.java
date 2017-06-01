@@ -9,7 +9,7 @@ import android.view.LayoutInflater;
 import org.chromium.chrome.R;
 
 /**
- * ViewHolder for an item of type {@link NewTabPageItem#VIEW_TYPE_PROGRESS}.
+ * ViewHolder for an item of type {@link ItemViewType#PROGRESS}.
  * Adds a {@link ProgressIndicatorView} to the recycler view.
  */
 public class ProgressViewHolder extends NewTabPageViewHolder {

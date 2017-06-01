@@ -4,19 +4,19 @@
 
 package org.chromium.chrome.browser.webapps;
 
+import android.content.ContentResolver;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.os.Bundle;
+import android.provider.Settings;
 
+import org.chromium.base.CommandLine;
 import org.chromium.base.ContextUtils;
+import org.chromium.base.Log;
 import org.chromium.base.annotations.CalledByNative;
+import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.tab.Tab;
-import org.chromium.chrome.browser.util.IntentUtils;
-import org.chromium.chrome.browser.webapps.WebappRegistry.FetchWebappDataStorageCallback;
 import org.chromium.webapk.lib.client.WebApkVersion;
-import org.chromium.webapk.lib.common.WebApkConstants;
-import org.chromium.webapk.lib.common.WebApkMetaDataKeys;
 
 import java.util.concurrent.TimeUnit;
 
@@ -25,26 +25,33 @@ import java.util.concurrent.TimeUnit;
  * an update request to the WebAPK Server when an update is needed.
  */
 public class WebApkUpdateManager implements ManifestUpgradeDetector.Callback {
+    private static final String TAG = "WebApkUpdateManager";
+
     /** Number of milliseconds between checks for whether the WebAPK's Web Manifest has changed. */
-    private static final long FULL_CHECK_UPDATE_INTERVAL = TimeUnit.DAYS.toMillis(3L);
+    public static final long FULL_CHECK_UPDATE_INTERVAL = TimeUnit.DAYS.toMillis(3L);
 
     /**
      * Number of milliseconds to wait before re-requesting an updated WebAPK from the WebAPK
      * server if the previous update attempt failed.
      */
-    private static final long RETRY_UPDATE_DURATION = TimeUnit.HOURS.toMillis(12L);
+    public static final long RETRY_UPDATE_DURATION = TimeUnit.HOURS.toMillis(12L);
 
-    /** Version number of //chrome/android/webapk/shell_apk code. */
-    private int mShellApkVersion;
+    /** Id of WebAPK data in WebappDataStorage */
+    private String mId;
 
-    /** Android version code of WebAPK. */
-    private int mVersionCode;
+    /** WebAPK package name. */
+    private String mWebApkPackageName;
+
+    /** Meta data from the WebAPK's Android Manifest */
+    private WebApkMetaData mMetaData;
+
+    /** WebAPK's icon. */
+    private Bitmap mIcon;
 
     /**
-     * Whether a request to upgrade the WebAPK should be sent regardless of whether the Web Manifest
-     * has changed.
+     * Whether the previous WebAPK update succeeded. True if there has not been any update attempts.
      */
-    private boolean mForceUpgrade;
+    private boolean mPreviousUpdateSucceeded;
 
     private ManifestUpgradeDetector mUpgradeDetector;
 
@@ -52,106 +59,222 @@ public class WebApkUpdateManager implements ManifestUpgradeDetector.Callback {
      * Checks whether the WebAPK's Web Manifest has changed. Requests an updated WebAPK if the
      * Web Manifest has changed. Skips the check if the check was done recently.
      * @param tab  The tab of the WebAPK.
-     * @param info The WebappInfo of the WebAPK.
+     * @param info The WebApkInfo of the WebAPK.
      */
-    public void updateIfNeeded(Tab tab, WebappInfo info) {
-        PackageInfo packageInfo = readPackageInfoFromAndroidManifest(info.webApkPackageName());
-        if (packageInfo == null) {
-            return;
-        }
+    public void updateIfNeeded(Tab tab, WebApkInfo info) {
+        mMetaData = WebApkMetaDataUtils.extractMetaDataFromWebApk(info.webApkPackageName());
+        if (mMetaData == null) return;
 
-        mVersionCode = packageInfo.versionCode;
-        final Bundle metadata = packageInfo.applicationInfo.metaData;
-        mShellApkVersion =
-                IntentUtils.safeGetInt(metadata, WebApkMetaDataKeys.SHELL_APK_VERSION, 0);
+        mWebApkPackageName = info.webApkPackageName();
+        mId = info.id();
+        mIcon = info.icon();
 
-        mUpgradeDetector = new ManifestUpgradeDetector(tab, info, metadata, this);
+        WebappDataStorage storage = WebappRegistry.getInstance().getWebappDataStorage(mId);
+        mPreviousUpdateSucceeded = didPreviousUpdateSucceed(storage);
 
-        WebappRegistry.FetchWebappDataStorageCallback callback =
-                new WebappRegistry.FetchWebappDataStorageCallback() {
-                    @Override
-                    public void onWebappDataStorageRetrieved(WebappDataStorage storage) {
-                        if (forceUpgrade(storage)) {
-                            mForceUpgrade = true;
-                        }
+        if (!shouldCheckIfWebManifestUpdated(storage, mMetaData, mPreviousUpdateSucceeded)) return;
 
-                        // TODO(pkotwicz|hanxi): Request upgrade if ShellAPK version changes if
-                        // ManifestUpgradeDetector cannot fetch the Web Manifest. For instance, the
-                        // web developer may have removed the Web Manifest from their site.
-                        // (http://crbug.com/639536)
+        mUpgradeDetector = buildManifestUpgradeDetector(tab, mMetaData);
+        mUpgradeDetector.start();
+    }
 
-                        long sinceLastCheckDuration = System.currentTimeMillis()
-                                - storage.getLastCheckForWebManifestUpdateTime();
-                        if (sinceLastCheckDuration > FULL_CHECK_UPDATE_INTERVAL || mForceUpgrade) {
-                            if (mUpgradeDetector.start()) {
-                                // crbug.com/636525. The timestamp of the last check for updated
-                                // Web Manifest should be updated after the detector finds the
-                                // Web Manifest, not when the detector is started.
-                                storage.updateTimeOfLastCheckForUpdatedWebManifest();
-                            }
-                        }
-                    }
-        };
-        WebappRegistry.getWebappDataStorage(info.id(), callback);
+    public void destroy() {
+        destroyUpgradeDetector();
     }
 
     @Override
-    public void onUpgradeNeededCheckFinished(boolean needsUpgrade,
-            ManifestUpgradeDetector.FetchedManifestData data) {
-        if (needsUpgrade || mForceUpgrade) {
-            updateAsync(data);
+    public void onFinishedFetchingWebManifestForInitialUrl(
+            boolean needsUpgrade, ManifestUpgradeDetector.FetchedManifestData data) {
+        onGotManifestData(needsUpgrade, data);
+    }
+
+    @Override
+    public void onGotManifestData(
+            boolean needsUpgrade, ManifestUpgradeDetector.FetchedManifestData data) {
+        WebappDataStorage storage = WebappRegistry.getInstance().getWebappDataStorage(mId);
+        storage.updateTimeOfLastCheckForUpdatedWebManifest();
+
+        boolean gotManifest = (data != null);
+        needsUpgrade |= isShellApkVersionOutOfDate(mMetaData);
+        Log.v(TAG, "Got Manifest: " + gotManifest);
+        Log.v(TAG, "WebAPK upgrade needed: " + needsUpgrade);
+
+        // If the Web Manifest was not found and an upgrade is requested, stop fetching Web
+        // Manifests as the user navigates to avoid sending multiple WebAPK update requests. In
+        // particular:
+        // - A WebAPK update request on the initial load because the Shell APK version is out of
+        //   date.
+        // - A second WebAPK update request once the user navigates to a page which points to the
+        //   correct Web Manifest URL because the Web Manifest has been updated by the Web
+        //   developer.
+        //
+        // If the Web Manifest was not found and an upgrade is not requested, keep on fetching
+        // Web Manifests as the user navigates. For instance, the WebAPK's start_url might not
+        // point to a Web Manifest because start_url redirects to the WebAPK's main page.
+        if (gotManifest || needsUpgrade) {
+            destroyUpgradeDetector();
         }
-        if (mUpgradeDetector != null) {
-            mUpgradeDetector.destroy();
+
+        if (!needsUpgrade) {
+            if (!mPreviousUpdateSucceeded) {
+                recordUpdate(storage, true);
+            }
+            return;
         }
-        mUpgradeDetector = null;
+
+        // Set WebAPK update as having failed in case that Chrome is killed prior to
+        // {@link onBuiltWebApk} being called.
+        recordUpdate(storage, false);
+
+        if (data != null) {
+            updateAsync(data.startUrl, data.scopeUrl, data.name, data.shortName, data.iconUrl,
+                    data.iconMurmur2Hash, data.icon, data.displayMode, data.orientation,
+                    data.themeColor, data.backgroundColor);
+            return;
+        }
+
+        updateAsyncUsingAndroidManifestMetaData();
+    }
+
+    /**
+     * Builds {@link ManifestUpgradeDetector}. In a separate function for the sake of tests.
+     */
+    protected ManifestUpgradeDetector buildManifestUpgradeDetector(
+            Tab tab, WebApkMetaData metaData) {
+        return new ManifestUpgradeDetector(tab, metaData, this);
+    }
+
+    /**
+     * Sends a request to WebAPK Server to update WebAPK using the meta data from the WebAPK's
+     * Android Manifest.
+     */
+    private void updateAsyncUsingAndroidManifestMetaData() {
+        updateAsync(mMetaData.startUrl, mMetaData.scope, mMetaData.name, mMetaData.shortName,
+                mMetaData.iconUrl, mMetaData.iconMurmur2Hash, mIcon, mMetaData.displayMode,
+                mMetaData.orientation, mMetaData.themeColor, mMetaData.backgroundColor);
     }
 
     /**
      * Sends request to WebAPK Server to update WebAPK.
      */
-    public void updateAsync(ManifestUpgradeDetector.FetchedManifestData data) {
-        String packageName = mUpgradeDetector.getWebApkPackageName();
-        nativeUpdateAsync(data.startUrl, data.scopeUrl, data.name, data.shortName, data.iconUrl,
-                data.iconMurmur2Hash, data.icon, data.displayMode, data.orientation,
-                data.themeColor, data.backgroundColor, mUpgradeDetector.getManifestUrl(),
-                packageName, mVersionCode);
+    protected void updateAsync(String startUrl, String scopeUrl, String name, String shortName,
+            String iconUrl, String iconMurmur2Hash, Bitmap icon, int displayMode, int orientation,
+            long themeColor, long backgroundColor) {
+        int versionCode = readVersionCodeFromAndroidManifest(mWebApkPackageName);
+        nativeUpdateAsync(mId, startUrl, scopeUrl, name, shortName, iconUrl, iconMurmur2Hash, icon,
+                displayMode, orientation, themeColor, backgroundColor, mMetaData.manifestUrl,
+                mWebApkPackageName, versionCode);
     }
 
-    public void destroy() {
-        if (mUpgradeDetector != null) {
-            mUpgradeDetector.destroy();
-        }
+    /**
+     * Destroys {@link mUpgradeDetector}. In a separate function for the sake of tests.
+     */
+    protected void destroyUpgradeDetector() {
+        if (mUpgradeDetector == null) return;
+
+        mUpgradeDetector.destroy();
         mUpgradeDetector = null;
     }
 
-    /**
-     * Reads the WebAPK's PackageInfo from the Android Manifest.
-     */
-    private PackageInfo readPackageInfoFromAndroidManifest(String webApkPackage) {
-        try {
-            PackageManager packageManager =
-                    ContextUtils.getApplicationContext().getPackageManager();
-            return packageManager.getPackageInfo(webApkPackage, PackageManager.GET_META_DATA);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+    /** Returns the current time. In a separate function for the sake of testing. */
+    protected long currentTimeMillis() {
+        return System.currentTimeMillis();
     }
 
     /**
-     * Returns whether an upgrade should be requested regardless of whether the Web Manifest has
-     * changed.
+     * Reads the WebAPK's version code. Returns 0 on failure.
      */
-    private boolean forceUpgrade(WebappDataStorage storage) {
-        long sinceLastUpdateRequestDuration =
-                System.currentTimeMillis() - storage.getLastWebApkUpdateRequestCompletionTime();
-        if (sinceLastUpdateRequestDuration <= RETRY_UPDATE_DURATION) {
+    private int readVersionCodeFromAndroidManifest(String webApkPackage) {
+        try {
+            PackageManager packageManager =
+                    ContextUtils.getApplicationContext().getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(webApkPackage, 0);
+            return packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Returns whether the previous WebAPK update attempt succeeded. Returns true if there has not
+     * been any update attempts.
+     */
+    private static boolean didPreviousUpdateSucceed(WebappDataStorage storage) {
+        long lastUpdateCompletionTime = storage.getLastWebApkUpdateRequestCompletionTime();
+        if (lastUpdateCompletionTime == WebappDataStorage.LAST_USED_INVALID
+                || lastUpdateCompletionTime == WebappDataStorage.LAST_USED_UNSET) {
+            return true;
+        }
+        return storage.getDidLastWebApkUpdateRequestSucceed();
+    }
+
+    /**
+     * Whether there is a new version of the //chrome/android/webapk/shell_apk code.
+     */
+    private static boolean isShellApkVersionOutOfDate(WebApkMetaData metaData) {
+        return metaData.shellApkVersion < WebApkVersion.CURRENT_SHELL_APK_VERSION;
+    }
+
+    /**
+     * Returns whether the Web Manifest should be refetched to check whether it has been updated.
+     * TODO: Make this method static once there is a static global clock class.
+     * @param storage WebappDataStorage with the WebAPK's cached data.
+     * @param metaData Meta data from WebAPK's Android Manifest.
+     * @param previousUpdateSucceeded Whether the previous update attempt succeeded.
+     * True if there has not been any update attempts.
+     */
+    private boolean shouldCheckIfWebManifestUpdated(
+            WebappDataStorage storage, WebApkMetaData metaData, boolean previousUpdateSucceeded) {
+        // Updating WebAPKs requires "installation from unknown sources" to be enabled. It is
+        // confusing for a user to see a dialog asking them to enable "installation from unknown
+        // sources" when they are in the middle of using the WebAPK (as opposed to after requesting
+        // to add a WebAPK to the homescreen).
+        if (!installingFromUnknownSourcesAllowed()) {
             return false;
         }
 
-        return mShellApkVersion < WebApkVersion.CURRENT_SHELL_APK_VERSION
-                || !storage.getDidLastWebApkUpdateRequestSucceed();
+        if (CommandLine.getInstance().hasSwitch(
+                    ChromeSwitches.CHECK_FOR_WEB_MANIFEST_UPDATE_ON_STARTUP)) {
+            return true;
+        }
+
+        if (isShellApkVersionOutOfDate(metaData)) return true;
+
+        long now = currentTimeMillis();
+        long sinceLastCheckDurationMs = now - storage.getLastCheckForWebManifestUpdateTime();
+        if (sinceLastCheckDurationMs >= FULL_CHECK_UPDATE_INTERVAL) return true;
+
+        long sinceLastUpdateRequestDurationMs =
+                now - storage.getLastWebApkUpdateRequestCompletionTime();
+        return sinceLastUpdateRequestDurationMs >= RETRY_UPDATE_DURATION
+                && !previousUpdateSucceeded;
+    }
+
+    /**
+     * Updates {@link WebappDataStorage} with the time of the latest WebAPK update and whether the
+     * WebAPK update succeeded.
+     */
+    private static void recordUpdate(WebappDataStorage storage, boolean success) {
+        // Update the request time and result together. It prevents getting a correct request time
+        // but a result from the previous request.
+        storage.updateTimeOfLastWebApkUpdateRequestCompletion();
+        storage.updateDidLastWebApkUpdateRequestSucceed(success);
+    }
+
+    /**
+     * Returns whether the user has enabled installing apps from sources other than the Google
+     * Play Store.
+     */
+    private static boolean installingFromUnknownSourcesAllowed() {
+        ContentResolver contentResolver = ContextUtils.getApplicationContext().getContentResolver();
+        try {
+            int setting = Settings.Secure.getInt(
+                    contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS);
+            return setting == 1;
+        } catch (Settings.SettingNotFoundException e) {
+            return false;
+        }
     }
 
     /**
@@ -159,21 +282,13 @@ public class WebApkUpdateManager implements ManifestUpgradeDetector.Callback {
      * fails.
      */
     @CalledByNative
-    private static void onBuiltWebApk(final boolean success, String webapkPackage) {
-        WebappRegistry.getWebappDataStorage(WebApkConstants.WEBAPK_ID_PREFIX + webapkPackage,
-                new FetchWebappDataStorageCallback() {
-                    @Override
-                    public void onWebappDataStorageRetrieved(WebappDataStorage storage) {
-                        // Update the request time and result together. It prevents getting a
-                        // correct request time but a result from the previous request.
-                        storage.updateTimeOfLastWebApkUpdateRequestCompletion();
-                        storage.updateDidLastWebApkUpdateRequestSucceed(success);
-                    }
-                });
+    private static void onBuiltWebApk(String id, boolean success) {
+        WebappDataStorage storage = WebappRegistry.getInstance().getWebappDataStorage(id);
+        recordUpdate(storage, success);
     }
 
-    private static native void nativeUpdateAsync(String startUrl, String scope, String name,
-            String shortName, String iconUrl, String iconMurmur2Hash, Bitmap icon, int displayMode,
-            int orientation, long themeColor, long backgroundColor, String manifestUrl,
-            String webApkPackage, int webApkVersion);
+    private static native void nativeUpdateAsync(String id, String startUrl, String scope,
+            String name, String shortName, String iconUrl, String iconMurmur2Hash, Bitmap icon,
+            int displayMode, int orientation, long themeColor, long backgroundColor,
+            String manifestUrl, String webApkPackage, int webApkVersion);
 }

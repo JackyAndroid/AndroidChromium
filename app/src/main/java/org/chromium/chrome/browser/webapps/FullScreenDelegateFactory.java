@@ -6,10 +6,11 @@ package org.chromium.chrome.browser.webapps;
 
 import org.chromium.chrome.browser.contextmenu.ChromeContextMenuPopulator;
 import org.chromium.chrome.browser.contextmenu.ContextMenuPopulator;
+import org.chromium.chrome.browser.tab.BrowserControlsVisibilityDelegate;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabContextMenuItemDelegate;
 import org.chromium.chrome.browser.tab.TabDelegateFactory;
-import org.chromium.chrome.browser.tab.TopControlsVisibilityDelegate;
+import org.chromium.chrome.browser.tab.TabStateBrowserControlsVisibilityDelegate;
 
 /**
  * A {@link TabDelegateFactory} class to be used in all {@link Tab} instances owned
@@ -23,11 +24,11 @@ public class FullScreenDelegateFactory extends TabDelegateFactory {
     }
 
     @Override
-    public TopControlsVisibilityDelegate createTopControlsVisibilityDelegate(Tab tab) {
-        return new TopControlsVisibilityDelegate(tab) {
+    public BrowserControlsVisibilityDelegate createBrowserControlsVisibilityDelegate(Tab tab) {
+        return new TabStateBrowserControlsVisibilityDelegate(tab) {
             @Override
-            public boolean isHidingTopControlsEnabled() {
-                return !isShowingTopControlsEnabled();
+            public boolean isHidingBrowserControlsEnabled() {
+                return !isShowingBrowserControlsEnabled();
             }
         };
     }

@@ -3,15 +3,27 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<TextView
+<!--
+    The TextView is wrapped in a FrameLayout so that the entire view can be centered and use a width
+    of wrap_content. A RecyclerView does not support layout_gravity alignment. The width of the
+    TextView must be wrap_content because otherwise clicks on the padding can activate its clickable
+    span.
+    See http://crbug.com/660083 for more details.
+-->
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:textColor="@color/snippets_text_color"
-    android:textSize="12sp"
-    android:textStyle="italic"
     android:paddingTop="40dp"
     android:paddingBottom="18dp"
     android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:gravity="center" />
+    android:paddingEnd="16dp">
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@color/snippets_text_color"
+        android:textSize="12sp"
+        android:textStyle="italic"/>
+</FrameLayout>

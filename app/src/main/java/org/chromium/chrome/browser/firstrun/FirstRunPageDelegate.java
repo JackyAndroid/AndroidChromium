@@ -11,6 +11,7 @@ import android.app.Fragment;
  */
 public interface FirstRunPageDelegate {
     /**
+     * Must be called only after native has been initialized.
      * @return A {@link ProfileDataCache} for Android user accounts.
      */
     ProfileDataCache getProfileDataCache();

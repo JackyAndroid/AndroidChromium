@@ -34,6 +34,16 @@
             android:textSize="16sp"/>
 
         <TextView
+            android:id="@+id/website_settings_connection_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="3dp"
+            android:paddingTop="16dp"
+            android:textColor="@color/website_settings_popup_text"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/website_settings_connection_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,6 +90,20 @@
         android:paddingEnd="@dimen/website_settings_popup_button_padding_sides"
         android:paddingStart="@dimen/website_settings_popup_button_padding_sides"
         android:text="@string/page_info_site_settings_button"
+        android:textColor="@color/light_active_color"
+        style="@style/ButtonCompatBorderless" />
+
+    <Button
+        android:id="@+id/website_settings_open_online_button"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/website_settings_popup_button_height"
+        android:layout_gravity="end"
+        android:layout_marginEnd="@dimen/website_settings_popup_padding_sides"
+        android:layout_marginStart="@dimen/website_settings_popup_padding_sides"
+        android:layout_marginTop="8dp"
+        android:paddingEnd="@dimen/website_settings_popup_button_padding_sides"
+        android:paddingStart="@dimen/website_settings_popup_button_padding_sides"
+        android:text="@string/page_info_open_online_button"
         android:textColor="@color/light_active_color"
         style="@style/ButtonCompatBorderless" />
 </LinearLayout>
