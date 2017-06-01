@@ -953,7 +953,7 @@ by a child template that "extends" this file.
 
         <!-- Provider for FileProvider. -->
         <provider android:name="org.chromium.chrome.browser.util.ChromeFileProvider"
-                  android:authorities="org.chromium.chrome.FileProvider"
+                  android:authorities="org.chromium.chrome.browser.FileProvider"
                   android:exported="false"
                   android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
