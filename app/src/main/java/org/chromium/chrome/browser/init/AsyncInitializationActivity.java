@@ -29,6 +29,7 @@ import org.chromium.base.TraceEvent;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.library_loader.LoaderErrors;
 import org.chromium.base.library_loader.ProcessInitException;
+import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.WarmupManager;
 import org.chromium.chrome.browser.metrics.MemoryUma;
@@ -94,7 +95,14 @@ public abstract class AsyncInitializationActivity extends AppCompatActivity impl
 
     @Override
     public void preInflationStartup() {
-        mIsTablet = DeviceFormFactor.isTablet(this);
+        // On some devices, OEM modifications have been made to the resource loader that cause the
+        // DeviceFormFactor calculation of whether a device is using tablet resources to be
+        // incorrect. Check which resources were actually loaded and set the DeviceFormFactor
+        // values. See crbug.com/662338.
+        boolean isTablet = getResources().getBoolean(R.bool.is_tablet);
+        boolean isLargeTablet = getResources().getBoolean(R.bool.is_large_tablet);
+        DeviceFormFactor.setIsTablet(isTablet, isLargeTablet);
+        mIsTablet = isTablet;
     }
 
     @Override
@@ -359,6 +367,11 @@ public abstract class AsyncInitializationActivity extends AppCompatActivity impl
 
     @Override
     public void onNewIntentWithNative(Intent intent) { }
+
+    @Override
+    public Intent getInitialIntent() {
+        return getIntent();
+    }
 
     @Override
     public boolean onActivityResultWithNative(int requestCode, int resultCode, Intent data) {

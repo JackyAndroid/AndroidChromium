@@ -72,7 +72,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
     public static final String PREF_BACKGROUND_SYNC_PERMISSION = "background_sync_permission_list";
     public static final String PREF_CAMERA_CAPTURE_PERMISSION = "camera_permission_list";
     public static final String PREF_COOKIES_PERMISSION = "cookies_permission_list";
-    public static final String PREF_FULLSCREEN_PERMISSION = "fullscreen_permission_list";
     public static final String PREF_JAVASCRIPT_PERMISSION = "javascript_permission_list";
     public static final String PREF_KEYGEN_PERMISSION = "keygen_permission_list";
     public static final String PREF_LOCATION_ACCESS = "location_access_list";
@@ -90,7 +89,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
             PREF_BACKGROUND_SYNC_PERMISSION,
             PREF_CAMERA_CAPTURE_PERMISSION,
             PREF_COOKIES_PERMISSION,
-            PREF_FULLSCREEN_PERMISSION,
             PREF_JAVASCRIPT_PERMISSION,
             PREF_KEYGEN_PERMISSION,
             PREF_LOCATION_ACCESS,
@@ -202,10 +200,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
         // This loop looks expensive, but the amount of data is likely to be relatively small
         // because most sites have very few permissions.
         for (Website other : websites) {
-            if (merged.getFullscreenInfo() == null && other.getFullscreenInfo() != null
-                    && permissionInfoIsForTopLevelOrigin(other.getFullscreenInfo(), origin)) {
-                merged.setFullscreenInfo(other.getFullscreenInfo());
-            }
             if (merged.getGeolocationInfo() == null && other.getGeolocationInfo() != null
                     && permissionInfoIsForTopLevelOrigin(other.getGeolocationInfo(), origin)) {
                 merged.setGeolocationInfo(other.getGeolocationInfo());
@@ -308,9 +302,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
                 setUpListPreference(preference, mSite.getCameraPermission());
             } else if (PREF_COOKIES_PERMISSION.equals(preference.getKey())) {
                 setUpListPreference(preference, mSite.getCookiePermission());
-            } else if (PREF_FULLSCREEN_PERMISSION.equals(preference.getKey())) {
-                preference.setEnabled(false);
-                setUpListPreference(preference, mSite.getFullscreenPermission());
             } else if (PREF_JAVASCRIPT_PERMISSION.equals(preference.getKey())) {
                 setUpListPreference(preference, mSite.getJavaScriptPermission());
             } else if (PREF_KEYGEN_PERMISSION.equals(preference.getKey())) {
@@ -544,8 +535,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
                 return ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA;
             case PREF_COOKIES_PERMISSION:
                 return ContentSettingsType.CONTENT_SETTINGS_TYPE_COOKIES;
-            case PREF_FULLSCREEN_PERMISSION:
-                return ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN;
             case PREF_JAVASCRIPT_PERMISSION:
                 return ContentSettingsType.CONTENT_SETTINGS_TYPE_JAVASCRIPT;
             case PREF_KEYGEN_PERMISSION:
@@ -608,8 +597,6 @@ public class SingleWebsitePreferences extends PreferenceFragment
             mSite.setCameraPermission(permission);
         } else if (PREF_COOKIES_PERMISSION.equals(preference.getKey())) {
             mSite.setCookiePermission(permission);
-        } else if (PREF_FULLSCREEN_PERMISSION.equals(preference.getKey())) {
-            mSite.setFullscreenPermission(permission);
         } else if (PREF_JAVASCRIPT_PERMISSION.equals(preference.getKey())) {
             mSite.setJavaScriptPermission(permission);
         } else if (PREF_KEYGEN_PERMISSION.equals(preference.getKey())) {
@@ -681,13 +668,15 @@ public class SingleWebsitePreferences extends PreferenceFragment
             if (preference != null) screen.removePreference(preference);
         }
 
+        String origin = mSite.getAddress().getOrigin();
+        WebsitePreferenceBridge.nativeClearCookieData(origin);
+        WebsitePreferenceBridge.nativeClearBannerData(origin);
+
         // Clear the permissions.
         mSite.setAutoplayPermission(ContentSetting.DEFAULT);
         mSite.setBackgroundSyncPermission(ContentSetting.DEFAULT);
         mSite.setCameraPermission(ContentSetting.DEFAULT);
         mSite.setCookiePermission(ContentSetting.DEFAULT);
-        WebsitePreferenceBridge.nativeClearCookieData(mSite.getAddress().getTitle());
-        mSite.setFullscreenPermission(ContentSetting.DEFAULT);
         mSite.setGeolocationPermission(ContentSetting.DEFAULT);
         mSite.setJavaScriptPermission(ContentSetting.DEFAULT);
         mSite.setKeygenPermission(ContentSetting.DEFAULT);
@@ -696,6 +685,7 @@ public class SingleWebsitePreferences extends PreferenceFragment
         mSite.setNotificationPermission(ContentSetting.DEFAULT);
         mSite.setPopupPermission(ContentSetting.DEFAULT);
         mSite.setProtectedMediaIdentifierPermission(ContentSetting.DEFAULT);
+
         for (UsbInfo info : mSite.getUsbInfo()) info.revoke();
 
         // Clear the storage and finish the activity if necessary.

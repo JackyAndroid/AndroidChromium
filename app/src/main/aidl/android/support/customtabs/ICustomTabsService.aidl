@@ -33,4 +33,6 @@ interface ICustomTabsService {
             in Bundle extras, in List<Bundle> otherLikelyBundles) = 3;
     Bundle extraCommand(String commandName, in Bundle args) = 4;
     boolean updateVisuals(in ICustomTabsCallback callback, in Bundle bundle) = 5;
+    boolean validatePostMessageOrigin(in ICustomTabsCallback callback) = 6;
+    int postMessage(in ICustomTabsCallback callback, String message, in Bundle extras) = 7;
 }

@@ -27,6 +27,10 @@ public class WebappControlContainer extends ViewResourceFrameLayout
     }
 
     @Override
+    public void initWithToolbar(int toolbarLayoutId) {
+    }
+
+    @Override
     public ViewResourceAdapter getToolbarResourceAdapter() {
         return getResourceAdapter();
     }

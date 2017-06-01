@@ -52,9 +52,7 @@ public class DownloadBroadcastReceiver extends BroadcastReceiver {
             return;
         }
         long id = ids[0];
-        DownloadManager manager =
-                (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri uri = manager.getUriForDownloadedFile(id);
+        Uri uri = DownloadManagerDelegate.getContentUriFromDownloadManager(context, id);
         if (uri == null) {
             // Open the downloads page
             DownloadManagerService.openDownloadsPage(context);

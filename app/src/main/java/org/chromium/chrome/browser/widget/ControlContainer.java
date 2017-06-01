@@ -10,11 +10,17 @@ import org.chromium.chrome.browser.compositor.layouts.eventfilter.EdgeSwipeHandl
 import org.chromium.ui.resources.dynamics.ViewResourceAdapter;
 
 /**
- * Interface that defines the responsibilities of the layout container for the top controls.
+ * Interface that defines the responsibilities of the layout container for the browser controls.
  * <p>
  * Concrete implementations of this class must extend ViewGroup.
  */
 public interface ControlContainer {
+    /**
+     * Initialize the control container with the specified toolbar.
+     * @param toolbarLayoutId The ID of the toolbar layout to use.
+     */
+    void initWithToolbar(int toolbarLayoutId);
+
     /**
      * @return The {@link ViewResourceAdapter} that exposes this {@link View} as a CC resource.
      */

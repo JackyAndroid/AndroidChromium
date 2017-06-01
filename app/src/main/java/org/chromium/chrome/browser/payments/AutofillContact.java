@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
  */
 public class AutofillContact extends PaymentOption {
     private final AutofillProfile mProfile;
+    @Nullable private String mPayerName;
     @Nullable private String mPayerPhone;
     @Nullable private String mPayerEmail;
 
@@ -23,17 +24,25 @@ public class AutofillContact extends PaymentOption {
      * Builds contact details.
      *
      * @param profile    The autofill profile where this contact data lives.
-     * @param phone      The phone number. If not empty, this will be the primary label.
-     * @param email      The email address. If phone is empty, this will be the primary label.
+     * @param name       The payer name. If not empty, this will be the primary label.
+     * @param phone      The phone number. If name is empty, this will be the primary label.
+     * @param email      The email address. If name and phone are empty, this will be the primary
+     *                   label.
      * @param isComplete Whether the data in this contact can be sent to the merchant as-is. If
      *                   false, user needs to add more information here.
      */
-    public AutofillContact(AutofillProfile profile, @Nullable String phone, @Nullable String email,
-            boolean isComplete) {
-        super(profile.getGUID(), null, null, PaymentOption.NO_ICON);
+    public AutofillContact(AutofillProfile profile, @Nullable String name,
+            @Nullable String phone, @Nullable String email, boolean isComplete) {
+        super(profile.getGUID(), null, null, null, null);
         mProfile = profile;
         mIsComplete = isComplete;
-        setGuidPhoneEmail(profile.getGUID(), phone, email);
+        mIsEditable = true;
+        setContactInfo(profile.getGUID(), name, phone, email);
+    }
+
+    /** @return Payer name. Null if the merchant did not request it or data is incomplete. */
+    @Nullable public String getPayerName() {
+        return mPayerName;
     }
 
     /** @return Email address. Null if the merchant did not request it or data is incomplete. */
@@ -52,23 +61,35 @@ public class AutofillContact extends PaymentOption {
     }
 
     /**
-     * Updates the profile guid, email address, and phone number and marks this information
-     * "complete." Called after the user has edited this contact information. Updates the
-     * identifier, label, and sublabel.
+     * Updates the profile guid, payer name, email address, and phone number and marks this
+     * information "complete." Called after the user has edited this contact information.
+     * Update the identifier, label, sublabel, and tertiarylabel.
      *
      * @param guid  The new identifier to use. Should not be null or empty.
-     * @param phone The new phone number to use. If not empty, this will be the primary label.
-     * @param email The new email address to use. If phone is empty, this will be the primary label.
+     * @param name  The new payer name to use. If not empty, this will be the primary label.
+     * @param phone The new phone number to use. If name is empty, this will be the primary label.
+     * @param email The new email address to use. If email and phone are empty, this will be the
+     *              primary label.
      */
-    public void completeContact(String guid, @Nullable String phone, @Nullable String email) {
+    public void completeContact(String guid, @Nullable String name,
+            @Nullable String phone, @Nullable String email) {
         mIsComplete = true;
-        setGuidPhoneEmail(guid, phone, email);
+        setContactInfo(guid, name, phone, email);
     }
 
-    private void setGuidPhoneEmail(String guid, @Nullable String phone, @Nullable String email) {
+    private void setContactInfo(String guid, @Nullable String name,
+            @Nullable String phone, @Nullable String email) {
+        mPayerName = TextUtils.isEmpty(name) ? null : name;
         mPayerPhone = TextUtils.isEmpty(phone) ? null : phone;
         mPayerEmail = TextUtils.isEmpty(email) ? null : email;
-        updateIdentifierAndLabels(guid, mPayerPhone == null ? mPayerEmail : mPayerPhone,
-                mPayerPhone == null ? null : mPayerEmail);
+
+        if (mPayerName == null) {
+            updateIdentifierAndLabels(guid, mPayerPhone == null ? mPayerEmail : mPayerPhone,
+                    mPayerPhone == null ? null : mPayerEmail);
+        } else {
+            updateIdentifierAndLabels(guid, mPayerName,
+                    mPayerPhone == null ? mPayerEmail : mPayerPhone,
+                    mPayerPhone == null ? null : mPayerEmail);
+        }
     }
 }

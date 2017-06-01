@@ -40,12 +40,10 @@ import org.chromium.chrome.browser.init.EmptyBrowserParts;
 import org.chromium.chrome.browser.offlinepages.downloads.OfflinePageDownloadBridge;
 import org.chromium.chrome.browser.util.IntentUtils;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -115,11 +113,11 @@ public class DownloadNotificationService extends Service {
             // activity should be pause the notification.
             if (tasks.size() > 0) return;
         }
-        mStopPostingProgressNotifications = true;
         // This funcion is called when Chrome is swiped away from the recent apps
         // drawer. So it doesn't catch all scenarios that chrome can get killed.
         // This will only help Android 4.4.2.
         onBrowserKilled();
+        mStopPostingProgressNotifications = true;
     }
 
     @Override
@@ -216,7 +214,7 @@ public class DownloadNotificationService extends Service {
     }
 
     /**
-     * Add a in-progress download notification.
+     * Adds or updates an in-progress download notification.
      * @param downloadGuid GUID of the download.
      * @param fileName File name of the download.
      * @param percentage Percentage completed. Value should be between 0 to 100 if
@@ -225,26 +223,67 @@ public class DownloadNotificationService extends Service {
      * @param startTime Time when download started.
      * @param isOffTheRecord Whether the download is off the record.
      * @param canDownloadWhileMetered Whether the download can happen in metered network.
+     * @param isOfflinePage Whether the download is for offline page.
      */
     public void notifyDownloadProgress(String downloadGuid, String fileName, int percentage,
             long timeRemainingInMillis, long startTime, boolean isOffTheRecord,
             boolean canDownloadWhileMetered, boolean isOfflinePage) {
+        updateActiveDownloadNotification(downloadGuid, fileName, percentage, timeRemainingInMillis,
+                startTime, isOffTheRecord, canDownloadWhileMetered, isOfflinePage, false);
+    }
+
+    /**
+     * Adds or updates a pending download notification.
+     * @param downloadGuid GUID of the download.
+     * @param fileName File name of the download.
+     * @param isOffTheRecord Whether the download is off the record.
+     * @param canDownloadWhileMetered Whether the download can happen in metered network.
+     * @param isOfflinePage Whether the download is for offline page.
+     */
+    private void notifyDownloadPending(String downloadGuid, String fileName, boolean isOffTheRecord,
+            boolean canDownloadWhileMetered, boolean isOfflinePage) {
+        updateActiveDownloadNotification(downloadGuid, fileName, INVALID_DOWNLOAD_PERCENTAGE,
+                0, 0, isOffTheRecord, canDownloadWhileMetered, isOfflinePage, true);
+    }
+
+    /**
+     * Helper method to update the notification for an active download, the download is either in
+     * progress or pending.
+     * @param downloadGuid GUID of the download.
+     * @param fileName File name of the download.
+     * @param percentage Percentage completed. Value should be between 0 to 100 if
+     *        the percentage can be determined, or -1 if it is unknown.
+     * @param timeRemainingInMillis Remaining download time in milliseconds.
+     * @param startTime Time when download started.
+     * @param isOffTheRecord Whether the download is off the record.
+     * @param canDownloadWhileMetered Whether the download can happen in metered network.
+     * @param isOfflinePage Whether the download is for offline page.
+     * @param isDownloadPending Whether the download is pending.
+     */
+    private void updateActiveDownloadNotification(String downloadGuid, String fileName,
+            int percentage, long timeRemainingInMillis, long startTime, boolean isOffTheRecord,
+            boolean canDownloadWhileMetered, boolean isOfflinePage, boolean isDownloadPending) {
         if (mStopPostingProgressNotifications) return;
-        boolean indeterminate = percentage == INVALID_DOWNLOAD_PERCENTAGE;
+        String contentText = mContext.getResources().getString(isDownloadPending
+                ? R.string.download_notification_pending : R.string.download_started);
+        int resId = isDownloadPending ? R.drawable.ic_download_pending
+                : android.R.drawable.stat_sys_download;
         NotificationCompat.Builder builder = buildNotification(
-                android.R.drawable.stat_sys_download, fileName, null);
-        builder.setOngoing(true).setProgress(100, percentage, indeterminate);
+                resId, fileName, contentText);
+        boolean indeterminate = (percentage == INVALID_DOWNLOAD_PERCENTAGE) || isDownloadPending;
+        builder.setOngoing(true);
+        // Avoid moving animations while download is not downloading.
+        if (!isDownloadPending) {
+            builder.setProgress(100, percentage, indeterminate);
+        }
         builder.setPriority(Notification.PRIORITY_HIGH);
-        if (!indeterminate) {
-            NumberFormat formatter = NumberFormat.getPercentInstance(Locale.getDefault());
-            String percentText = formatter.format(percentage / 100.0);
+        if (!indeterminate && !isOfflinePage) {
             String duration = formatRemainingTime(mContext, timeRemainingInMillis);
-            builder.setContentText(duration);
             if (Build.VERSION.CODENAME.equals("N")
                     || Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-                builder.setSubText(percentText);
+                builder.setSubText(duration);
             } else {
-                builder.setContentInfo(percentText);
+                builder.setContentInfo(duration);
             }
         }
         int notificationId = getNotificationId(downloadGuid);
@@ -260,7 +299,7 @@ public class DownloadNotificationService extends Service {
                 buildPendingIntent(cancelIntent, notificationId));
         Intent pauseIntent = buildActionIntent(
                 ACTION_DOWNLOAD_PAUSE, notificationId, downloadGuid, fileName, isOfflinePage);
-        builder.addAction(R.drawable.ic_vidcontrol_pause,
+        builder.addAction(R.drawable.ic_media_control_pause,
                 mContext.getResources().getString(R.string.download_notification_pause_button),
                 buildPendingIntent(pauseIntent, notificationId));
         updateNotification(notificationId, builder.build());
@@ -305,9 +344,17 @@ public class DownloadNotificationService extends Service {
             notifyDownloadFailed(downloadGuid, entry.fileName);
             return;
         }
+        // If download is interrupted due to network disconnection, show download pending state.
+        if (isAutoResumable) {
+            notifyDownloadPending(entry.downloadGuid, entry.fileName, entry.isOffTheRecord,
+                    entry.canDownloadWhileMetered, entry.isOfflinePage());
+            mDownloadsInProgress.remove(downloadGuid);
+            return;
+        }
+        String contentText = mContext.getResources().getString(
+                R.string.download_notification_paused);
         NotificationCompat.Builder builder = buildNotification(
-                android.R.drawable.ic_media_pause, entry.fileName,
-                mContext.getResources().getString(R.string.download_notification_paused));
+                R.drawable.ic_download_pause, entry.fileName, contentText);
         Intent cancelIntent = buildActionIntent(
                 ACTION_DOWNLOAD_CANCEL, entry.notificationId, entry.downloadGuid, entry.fileName,
                 entry.isOfflinePage());
@@ -328,7 +375,7 @@ public class DownloadNotificationService extends Service {
         // If download is not auto resumable, there is no need to keep it in SharedPreferences.
         // Keep off the record downloads in SharedPreferences so we can cancel it when browser is
         // killed.
-        if (!isAutoResumable && !entry.isOffTheRecord) {
+        if (!entry.isOffTheRecord) {
             removeSharedPreferenceEntry(downloadGuid);
         }
         mDownloadsInProgress.remove(downloadGuid);
@@ -585,9 +632,9 @@ public class DownloadNotificationService extends Service {
                                 entry.isOffTheRecord);
                         break;
                     case ACTION_DOWNLOAD_RESUME:
-                        notifyDownloadProgress(entry.downloadGuid, entry.fileName,
-                                INVALID_DOWNLOAD_PERCENTAGE, 0, 0, entry.isOffTheRecord,
-                                entry.canDownloadWhileMetered, entry.isOfflinePage());
+                        notifyDownloadPending(entry.downloadGuid, entry.fileName,
+                                entry.isOffTheRecord, entry.canDownloadWhileMetered,
+                                entry.isOfflinePage());
                         downloadServiceDelegate.resumeDownload(entry.buildDownloadItem(), true);
                         break;
                     case ACTION_DOWNLOAD_RESUME_ALL:
@@ -723,8 +770,8 @@ public class DownloadNotificationService extends Service {
             DownloadSharedPreferenceEntry entry = mDownloadSharedPreferenceEntries.get(i);
             if (mDownloadsInProgress.contains(entry.downloadGuid)) continue;
             if (!entry.canDownloadWhileMetered && isNetworkMetered) continue;
-            notifyDownloadProgress(entry.downloadGuid, entry.fileName, INVALID_DOWNLOAD_PERCENTAGE,
-                    0, 0, false, entry.canDownloadWhileMetered, entry.isOfflinePage());
+            notifyDownloadPending(entry.downloadGuid, entry.fileName, false,
+                    entry.canDownloadWhileMetered, entry.isOfflinePage());
             DownloadServiceDelegate downloadServiceDelegate = getServiceDelegate(entry.itemType);
             downloadServiceDelegate.resumeDownload(entry.buildDownloadItem(), false);
             downloadServiceDelegate.destroyServiceDelegate();

@@ -39,7 +39,7 @@ public class SigninPromoUtil {
             return false;
         }
 
-        AccountSigninActivity.startAccountSigninActivity(activity, SigninAccessPoint.SIGNIN_PROMO);
+        AccountSigninActivity.startIfAllowed(activity, SigninAccessPoint.SIGNIN_PROMO);
         preferenceManager.setSigninPromoShown();
         return true;
     }

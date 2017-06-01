@@ -13,7 +13,7 @@ import android.view.ViewGroup;
  * contain enough of them. It is displayed as a dummy item with variable height that just occupies
  * the remaining space between the last item in the RecyclerView and the bottom of the screen.
  */
-public class SpacingItem extends SingleItemGroup {
+public class SpacingItem extends Leaf {
     private static class SpacingView extends View {
         public SpacingView(Context context) {
             super(context);
@@ -32,12 +32,13 @@ public class SpacingItem extends SingleItemGroup {
     }
 
     @Override
-    public int getType() {
-        return NewTabPageItem.VIEW_TYPE_SPACING;
+    @ItemViewType
+    protected int getItemViewType() {
+        return ItemViewType.SPACING;
     }
 
     @Override
-    public void onBindViewHolder(NewTabPageViewHolder holder) {
+    protected void onBindViewHolder(NewTabPageViewHolder holder) {
         // Nothing to do.
     }
 }

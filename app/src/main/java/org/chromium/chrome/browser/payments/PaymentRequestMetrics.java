@@ -22,7 +22,9 @@ public final class PaymentRequestMetrics {
     @VisibleForTesting
     public static final int REQUESTED_INFORMATION_SHIPPING = 1 << 2;
     @VisibleForTesting
-    public static final int REQUESTED_INFORMATION_MAX = 8;
+    public static final int REQUESTED_INFORMATION_NAME = 1 << 3;
+    @VisibleForTesting
+    public static final int REQUESTED_INFORMATION_MAX = 16;
 
     // PaymentRequestAbortReason defined in tools/metrics/histograms/histograms.xml.
     @VisibleForTesting
@@ -63,16 +65,18 @@ public final class PaymentRequestMetrics {
      * Records the metric that keeps track of what user information are requested by merchants to
      * complete a payment request.
      *
-     * @param requestEmail Whether the merchant requested an email address.
-     * @param requestPhone Whether the merchant requested a phone number.
+     * @param requestEmail    Whether the merchant requested an email address.
+     * @param requestPhone    Whether the merchant requested a phone number.
      * @param requestShipping Whether the merchant requested a shipping address.
+     * @param requestName     Whether the merchant requestes a name.
      */
     public static void recordRequestedInformationHistogram(boolean requestEmail,
-            boolean requestPhone, boolean requestShipping) {
+            boolean requestPhone, boolean requestShipping, boolean requestName) {
         int requestInformation =
                 (requestEmail ? REQUESTED_INFORMATION_EMAIL : 0)
                 | (requestPhone ? REQUESTED_INFORMATION_PHONE : 0)
-                | (requestShipping ? REQUESTED_INFORMATION_SHIPPING : 0);
+                | (requestShipping ? REQUESTED_INFORMATION_SHIPPING : 0)
+                | (requestName ? REQUESTED_INFORMATION_NAME : 0);
         RecordHistogram.recordEnumeratedHistogram("PaymentRequest.RequestedInformation",
                 requestInformation, REQUESTED_INFORMATION_MAX);
     }

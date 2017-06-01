@@ -50,8 +50,6 @@
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="keygen_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
-        android:key="fullscreen_permission_list" />
-    <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="protected_media_identifier_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="autoplay_permission_list" />

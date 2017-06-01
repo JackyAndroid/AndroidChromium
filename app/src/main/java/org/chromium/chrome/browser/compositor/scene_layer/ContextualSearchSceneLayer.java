@@ -77,10 +77,14 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
         float searchPeekPromoRippleOpacity = peekPromoControl.getRippleOpacity();
         float searchPeekPromoTextOpacity = peekPromoControl.getTextOpacity();
 
+        float staticImageVisibilityPercentage = imageControl.getStaticImageVisibilityPercentage();
+        int staticImageSize = imageControl.getStaticImageSize();
+
+        boolean quickActionIconVisible = imageControl.getQuickActionIconVisible();
+        int quickActionIconResId = imageControl.getQuickActionIconResourceId();
+
         boolean thumbnailVisible = imageControl.getThumbnailVisible();
         String thumbnailUrl = imageControl.getThumbnailUrl();
-        float thumbnailVisibilityPercentage = imageControl.getThumbnailVisibilityPercentage();
-        int thumbnailSize = imageControl.getThumbnailSize();
 
         ContextualSearchIconSpriteControl spriteControl = imageControl.getIconSpriteControl();
         boolean searchProviderIconSpriteVisible = spriteControl.isVisible();
@@ -117,6 +121,17 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
         float progressBarOpacity = panel.getProgressBarOpacity();
         int progressBarCompletion = panel.getProgressBarCompletion();
 
+        float dividerLineVisibilityPercentage =
+                searchBarControl.getDividerLineVisibilityPercentage();
+        float dividerLineWidth = searchBarControl.getDividerLineWidth();
+        float dividerLineHeight = searchBarControl.getDividerLineHeight();
+        int dividerLineColor = searchBarControl.getDividerLineColor();
+        float dividerLineXOffset = searchBarControl.getDividerLineXOffset();
+
+        boolean touchHighlightVisible = searchBarControl.getTouchHighlightVisible();
+        float touchHighlightXOffset = searchBarControl.getTouchHighlightXOffsetPx();
+        float touchHighlightWidth = searchBarControl.getTouchHighlightWidthPx();
+
         WebContents panelWebContents = panel.getContentViewCore() != null
                 ? panel.getContentViewCore().getWebContents() : null;
 
@@ -128,6 +143,7 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
                 R.drawable.contextual_search_bar_shadow,
                 R.drawable.google_icon_sprite,
                 R.raw.google_icon_sprite,
+                quickActionIconResId,
                 R.drawable.breadcrumb_arrow,
                 ContextualSearchPanel.CLOSE_ICON_DRAWABLE_ID,
                 R.drawable.progress_bar_background,
@@ -155,7 +171,9 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
                 searchBarMarginSide * mDpToPx,
                 searchBarHeight * mDpToPx,
                 searchContextOpacity,
+                searchBarControl.getTextLayerMinHeight(),
                 searchTermOpacity,
+                searchBarControl.getSearchTermCaptionSpacing(),
                 searchCaptionAnimationPercentage,
                 searchCaptionVisible,
                 searchBarBorderVisible,
@@ -164,10 +182,11 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
                 searchBarShadowOpacity,
                 searchProviderIconSpriteVisible,
                 searchProviderIconCompletionPercentage,
+                quickActionIconVisible,
                 thumbnailVisible,
-                thumbnailVisibilityPercentage,
-                thumbnailSize,
                 thumbnailUrl,
+                staticImageVisibilityPercentage,
+                staticImageSize,
                 arrowIconOpacity,
                 arrowIconRotation,
                 closeIconOpacity,
@@ -175,6 +194,14 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
                 progressBarHeight * mDpToPx,
                 progressBarOpacity,
                 progressBarCompletion,
+                dividerLineVisibilityPercentage,
+                dividerLineWidth,
+                dividerLineHeight,
+                dividerLineColor,
+                dividerLineXOffset,
+                touchHighlightVisible,
+                touchHighlightXOffset,
+                touchHighlightWidth,
                 Profile.getLastUsedProfile());
     }
 
@@ -230,8 +257,9 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
             int searchTermResourceId,
             int searchCaptionResourceId,
             int searchBarShadowResourceId,
-            int panelIconResourceId,
+            int spriteResourceId,
             int searchProviderIconSpriteMetadataResourceId,
+            int quickActionIconResourceId,
             int arrowUpResourceId,
             int closeIconResourceId,
             int progressBarBackgroundResourceId,
@@ -259,7 +287,9 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
             float searchBarMarginSide,
             float searchBarHeight,
             float searchContextOpacity,
+            float searchTextLayerMinHeight,
             float searchTermOpacity,
+            float searchTermCaptionSpacing,
             float searchCaptionAnimationPercentage,
             boolean searchCaptionVisible,
             boolean searchBarBorderVisible,
@@ -268,10 +298,11 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
             float searchBarShadowOpacity,
             boolean searchProviderIconSpriteVisible,
             float searchProviderIconCompletionPercentage,
+            boolean quickActionIconVisible,
             boolean thumbnailVisible,
-            float thumbnailVisibilityPercentage,
-            int thumbnailSize,
             String thumbnailUrl,
+            float staticImageVisibilityPercentage,
+            int staticImageSize,
             float arrowIconOpacity,
             float arrowIconRotation,
             float closeIconOpacity,
@@ -279,5 +310,13 @@ public class ContextualSearchSceneLayer extends SceneOverlayLayer {
             float progressBarHeight,
             float progressBarOpacity,
             int progressBarCompletion,
+            float dividerLineVisibilityPercentage,
+            float dividerLineWidth,
+            float dividerLineHeight,
+            int dividerLineColor,
+            float dividerLineXOffset,
+            boolean touchHighlightVisible,
+            float touchHighlightXOffset,
+            float toucHighlightWidth,
             Profile profile);
 }

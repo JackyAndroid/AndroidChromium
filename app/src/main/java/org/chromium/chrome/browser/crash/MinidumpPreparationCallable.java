@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.chromium.base.Log;
+import org.chromium.components.minidump_uploader.CrashFileManager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

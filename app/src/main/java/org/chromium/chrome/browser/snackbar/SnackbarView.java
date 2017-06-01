@@ -170,7 +170,7 @@ class SnackbarView {
      * the mMessageView content description is read aloud if accessibility is enabled.
      */
     void announceforAccessibility() {
-        mMessageView.announceForAccessibility(mMessageView.getContentDescription()
+        mMessageView.announceForAccessibility(mMessageView.getContentDescription() + " "
                 + mView.getResources().getString(R.string.bottom_bar_screen_position));
     }
 

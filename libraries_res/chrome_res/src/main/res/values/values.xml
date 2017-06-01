@@ -62,4 +62,10 @@
 
     <!-- Our manage space activity. Default pre-KitKat to be nothing. -->
     <string name="manage_space_activity"></string>
+
+    <!-- Whether the device is a tablet or large tablet. Used to determine which resources the OS
+         loaded. -->
+    <bool name="is_tablet">false</bool>
+    <bool name="is_large_tablet">false</bool>
+    <string name="gvr_vr_mode_component" translatable="false" description="Google VR component name used for enabling VR mode">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
 </resources>

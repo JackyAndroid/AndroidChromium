@@ -8,7 +8,8 @@
     android:id="@+id/float_label_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/pref_autofill_content_spacing">
+    android:layout_marginTop="@dimen/pref_autofill_field_top_margin"
+    android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin">
 
     <EditText
         android:id="@+id/address_edit_text"

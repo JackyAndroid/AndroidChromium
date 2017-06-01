@@ -30,7 +30,7 @@ public class StackViewAnimation {
 
     /**
      * Constructor.
-     * NOTE: Pass in height and heightMinusTopControls if they're ever needed.
+     * NOTE: Pass in height and heightMinusBrowserControls if they're ever needed.
      *
      * @param dpToPx                   The density of the device.
      * @param widthDp                  The width of the layout in dp.

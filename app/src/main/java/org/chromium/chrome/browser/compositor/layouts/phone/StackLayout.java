@@ -672,7 +672,7 @@ public class StackLayout extends Layout implements Animatable<StackLayout.Proper
         protected float mWidth, mHeight;
         PortraitViewport() {
             mWidth = StackLayout.this.getWidth();
-            mHeight = StackLayout.this.getHeightMinusTopControls();
+            mHeight = StackLayout.this.getHeightMinusBrowserControls();
         }
 
         float getClampedRenderedScrollOffset() {
@@ -728,7 +728,7 @@ public class StackLayout extends Layout implements Animatable<StackLayout.Proper
         }
 
         float getTopHeightOffset() {
-            return (StackLayout.this.getHeight() - getHeightMinusTopControls())
+            return (StackLayout.this.getHeight() - getHeightMinusBrowserControls())
                     * mStackOffsetYPercent;
         }
     }
@@ -736,7 +736,7 @@ public class StackLayout extends Layout implements Animatable<StackLayout.Proper
     class LandscapeViewport extends PortraitViewport {
         LandscapeViewport() {
             // This is purposefully inverted.
-            mWidth = StackLayout.this.getHeightMinusTopControls();
+            mWidth = StackLayout.this.getHeightMinusBrowserControls();
             mHeight = StackLayout.this.getWidth();
         }
 
@@ -1041,8 +1041,8 @@ public class StackLayout extends Layout implements Animatable<StackLayout.Proper
     }
 
     private float getFullScrollDistance() {
-        float distance =
-                getOrientation() == Orientation.PORTRAIT ? getWidth() : getHeightMinusTopControls();
+        float distance = getOrientation() == Orientation.PORTRAIT ? getWidth()
+                                                                  : getHeightMinusBrowserControls();
         return distance - 2 * getViewportParameters().getInnerMargin();
     }
 
@@ -1220,6 +1220,6 @@ public class StackLayout extends Layout implements Animatable<StackLayout.Proper
                 resourceManager, fullscreenManager);
         assert mSceneLayer != null;
         mSceneLayer.pushLayers(getContext(), viewport, contentViewport, this, layerTitleCache,
-                tabContentManager, resourceManager);
+                tabContentManager, resourceManager, fullscreenManager);
     }
 }

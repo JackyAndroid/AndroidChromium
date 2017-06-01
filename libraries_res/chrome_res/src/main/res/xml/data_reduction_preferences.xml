@@ -8,6 +8,6 @@
     <org.chromium.chrome.browser.preferences.datareduction.DataReductionStatsPreference
         android:key="data_reduction_stats"
         android:layout="@layout/custom_preference"
-        android:widgetLayout="@layout/data_reduction_stats_layout" />
+        android:selectable="false" />
 
 </PreferenceScreen>

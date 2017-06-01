@@ -20,6 +20,7 @@ import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
 import android.text.TextUtils;
 
+import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ContentUriUtils;
 import org.chromium.base.ContextUtils;
@@ -159,7 +160,7 @@ public class DownloadUtils {
      * @param context The {@link Context} used to make the toast.
      */
     public static void showDownloadStartToast(Context context) {
-        Toast.makeText(context, R.string.download_pending, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.download_started, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -270,6 +271,12 @@ public class DownloadUtils {
 
             if (selectedItemsFilterType != wrappedItem.getFilterType()) {
                 selectedItemsFilterType = DownloadFilter.FILTER_ALL;
+            }
+            if (wrappedItem.getFilterType() == DownloadFilter.FILTER_OTHER) {
+                RecordHistogram.recordEnumeratedHistogram(
+                        "Android.DownloadManager.OtherExtensions.Share",
+                        wrappedItem.getFileExtensionType(),
+                        DownloadHistoryItemWrapper.FILE_EXTENSION_BOUNDARY);
             }
 
             String mimeType = Intent.normalizeMimeType(wrappedItem.getMimeType());
@@ -385,11 +392,24 @@ public class DownloadUtils {
         builder.setActionButton(
                 shareIcon, context.getString(R.string.share), pendingShareIntent, true);
 
+        // The color of the media viewer is dependent on the file type.
+        int backgroundRes;
+        if (DownloadFilter.fromMimeType(mimeType) == DownloadFilter.FILTER_IMAGE) {
+            backgroundRes = R.color.image_viewer_bg;
+        } else {
+            backgroundRes = R.color.media_viewer_bg;
+        }
+        int mediaColor = ApiCompatibilityUtils.getColor(context.getResources(), backgroundRes);
+
         // Build up the Intent further.
         Intent intent = builder.build().intent;
         intent.setPackage(context.getPackageName());
         intent.setData(fileUri);
         intent.putExtra(CustomTabIntentDataProvider.EXTRA_IS_MEDIA_VIEWER, true);
+        intent.putExtra(
+                CustomTabIntentDataProvider.EXTRA_INITIAL_BACKGROUND_COLOR, mediaColor);
+        intent.putExtra(
+                CustomTabsIntent.EXTRA_TOOLBAR_COLOR, mediaColor);
         intent.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
         IntentHandler.addTrustedIntentExtras(intent, context);
 
@@ -424,6 +444,45 @@ public class DownloadUtils {
         if (uri == null) uri = Uri.fromFile(file);
 
         return uri;
+    }
+
+    /**
+     * Opens a file in Chrome or in another app if appropriate.
+     * @param file path to the file to open.
+     * @param mimeType mime type of the file.
+     * @param isOffTheRecord whether we are in an off the record context.
+     * @return whether the file could successfully be opened.
+     */
+    public static boolean openFile(File file, String mimeType, boolean isOffTheRecord) {
+        Context context = ContextUtils.getApplicationContext();
+        Intent viewIntent = createViewIntentForDownloadItem(Uri.fromFile(file), mimeType);
+        DownloadManagerService service = DownloadManagerService.getDownloadManagerService(context);
+
+        // Check if Chrome should open the file itself.
+        if (service.isDownloadOpenableInBrowser(isOffTheRecord, mimeType)) {
+            // Share URIs use the content:// scheme when able, which looks bad when displayed
+            // in the URL bar.
+            Uri fileUri = Uri.fromFile(file);
+            Uri shareUri = getUriForItem(file);
+            String normalizedMimeType = Intent.normalizeMimeType(mimeType);
+
+            Intent intent =
+                    getMediaViewerIntentForDownloadItem(fileUri, shareUri, normalizedMimeType);
+            IntentHandler.startActivityForTrustedIntent(intent, context);
+            return true;
+        }
+
+        // Check if any apps can open the file.
+        try {
+            context.startActivity(viewIntent);
+            return true;
+        } catch (ActivityNotFoundException e) {
+            // Can't launch the Intent.
+            Toast.makeText(context, context.getString(R.string.download_cant_open_file),
+                         Toast.LENGTH_SHORT)
+                    .show();
+            return false;
+        }
     }
 
     private static void recordShareHistograms(int count, int filterType) {

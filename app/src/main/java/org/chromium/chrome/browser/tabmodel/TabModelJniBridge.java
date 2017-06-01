@@ -29,14 +29,21 @@ public abstract class TabModelJniBridge implements TabModel {
     /** Native TabModelJniBridge pointer, which will be set by {@link #initializeNative()}. */
     private long mNativeTabModelJniBridge;
 
-    public TabModelJniBridge(boolean isIncognito) {
+    /**
+     * Whether this tab model is part of a tabbed activity.
+     * This is consumed by Sync as part of restoring sync data from a previous session.
+     */
+    private boolean mIsTabbedActivityForSync;
+
+    public TabModelJniBridge(boolean isIncognito, boolean isTabbedActivity) {
         mIsIncognito = isIncognito;
+        mIsTabbedActivityForSync = isTabbedActivity;
     }
 
     /** Initializes the native-side counterpart to this class. */
     protected void initializeNative() {
         assert mNativeTabModelJniBridge == 0;
-        mNativeTabModelJniBridge = nativeInit(mIsIncognito);
+        mNativeTabModelJniBridge = nativeInit(mIsIncognito, mIsTabbedActivityForSync);
     }
 
     /** @return Whether the native-side pointer has been initialized. */
@@ -202,7 +209,7 @@ public abstract class TabModelJniBridge implements TabModel {
         }
     }
 
-    private native long nativeInit(boolean isIncognito);
+    private native long nativeInit(boolean isIncognito, boolean isTabbedActivity);
     private native Profile nativeGetProfileAndroid(long nativeTabModelJniBridge);
     private native void nativeBroadcastSessionRestoreComplete(long nativeTabModelJniBridge);
     private native void nativeDestroy(long nativeTabModelJniBridge);

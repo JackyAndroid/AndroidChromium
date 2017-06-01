@@ -618,10 +618,10 @@ public class ClearBrowsingDataPreferences extends PreferenceFragment
                 // mMaxImportantSites is a constant on the C++ side.
                 RecordHistogram.recordCustomCountHistogram(
                         "History.ClearBrowsingData.ImportantDeselectedNum",
-                        deselectedDomains.length, 0, mMaxImportantSites + 1,
+                        deselectedDomains.length, 1, mMaxImportantSites + 1,
                         mMaxImportantSites + 1);
                 RecordHistogram.recordCustomCountHistogram(
-                        "History.ClearBrowsingData.ImportantIgnoredNum", ignoredDomains.length, 0,
+                        "History.ClearBrowsingData.ImportantIgnoredNum", ignoredDomains.length, 1,
                         mMaxImportantSites + 1, mMaxImportantSites + 1);
                 // We put our max at 20 instead of 100 to reduce the number of empty buckets (as
                 // our maximum denominator is 5).

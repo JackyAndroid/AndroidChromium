@@ -18,11 +18,13 @@ import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.content.browser.ContentViewCore;
 import org.chromium.content_public.browser.GestureStateListener;
+import org.chromium.net.NetworkChangeNotifier;
 
 /**
  * Manages the activation and gesture listeners for ContextualSearch on a given tab.
  */
-public class ContextualSearchTabHelper extends EmptyTabObserver {
+public class ContextualSearchTabHelper
+        extends EmptyTabObserver implements NetworkChangeNotifier.ConnectionTypeObserver {
     /**
      * Notification handler for Contextual Search events.
      */
@@ -53,7 +55,15 @@ public class ContextualSearchTabHelper extends EmptyTabObserver {
     private ContextualSearchTabHelper(Tab tab) {
         mTab = tab;
         tab.addObserver(this);
+        // Connect to a network, unless under test.
+        if (NetworkChangeNotifier.isInitialized()) {
+            NetworkChangeNotifier.addConnectionTypeObserver(this);
+        }
     }
+
+    // ============================================================================================
+    // EmptyTabObserver overrides.
+    // ============================================================================================
 
     @Override
     public void onPageLoadStarted(Tab tab, String url) {
@@ -132,6 +142,19 @@ public class ContextualSearchTabHelper extends EmptyTabObserver {
         }
     }
 
+    // ============================================================================================
+    // NetworkChangeNotifier.ConnectionTypeObserver overrides.
+    // ============================================================================================
+
+    @Override
+    public void onConnectionTypeChanged(int connectionType) {
+        updateContextualSearchHooks(mBaseContentViewCore);
+    }
+
+    // ============================================================================================
+    // Private helpers.
+    // ============================================================================================
+
     /**
      * Should be called whenever the Tab's ContentViewCore changes. Removes hooks from the
      * existing ContentViewCore, if necessary and then adds hooks for the new ContentViewCore.
@@ -198,9 +221,18 @@ public class ContextualSearchTabHelper extends EmptyTabObserver {
                 // Svelte and Accessibility devices are incompatible with the first-run flow and
                 // Talkback has poor interaction with tap to search (see http://crbug.com/399708 and
                 // http://crbug.com/396934).
-                // TODO(jeremycho): Handle these cases.
                 && !manager.isRunningInCompatibilityMode()
-                && !(mTab.isShowingErrorPage() || mTab.isShowingInterstitialPage());
+                && !(mTab.isShowingErrorPage() || mTab.isShowingInterstitialPage())
+                && isDeviceOnline(manager);
+    }
+
+    /**
+     * @return Whether the device is online, or we have disabled online-detection.
+     */
+    private boolean isDeviceOnline(ContextualSearchManager manager) {
+        if (ContextualSearchFieldTrial.isOnlineDetectionDisabled()) return true;
+
+        return manager.isDeviceOnline();
     }
 
     /**
@@ -213,6 +245,10 @@ public class ContextualSearchTabHelper extends EmptyTabObserver {
         }
         return null;
     }
+
+    // ============================================================================================
+    // Native support.
+    // ============================================================================================
 
     @CalledByNative
     private void onContextualSearchPrefChanged() {

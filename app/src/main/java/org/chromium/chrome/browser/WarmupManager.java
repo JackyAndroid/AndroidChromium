@@ -22,6 +22,7 @@ import org.chromium.base.TraceEvent;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.widget.ControlContainer;
 import org.chromium.content_public.browser.WebContents;
 
 import java.net.InetAddress;
@@ -61,16 +62,18 @@ public final class WarmupManager {
     }
 
     private WarmupManager() {
-        mDnsRequestsInFlight = new HashSet<String>();
-        mPendingPreconnectWithProfile = new HashMap<String, Profile>();
+        mDnsRequestsInFlight = new HashSet<>();
+        mPendingPreconnectWithProfile = new HashMap<>();
     }
 
     /**
      * Inflates and constructs the view hierarchy that the app will use.
      * @param baseContext The base context to use for creating the ContextWrapper.
      * @param toolbarContainerId Id of the toolbar container.
+     * @param toolbarId The toolbar's layout ID.
      */
-    public void initializeViewHierarchy(Context baseContext, int toolbarContainerId) {
+    public void initializeViewHierarchy(Context baseContext, int toolbarContainerId,
+            int toolbarId) {
         TraceEvent.begin("WarmupManager.initializeViewHierarchy");
         // Inflating the view hierarchy causes StrictMode violations on some
         // devices. Since layout inflation should happen on the UI thread, allow
@@ -88,7 +91,8 @@ public final class WarmupManager {
             if (toolbarContainerId != ChromeActivity.NO_CONTROL_CONTAINER) {
                 ViewStub stub = (ViewStub) mMainView.findViewById(R.id.control_container_stub);
                 stub.setLayoutResource(toolbarContainerId);
-                stub.inflate();
+                ControlContainer controlContainer = (ControlContainer) stub.inflate();
+                controlContainer.initWithToolbar(toolbarId);
             }
         } catch (InflateException e) {
             // See crbug.com/606715.
@@ -117,14 +121,19 @@ public final class WarmupManager {
     }
 
     /**
-     * @return Whether the view hierarchy has been prebuilt with a given toolbar ID. If there is no
-     * match, clears the inflated view.
+     * @return Whether a pre-built view hierarchy exists for the given toolbarContainerId.
      */
-    public boolean hasBuiltOrClearViewHierarchyWithToolbar(int toolbarContainerId) {
+    public boolean hasViewHierarchyWithToolbar(int toolbarContainerId) {
         ThreadUtils.assertOnUiThread();
-        boolean match = mMainView != null && mToolbarContainerId == toolbarContainerId;
-        if (!match) mMainView = null;
-        return match;
+        return mMainView != null && mToolbarContainerId == toolbarContainerId;
+    }
+
+    /**
+     * Clears the inflated view hierarchy.
+     */
+    public void clearViewHierarchy() {
+        ThreadUtils.assertOnUiThread();
+        mMainView = null;
     }
 
     /**

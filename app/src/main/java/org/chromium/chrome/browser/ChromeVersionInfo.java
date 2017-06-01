@@ -59,4 +59,11 @@ public class ChromeVersionInfo {
     public static String getProductVersion() {
         return ChromeVersionConstants.PRODUCT_VERSION;
     }
+
+    /**
+     * @return The major version number.
+     */
+    public static int getProductMajorVersion() {
+        return ChromeVersionConstants.PRODUCT_MAJOR_VERSION;
+    }
 }

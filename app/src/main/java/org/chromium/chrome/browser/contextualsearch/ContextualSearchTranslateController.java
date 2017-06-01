@@ -133,7 +133,10 @@ public class ContextualSearchTranslateController  {
     private LinkedHashSet<String> getProficientLanguages() {
         LinkedHashSet<String> uniqueLanguages = new LinkedHashSet<String>();
         // The primary language, according to the translation-service, always comes first.
-        uniqueLanguages.add(trimLocaleToLanguage(getNativeTranslateServiceTargetLanguage()));
+        String primaryLanguage = getNativeTranslateServiceTargetLanguage();
+        if (isValidLocale(primaryLanguage)) {
+            uniqueLanguages.add(trimLocaleToLanguage(primaryLanguage));
+        }
         // Merge in the IME locales, if possible.
         if (!ContextualSearchFieldTrial.isKeyboardLanguagesForTranslationDisabled()) {
             Context context = mActivity.getApplicationContext();
@@ -172,7 +175,7 @@ public class ContextualSearchTranslateController  {
 
     /**
      * Converts a given locale to a language code.
-     * @param locale The locale string, which must have a length of at least 2.
+     * @param locale The locale string, which must be a valid locale (See #isValidLocale).
      * @return The given locale as a language code.
      */
     private String trimLocaleToLanguage(String locale) {

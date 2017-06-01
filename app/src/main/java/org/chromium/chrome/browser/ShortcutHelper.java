@@ -168,7 +168,7 @@ public class ShortcutHelper {
                 // Store the webapp data so that it is accessible without the intent. Once this
                 // process is complete, call back to native code to start the splash image
                 // download.
-                WebappRegistry.registerWebapp(
+                WebappRegistry.getInstance().register(
                         id, new WebappRegistry.FetchWebappDataStorageCallback() {
                             @Override
                             public void onWebappDataStorageRetrieved(WebappDataStorage storage) {
@@ -228,7 +228,7 @@ public class ShortcutHelper {
     }
 
     /**
-     * Creates a storage location and stores the data for a web app using {@link WebappDataStorage}.
+     * Stores the specified bitmap as the splash screen for a web app.
      * @param id          ID of the web app which is storing data.
      * @param splashImage Image which should be displayed on the splash screen of
      *                    the web app. This can be null of there is no image to show.
@@ -236,16 +236,20 @@ public class ShortcutHelper {
     @SuppressWarnings("unused")
     @CalledByNative
     private static void storeWebappSplashImage(final String id, final Bitmap splashImage) {
-        WebappRegistry.getWebappDataStorage(
-                id, new WebappRegistry.FetchWebappDataStorageCallback() {
-                    @Override
-                    public void onWebappDataStorageRetrieved(WebappDataStorage storage) {
-                        if (storage == null) return;
+        final WebappDataStorage storage = WebappRegistry.getInstance().getWebappDataStorage(id);
+        if (storage != null) {
+            new AsyncTask<Void, Void, String>() {
+                @Override
+                protected String doInBackground(Void... args0) {
+                    return encodeBitmapAsString(splashImage);
+                }
 
-                        storage.updateSplashScreenImage(splashImage);
-                    }
-
-                });
+                @Override
+                protected void onPostExecute(String encodedImage) {
+                    storage.updateSplashScreenImage(encodedImage);
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
     }
 
     /**

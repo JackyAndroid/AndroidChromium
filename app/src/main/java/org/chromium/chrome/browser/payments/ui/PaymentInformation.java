@@ -72,6 +72,16 @@ public class PaymentInformation {
     }
 
     /**
+     * Returns the tertiary label for the selected shipping address.
+     *
+     * @return The tertiary label for the selected shipping address or null.
+     */
+    public String getSelectedShippingAddressTertiaryLabel() {
+        PaymentOption address = mShippingAddresses.getSelectedItem();
+        return address != null ? address.getTertiaryLabel() : null;
+    }
+
+    /**
      * Returns the shipping options.
      *
      * @return The shipping options.

@@ -14,6 +14,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
@@ -32,6 +35,7 @@ import android.view.KeyEvent;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.blink.mojom.MediaSessionAction;
 import org.chromium.chrome.R;
 import org.chromium.content_public.common.MediaMetadata;
 
@@ -52,6 +56,9 @@ public class MediaNotificationManager {
     // TODO(zqzhang): use android.R.dimen.media_notification_expanded_image_max_size when Android
     // SDK is rolled to level 24. See https://crbug.com/645059
     private static final int N_LARGE_ICON_SIZE_DP = 94;
+
+    // The maximum number of actions in CompactView media notification.
+    private static final int MAXIMUM_NUM_ACTIONS_IN_COMPACT_VIEW = 3;
 
     // We're always used on the UI thread but the LOCK is required by lint when creating the
     // singleton.
@@ -76,6 +83,10 @@ public class MediaNotificationManager {
                 "MediaNotificationManager.ListenerService.SWIPE";
         private static final String ACTION_CANCEL =
                 "MediaNotificationManager.ListenerService.CANCEL";
+        private static final String ACTION_PREVIOUS_TRACK =
+                "MediaNotificationManager.ListenerService.PREVIOUS_TRACK";
+        private static final String ACTION_NEXT_TRACK =
+                "MediaNotificationManager.ListenerService.NEXT_TRACK";
 
         @Override
         public IBinder onBind(Intent intent) {
@@ -144,6 +155,12 @@ public class MediaNotificationManager {
                                     MediaNotificationListener.ACTION_SOURCE_MEDIA_SESSION);
                         }
                         break;
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                        manager.onMediaSessionAction(MediaSessionAction.PREVIOUS_TRACK);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_NEXT:
+                        manager.onMediaSessionAction(MediaSessionAction.NEXT_TRACK);
+                        break;
                     default:
                         break;
                 }
@@ -159,6 +176,10 @@ public class MediaNotificationManager {
                 manager.onPause(MediaNotificationListener.ACTION_SOURCE_MEDIA_NOTIFICATION);
             } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
                 manager.onPause(MediaNotificationListener.ACTION_SOURCE_HEADSET_UNPLUG);
+            } else if (ACTION_PREVIOUS_TRACK.equals(action)) {
+                manager.onMediaSessionAction(MediaSessionAction.PREVIOUS_TRACK);
+            } else if (ACTION_NEXT_TRACK.equals(action)) {
+                manager.onMediaSessionAction(MediaSessionAction.NEXT_TRACK);
             }
         }
     }
@@ -367,23 +388,51 @@ public class MediaNotificationManager {
     public static Bitmap scaleIconForDisplay(Bitmap icon) {
         if (icon == null) return null;
 
-        int largeIconSizePx;
-        if (isRunningN()) {
-            largeIconSizePx = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, N_LARGE_ICON_SIZE_DP,
-                    ContextUtils.getApplicationContext().getResources().getDisplayMetrics());
-        } else {
-            largeIconSizePx = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, PRE_N_LARGE_ICON_SIZE_DP,
-                    ContextUtils.getApplicationContext().getResources().getDisplayMetrics());
-        }
+        int largeIconSizePx = getMaximumLargeIconSize();
 
-        if (icon.getWidth() > largeIconSizePx || icon.getHeight() > largeIconSizePx) {
-            return icon.createScaledBitmap(
-                    icon, largeIconSizePx, largeIconSizePx, true /* filter */);
+        if (icon.getWidth() > largeIconSizePx || icon.getHeight() > largeIconSizePx
+                || icon.getWidth() != icon.getHeight()) {
+            return scaleIconInternal(icon, largeIconSizePx);
         }
 
         return icon;
+    }
+
+    private static Bitmap scaleIconInternal(Bitmap icon, int targetSize) {
+        Matrix m = new Matrix();
+        int dominantLength = Math.max(icon.getWidth(), icon.getHeight());
+        // Move the center to (0,0).
+        m.postTranslate(icon.getWidth() / -2.0f, icon.getHeight() / -2.0f);
+        // Scale to desired size.
+        float scale = 1.0f * targetSize / dominantLength;
+        m.postScale(scale, scale);
+        // Move to the desired place.
+        m.postTranslate(targetSize / 2.0f, targetSize / 2.0f);
+
+        // Draw the image.
+        Bitmap paddedBitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(paddedBitmap);
+        Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        canvas.drawBitmap(icon, m, paint);
+        return paddedBitmap;
+    }
+
+    /**
+     * @return Prefered maximum large icon size. If the large icon is larger than this size, then it
+     * needs to be scaled.
+     */
+    public static int getMaximumLargeIconSize() {
+        int maxLargeIconSizePx;
+        if (isRunningN()) {
+            maxLargeIconSizePx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, N_LARGE_ICON_SIZE_DP,
+                ContextUtils.getApplicationContext().getResources().getDisplayMetrics());
+        } else {
+            maxLargeIconSizePx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, PRE_N_LARGE_ICON_SIZE_DP,
+                ContextUtils.getApplicationContext().getResources().getDisplayMetrics());
+        }
+        return maxLargeIconSizePx;
     }
 
     private static MediaNotificationManager getManager(int notificationId) {
@@ -408,9 +457,7 @@ public class MediaNotificationManager {
     }
 
     private static boolean isRunningN() {
-        // TODO(zqzhang): Use Build.VERSION_CODES.N when Android SDK is rolled to level 24.
-        // See https://crbug.com/645059
-        return Build.VERSION.CODENAME.equals("N") || Build.VERSION.SDK_INT > Build.VERSION_CODES.M;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     }
 
     private final Context mContext;
@@ -421,6 +468,8 @@ public class MediaNotificationManager {
     private final String mPlayDescription;
     private final String mPauseDescription;
     private final String mStopDescription;
+    private final String mPreviousTrackDescription;
+    private final String mNextTrackDescription;
 
     private NotificationCompat.Builder mNotificationBuilder;
 
@@ -445,6 +494,18 @@ public class MediaNotificationManager {
                     MediaNotificationManager.this.onPause(
                             MediaNotificationListener.ACTION_SOURCE_MEDIA_SESSION);
                 }
+
+                @Override
+                public void onSkipToPrevious() {
+                    MediaNotificationManager.this.onMediaSessionAction(
+                            MediaSessionAction.PREVIOUS_TRACK);
+                }
+
+                @Override
+                public void onSkipToNext() {
+                    MediaNotificationManager.this.onMediaSessionAction(
+                            MediaSessionAction.NEXT_TRACK);
+                }
             };
 
     private MediaNotificationManager(Context context, int notificationId) {
@@ -452,6 +513,9 @@ public class MediaNotificationManager {
         mPlayDescription = context.getResources().getString(R.string.accessibility_play);
         mPauseDescription = context.getResources().getString(R.string.accessibility_pause);
         mStopDescription = context.getResources().getString(R.string.accessibility_stop);
+        mPreviousTrackDescription =
+                context.getResources().getString(R.string.accessibility_previous_track);
+        mNextTrackDescription = context.getResources().getString(R.string.accessibility_next_track);
     }
 
     /**
@@ -491,6 +555,10 @@ public class MediaNotificationManager {
 
     private void onStop(int actionSource) {
         mMediaNotificationInfo.listener.onStop(actionSource);
+    }
+
+    private void onMediaSessionAction(int action) {
+        mMediaNotificationInfo.listener.onMediaSessionAction(action);
     }
 
     private void showNotification(MediaNotificationInfo mediaNotificationInfo) {
@@ -617,8 +685,7 @@ public class MediaNotificationManager {
         mMediaSession.setMetadata(createMetadata());
 
         PlaybackStateCompat.Builder playbackStateBuilder =
-                new PlaybackStateCompat.Builder().setActions(
-                        PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE);
+                new PlaybackStateCompat.Builder().setActions(computeMediaSessionActions());
         if (mMediaNotificationInfo.isPaused) {
             playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED,
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
@@ -628,6 +695,20 @@ public class MediaNotificationManager {
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
         }
         mMediaSession.setPlaybackState(playbackStateBuilder.build());
+    }
+
+    private long computeMediaSessionActions() {
+        assert mMediaNotificationInfo != null;
+
+        long actions = PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE;
+        if (mMediaNotificationInfo.mediaSessionActions.contains(
+                    MediaSessionAction.PREVIOUS_TRACK)) {
+            actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
+        }
+        if (mMediaNotificationInfo.mediaSessionActions.contains(MediaSessionAction.NEXT_TRACK)) {
+            actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
+        }
+        return actions;
     }
 
     private MediaSessionCompat createMediaSession() {
@@ -676,27 +757,50 @@ public class MediaNotificationManager {
         // removing the time.
         builder.setShowWhen(false).setWhen(0);
 
+        addNotificationButtons(builder);
+    }
+
+    private void addNotificationButtons(NotificationCompat.Builder builder) {
         // Only apply MediaStyle when NotificationInfo supports play/pause.
         if (mMediaNotificationInfo.supportsPlayPause()) {
             NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle();
             style.setMediaSession(mMediaSession.getSessionToken());
 
+            int numAddedActions = 0;
+
+            if (mMediaNotificationInfo.mediaSessionActions.contains(
+                        MediaSessionAction.PREVIOUS_TRACK)) {
+                builder.addAction(R.drawable.ic_media_control_skip_previous,
+                        mPreviousTrackDescription,
+                        createPendingIntent(ListenerService.ACTION_PREVIOUS_TRACK));
+                ++numAddedActions;
+            }
             if (mMediaNotificationInfo.isPaused) {
-                builder.addAction(R.drawable.ic_vidcontrol_play, mPlayDescription,
+                builder.addAction(R.drawable.ic_media_control_play, mPlayDescription,
                         createPendingIntent(ListenerService.ACTION_PLAY));
             } else {
                 // If we're here, the notification supports play/pause button and is playing.
-                builder.addAction(R.drawable.ic_vidcontrol_pause, mPauseDescription,
+                builder.addAction(R.drawable.ic_media_control_pause, mPauseDescription,
                         createPendingIntent(ListenerService.ACTION_PAUSE));
             }
-            style.setShowActionsInCompactView(0);
+            ++numAddedActions;
+            if (mMediaNotificationInfo.mediaSessionActions.contains(
+                        MediaSessionAction.NEXT_TRACK)) {
+                builder.addAction(R.drawable.ic_media_control_skip_next, mNextTrackDescription,
+                        createPendingIntent(ListenerService.ACTION_NEXT_TRACK));
+                ++numAddedActions;
+            }
+            numAddedActions = Math.min(numAddedActions, MAXIMUM_NUM_ACTIONS_IN_COMPACT_VIEW);
+            int[] compactViewActions = new int[numAddedActions];
+            for (int i = 0; i < numAddedActions; ++i) compactViewActions[i] = i;
+            style.setShowActionsInCompactView(compactViewActions);
             style.setCancelButtonIntent(createPendingIntent(ListenerService.ACTION_CANCEL));
             style.setShowCancelButton(true);
             builder.setStyle(style);
         }
 
         if (mMediaNotificationInfo.supportsStop()) {
-            builder.addAction(R.drawable.ic_vidcontrol_stop, mStopDescription,
+            builder.addAction(R.drawable.ic_media_control_stop, mStopDescription,
                     createPendingIntent(ListenerService.ACTION_STOP));
         }
     }

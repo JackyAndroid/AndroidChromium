@@ -61,7 +61,7 @@ dependencies {
     compile files('libs/device/vibration/mojo_bindings_java.jar')
     compile files('libs/mojo/public/java/bindings.jar')
     compile files('libs/mojo/public/java/system.jar')
-    compile files('libs/services/shell/public/interfaces/interfaces_java.jar')
+    compile files('libs/services/service_manager/public/interfaces/interfaces_java.jar')
     compile files('libs/third_party/WebKit/public/android_mojo_bindings_java.jar')
     compile files('libs/ui/base/mojo/mojo_bindings_java.jar')
     compile project(':libraries_res:chrome_res')

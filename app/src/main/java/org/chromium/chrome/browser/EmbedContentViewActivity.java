@@ -16,7 +16,6 @@ import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.document.TabDelegate;
 import org.chromium.chrome.browser.webapps.FullScreenActivity;
-import org.chromium.chrome.browser.widget.ControlContainer;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.ui.base.PageTransition;
 
@@ -80,15 +79,14 @@ public class EmbedContentViewActivity extends FullScreenActivity {
     }
 
     @Override
-    protected final ChromeFullscreenManager createFullscreenManager(
-            ControlContainer controlContainer) {
+    protected final ChromeFullscreenManager createFullscreenManager() {
         return null;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean retVal = super.onCreateOptionsMenu(menu);
-        if (!FirstRunStatus.getFirstRunFlowComplete(this)) return retVal;
+        if (!FirstRunStatus.getFirstRunFlowComplete()) return retVal;
         return true;
     }
 

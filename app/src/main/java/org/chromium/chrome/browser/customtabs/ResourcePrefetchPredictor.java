@@ -16,6 +16,8 @@ import org.chromium.chrome.browser.profiles.Profile;
  */
 @JNINamespace("predictors")
 class ResourcePrefetchPredictor {
+    private static boolean sInitializationStarted;
+
     private final Profile mProfile;
 
     /**
@@ -26,6 +28,15 @@ class ResourcePrefetchPredictor {
     }
 
     /**
+     * Starts the asynchronous initialization of the prefetch predictor.
+     */
+    public boolean startInitialization() {
+        ThreadUtils.assertOnUiThread();
+        sInitializationStarted = true;
+        return nativeStartInitialization(mProfile);
+    }
+
+    /**
      * Starts a prefetch for a URL.
      *
      * @param url The URL to start the prefetch for.
@@ -33,6 +44,9 @@ class ResourcePrefetchPredictor {
      */
     public boolean startPrefetching(String url) {
         ThreadUtils.assertOnUiThread();
+        if (!sInitializationStarted) {
+            throw new RuntimeException("startInitialization() not called.");
+        }
         return nativeStartPrefetching(mProfile, url);
     }
 
@@ -47,6 +61,7 @@ class ResourcePrefetchPredictor {
         return nativeStopPrefetching(mProfile, url);
     }
 
+    private static native boolean nativeStartInitialization(Profile profile);
     private static native boolean nativeStartPrefetching(Profile profile, String url);
     private static native boolean nativeStopPrefetching(Profile profile, String url);
 }

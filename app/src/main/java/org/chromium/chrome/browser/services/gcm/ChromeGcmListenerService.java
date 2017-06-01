@@ -5,6 +5,7 @@
 package org.chromium.chrome.browser.services.gcm;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.google.ipc.invalidation.ticl.android2.channel.AndroidGcmController;
@@ -31,6 +32,9 @@ public class ChromeGcmListenerService extends GcmListenerService {
 
     @Override
     public void onMessageReceived(String from, Bundle data) {
+        boolean hasCollapseKey = !TextUtils.isEmpty(data.getString("collapse_key"));
+        GcmUma.recordDataMessageReceived(getApplicationContext(), hasCollapseKey);
+
         String invalidationSenderId = AndroidGcmController.get(this).getSenderId();
         if (from.equals(invalidationSenderId)) {
             AndroidGcmController.get(this).onMessageReceived(data);
@@ -56,6 +60,7 @@ public class ChromeGcmListenerService extends GcmListenerService {
         // TODO(johnme): Ask GCM to include the subtype in this event.
         Log.w(TAG, "Push messages were deleted, but we can't tell the Service Worker as we don't"
                 + "know what subtype (app ID) it occurred for.");
+        GcmUma.recordDeletedMessages(getApplicationContext());
     }
 
     private void pushMessageReceived(final String from, final Bundle data) {

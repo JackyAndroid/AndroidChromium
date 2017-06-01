@@ -5,15 +5,19 @@
 package org.chromium.chrome.browser.compositor.bottombar.contextualsearch;
 
 import android.content.Context;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
 import android.widget.TextView;
 
+import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelAnimation;
 import org.chromium.chrome.browser.compositor.bottombar.OverlayPanelTextViewInflater;
 import org.chromium.chrome.browser.compositor.layouts.ChromeAnimation;
+import org.chromium.chrome.browser.compositor.layouts.ChromeAnimation.Animatable;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
 
 /**
@@ -24,6 +28,14 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
         implements ChromeAnimation.Animatable<ContextualSearchCaptionControl.AnimationType> {
     private static final float ANIMATION_PERCENTAGE_ZERO = 0.f;
     private static final float ANIMATION_PERCENTAGE_COMPLETE = 1.f;
+    private static final float EXPANDED_CAPTION_THRESHOLD = 0.5f;
+    private static final Interpolator ANIMATION_INTERPOLATOR = new FastOutSlowInInterpolator();
+
+    /**
+     * The resource id for the string to display when the Bar is expanded.
+     */
+    @VisibleForTesting
+    public static final int EXPANED_CAPTION_ID = R.string.contextmenu_open_in_new_tab;
 
     /**
      * Animation properties.
@@ -36,6 +48,26 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
      * The caption View.
      */
     private TextView mCaption;
+
+    /**
+     * The text for the caption when the Bar is peeking.
+     */
+    private String mPeekingCaptionText;
+
+    /**
+     * Whether there is a caption when the Bar is peeking.
+     */
+    private boolean mHasPeekingCaption;
+
+    /**
+     * Whether the caption for the expanded Bar is showing.
+     */
+    private boolean mShowingExpandedCaption;
+
+    /**
+     * Whether the expanded caption should be shown.
+     */
+    private final boolean mShouldShowExpandedCaption;
 
     /**
      * The caption visibility.
@@ -56,15 +88,18 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
     private boolean mDidCapture;
 
     /**
-     * @param panel             The panel.
-     * @param context           The Android Context used to inflate the View.
-     * @param container         The container View used to inflate the View.
-     * @param resourceLoader    The resource loader that will handle the snapshot capturing.
+     * @param panel                     The panel.
+     * @param context                   The Android Context used to inflate the View.
+     * @param container                 The container View used to inflate the View.
+     * @param resourceLoader            The resource loader that will handle the snapshot capturing.
+     * @param shouldShowExpandedCaption Whether the "Open in new tab" caption should be shown
+     *                                  when the panel is expanded.
      */
     public ContextualSearchCaptionControl(OverlayPanel panel, Context context, ViewGroup container,
-            DynamicResourceLoader resourceLoader) {
+            DynamicResourceLoader resourceLoader, boolean shouldShowExpandedCaption) {
         super(panel, R.layout.contextual_search_caption_view, R.id.contextual_search_caption_view,
                 context, container, resourceLoader);
+        mShouldShowExpandedCaption = shouldShowExpandedCaption;
     }
 
     /**
@@ -73,8 +108,13 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
      *        e.g. a Quick Answer.
      */
     public void setCaption(String caption) {
-        // If the caption is visible it has already been set. Return early rather than changing it.
-        if (mIsVisible) return;
+        // If the peeking caption has already been set return early rather than changing it.
+        if (mHasPeekingCaption) return;
+
+        mPeekingCaptionText = sanitizeText(caption);
+        mHasPeekingCaption = true;
+
+        if (mShowingExpandedCaption) return;
 
         mDidCapture = false;
 
@@ -87,11 +127,63 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
     }
 
     /**
+     * Updates the caption when in transition between peeked to expanded states.
+     * @param percentage The percentage to the more opened state.
+     */
+    public void onUpdateFromPeekToExpand(float percentage) {
+        if (!mShouldShowExpandedCaption) {
+            if (mHasPeekingCaption) {
+                mOverlayPanel.cancelAnimation(this, AnimationType.APPEARANCE);
+                mAnimationPercentage = 1.f - percentage;
+            }
+            return;
+        }
+
+        if (mHasPeekingCaption) {
+            if (percentage < EXPANDED_CAPTION_THRESHOLD && mShowingExpandedCaption) {
+                // Start showing the peeking caption again.
+                mShowingExpandedCaption = false;
+                mCaption.setText(mPeekingCaptionText);
+                invalidate();
+            } else if (percentage >= EXPANDED_CAPTION_THRESHOLD && !mShowingExpandedCaption) {
+                // Start showing the expanded caption.
+                mShowingExpandedCaption = true;
+                mCaption.setText(EXPANED_CAPTION_ID);
+                invalidate();
+            }
+
+            // If the peeking caption gets set while the bar is expanding, mAnimationPercentage
+            // will stop getting updated. Set mAnimationPercentage to its complete value.
+            mAnimationPercentage = ANIMATION_PERCENTAGE_COMPLETE;
+        } else {
+            // If the expanded caption is not showing, set the caption text to the expanded
+            // caption.
+            if (!mShowingExpandedCaption && percentage > 0.f) {
+                mShowingExpandedCaption = true;
+                // Inflate the caption view if it has not already been inflated
+                if (mCaption == null) {
+                    inflate();
+                }
+
+                mCaption.setText(EXPANED_CAPTION_ID);
+                invalidate();
+                show();
+            }
+
+            mAnimationPercentage = percentage;
+            if (mAnimationPercentage == ANIMATION_PERCENTAGE_ZERO) mShowingExpandedCaption = false;
+        }
+    }
+
+    /**
      * Hides the caption.
      */
     public void hide() {
-        mIsVisible = false;
-        mAnimationPercentage = ANIMATION_PERCENTAGE_ZERO;
+        if (!mShowingExpandedCaption) {
+            mIsVisible = false;
+            mAnimationPercentage = ANIMATION_PERCENTAGE_ZERO;
+        }
+        mHasPeekingCaption = false;
     }
 
     /**
@@ -155,9 +247,11 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
     @Override
     protected void onCaptureEnd() {
         super.onCaptureEnd();
+        if (mDidCapture) return;
+
         mDidCapture = true;
 
-        animateTransitionIn();
+        if (!mShowingExpandedCaption) animateTransitionIn();
     }
 
     // ============================================================================================
@@ -166,8 +260,8 @@ public class ContextualSearchCaptionControl extends OverlayPanelTextViewInflater
 
     private void animateTransitionIn() {
         mOverlayPanel.addToAnimation(this, AnimationType.APPEARANCE, ANIMATION_PERCENTAGE_ZERO,
-                ANIMATION_PERCENTAGE_COMPLETE, OverlayPanelAnimation.MAXIMUM_ANIMATION_DURATION_MS,
-                0);
+                ANIMATION_PERCENTAGE_COMPLETE, OverlayPanelAnimation.BASE_ANIMATION_DURATION_MS,
+                0, false, ANIMATION_INTERPOLATOR);
     }
 
     @Override

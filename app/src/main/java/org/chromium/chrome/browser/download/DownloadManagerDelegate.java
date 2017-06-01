@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.app.NotificationManagerCompat;
+import android.text.TextUtils;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
@@ -26,6 +27,7 @@ public class DownloadManagerDelegate {
     private static final String TAG = "DownloadDelegate";
     private static final long INVALID_SYSTEM_DOWNLOAD_ID = -1;
     private static final String DOWNLOAD_ID_MAPPINGS_FILE_NAME = "download_id_mappings";
+    private static final Object sLock = new Object();
     protected final Context mContext;
 
     public DownloadManagerDelegate(Context context) {
@@ -38,10 +40,12 @@ public class DownloadManagerDelegate {
      * @param downloadGuid Download GUID.
      */
     private void addDownloadIdMapping(long downloadId, String downloadGuid) {
-        SharedPreferences sharedPrefs = getSharedPreferences();
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putLong(downloadGuid, downloadId);
-        editor.apply();
+        synchronized (sLock) {
+            SharedPreferences sharedPrefs = getSharedPreferences();
+            SharedPreferences.Editor editor = sharedPrefs.edit();
+            editor.putLong(downloadGuid, downloadId);
+            editor.apply();
+        }
     }
 
     /**
@@ -51,12 +55,15 @@ public class DownloadManagerDelegate {
      *         INVALID_SYSTEM_DOWNLOAD_ID if it is not found.
      */
     private long removeDownloadIdMapping(String downloadGuid) {
-        SharedPreferences sharedPrefs = getSharedPreferences();
-        long downloadId = sharedPrefs.getLong(downloadGuid, INVALID_SYSTEM_DOWNLOAD_ID);
-        if (downloadId != INVALID_SYSTEM_DOWNLOAD_ID) {
-            SharedPreferences.Editor editor = sharedPrefs.edit();
-            editor.remove(downloadGuid);
-            editor.apply();
+        long downloadId = INVALID_SYSTEM_DOWNLOAD_ID;
+        synchronized (sLock) {
+            SharedPreferences sharedPrefs = getSharedPreferences();
+            downloadId = sharedPrefs.getLong(downloadGuid, INVALID_SYSTEM_DOWNLOAD_ID);
+            if (downloadId != INVALID_SYSTEM_DOWNLOAD_ID) {
+                SharedPreferences.Editor editor = sharedPrefs.edit();
+                editor.remove(downloadGuid);
+                editor.apply();
+            }
         }
         return downloadId;
     }
@@ -88,8 +95,9 @@ public class DownloadManagerDelegate {
                 Class[] args = {String.class, String.class, boolean.class, String.class,
                         String.class, long.class, boolean.class, Uri.class, Uri.class};
                 Method method = c.getMethod("addCompletedDownload", args);
-                Uri originalUri = Uri.parse(originalUrl);
-                Uri refererUri = referer == null ? Uri.EMPTY : Uri.parse(referer);
+                // OriginalUri has to be null or non-empty.
+                Uri originalUri = TextUtils.isEmpty(originalUrl) ? null : Uri.parse(originalUrl);
+                Uri refererUri = TextUtils.isEmpty(referer) ? null : Uri.parse(referer);
                 downloadId = (Long) method.invoke(manager, fileName, description, true, mimeType,
                         path, length, useSystemNotification, originalUri, refererUri);
             } catch (SecurityException e) {
@@ -230,5 +238,17 @@ public class DownloadManagerDelegate {
         protected void onPostExecute(DownloadQueryResult result) {
             mCallback.onQueryCompleted(result, mShowNotifications);
         }
+    }
+
+    static Uri getContentUriFromDownloadManager(Context context, long downloadId) {
+        DownloadManager manager =
+                (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri contentUri = null;
+        try {
+            contentUri = manager.getUriForDownloadedFile(downloadId);
+        } catch (SecurityException e) {
+            Log.e(TAG, "unable to get content URI from DownloadManager");
+        }
+        return contentUri;
     }
 }

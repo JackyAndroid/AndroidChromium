@@ -191,6 +191,7 @@ public class OverlayPanelEventFilter extends GestureEventFilter {
                 mPanel.notifyBarTouched(e.getX() * mPxToDp);
             }
             mSwipeRecognizer.onTouchEvent(e);
+            mGestureDetector.onTouchEvent(e);
             return true;
         }
 
@@ -421,6 +422,9 @@ public class OverlayPanelEventFilter extends GestureEventFilter {
      * @return Whether the event has been consumed.
      */
     protected boolean handleSingleTapUp(MotionEvent e) {
+        // If the panel is peeking then the panel was already notified in #onTouchEventInternal().
+        if (mPanel.getPanelState() == PanelState.PEEKED) return false;
+
         setEventTarget(mPanel.isCoordinateInsideContent(
                 e.getX() * mPxToDp, e.getY() * mPxToDp)
                 ? EventTarget.CONTENT_VIEW : EventTarget.PANEL);
@@ -441,6 +445,9 @@ public class OverlayPanelEventFilter extends GestureEventFilter {
         // function would be null provided the InternalGestureDetector checks them. However, it
         // still seems to be possible...
         if (e1 == null || e2 == null) return false;
+
+        // If the panel is peeking then the swipe recognizer will handle the scroll event.
+        if (mPanel.getPanelState() == PanelState.PEEKED) return false;
 
         // Only determines the gesture orientation if it hasn't been determined yet,
         // affectively "locking" the orientation once the gesture has started.
@@ -548,6 +555,11 @@ public class OverlayPanelEventFilter extends GestureEventFilter {
      * Internal GestureDetector class that is responsible for determining the event target.
      */
     private class InternalGestureDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public void onShowPress(MotionEvent e) {
+            mPanel.onShowPress(e.getX() * mPxToDp, e.getY() * mPxToDp);
+        }
+
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
             // TODO(mdjones): Investigate how this is ever the case. The API docs do not say this

@@ -12,8 +12,10 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.ntp.NewTabPageUma.NTPLayoutResult;
 import org.chromium.chrome.browser.ntp.cards.CardsVariationParameters;
 import org.chromium.chrome.browser.ntp.cards.NewTabPageRecyclerView;
+import org.chromium.chrome.browser.ntp.snippets.SnippetsConfig;
 
 /**
  * Layout for the new tab page. This positions the page elements in the correct vertical positions.
@@ -37,9 +39,9 @@ public class NewTabPageLayout extends LinearLayout {
     private final int mPeekingCardHeight;
     private final int mTabStripHeight;
     private final int mFieldTrialLayoutAdjustment;
+    private final int mSearchboxShadowWidth;
 
     private int mParentViewportHeight;
-    private int mSearchboxViewShadowWidth;
 
     private boolean mCardsUiEnabled;
     private View mTopSpacer; // Spacer above search logo.
@@ -57,6 +59,8 @@ public class NewTabPageLayout extends LinearLayout {
     private View mSearchBoxView;
     private MostVisitedLayout mMostVisitedLayout;
 
+    private boolean mLayoutResultRecorded;
+
     /**
      * Constructor for inflating from XML.
      */
@@ -69,11 +73,13 @@ public class NewTabPageLayout extends LinearLayout {
         mBottomSpacerIdealHeight = Math.round(density * BOTTOM_SPACER_HEIGHT_DP);
         mTotalSpacerIdealHeight = Math.round(density * TOTAL_SPACER_HEIGHT_DP);
         mMostVisitedLayoutBleed = res.getDimensionPixelSize(R.dimen.most_visited_layout_bleed);
-        mPeekingCardHeight =
-                res.getDimensionPixelSize(R.dimen.snippets_padding_and_peeking_card_height);
+        mPeekingCardHeight = SnippetsConfig.isIncreasedCardVisibilityEnabled()
+                ? res.getDimensionPixelSize(R.dimen.snippets_peeking_card_peek_amount)
+                : res.getDimensionPixelSize(R.dimen.snippets_padding);
         mTabStripHeight = res.getDimensionPixelSize(R.dimen.tab_strip_height);
         mFieldTrialLayoutAdjustment = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 CardsVariationParameters.getFirstCardOffsetDp(), res.getDisplayMetrics());
+        mSearchboxShadowWidth = res.getDimensionPixelOffset(R.dimen.ntp_search_box_shadow_width);
     }
 
     @Override
@@ -88,7 +94,6 @@ public class NewTabPageLayout extends LinearLayout {
         mSearchProviderLogoView = (LogoView) findViewById(R.id.search_provider_logo);
         mSearchBoxView = findViewById(R.id.search_box);
         mMostVisitedLayout = (MostVisitedLayout) findViewById(R.id.most_visited_layout);
-        setSearchBoxStyle();
     }
 
     /**
@@ -136,16 +141,19 @@ public class NewTabPageLayout extends LinearLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         boolean hasSpaceForPeekingCard = false;
-        int maxAboveTheFoldHeight = mParentViewportHeight - mPeekingCardHeight - mTabStripHeight
-                - mFieldTrialLayoutAdjustment;
+        int spaceToFill = mParentViewportHeight - mPeekingCardHeight - mTabStripHeight;
+        @NTPLayoutResult int layoutResult;
 
         // We need to make sure we have just enough space to show the peeking card.
-        if (getMeasuredHeight() > maxAboveTheFoldHeight) {
+        if (getMeasuredHeight() > spaceToFill) {
+            layoutResult = NewTabPageUma.NTP_LAYOUT_DOES_NOT_FIT;
+
             // We don't have enough, we will push the peeking card completely below the fold
             // and let MostVisited get cut to make it clear that the page is scrollable.
             if (mMostVisitedLayout.getChildCount() > 0) {
-                // Add some extra space if needed.
-                int currentBleed = getMeasuredHeight() - mParentViewportHeight;
+                // Add some extra space if needed (the 'bleed' is the amount of the layout that
+                // will be cut off by the bottom of the screen).
+                int currentBleed = getMeasuredHeight() - mParentViewportHeight - mTabStripHeight;
                 int minimumBleed =
                         (int) (mMostVisitedLayout.getChildAt(0).getMeasuredHeight() * 0.44);
                 if (currentBleed < minimumBleed) {
@@ -156,17 +164,35 @@ public class NewTabPageLayout extends LinearLayout {
                     mSearchBoxSpacer.setVisibility(View.INVISIBLE);
                     mMostVisitedLayout.setExtraVerticalSpacing((int) (extraBleed * 0.5));
                     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+                    layoutResult = NewTabPageUma.NTP_LAYOUT_DOES_NOT_FIT_PUSH_MOST_LIKELY;
                 }
             }
+
         } else {
             hasSpaceForPeekingCard = true;
             // We leave more than or just enough space needed for the peeking card. Redistribute
             // any weighted space.
 
+            // There is a field trial experiment to determine the effect of raising the peeking
+            // card, allowing the user to see some of it's contents when scrolled to the top. This
+            // is achieved by making the NewTabPageLayout smaller.
+            // If there is enough space, reduce the space we are going to fill.
+            if (mFieldTrialLayoutAdjustment != 0f) {
+                if (getMeasuredHeight() < spaceToFill - mFieldTrialLayoutAdjustment) {
+                    spaceToFill -= mFieldTrialLayoutAdjustment;
+                    layoutResult = NewTabPageUma.NTP_LAYOUT_FITS_WITH_FIELD_TRIAL;
+                } else {
+                    layoutResult = NewTabPageUma.NTP_LAYOUT_FITS_WITHOUT_FIELD_TRIAL;
+                }
+            } else {
+                layoutResult = NewTabPageUma.NTP_LAYOUT_FITS_NO_FIELD_TRIAL;
+            }
+
             // Call super.onMeasure with mode EXACTLY and the target height to allow the top
             // spacer (which has a weight of 1) to grow and take up the remaining space.
             heightMeasureSpec =
-                    MeasureSpec.makeMeasureSpec(maxAboveTheFoldHeight, MeasureSpec.EXACTLY);
+                    MeasureSpec.makeMeasureSpec(spaceToFill, MeasureSpec.EXACTLY);
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
             distributeExtraSpace(mTopSpacer.getMeasuredHeight());
@@ -175,6 +201,13 @@ public class NewTabPageLayout extends LinearLayout {
         assert getParent() instanceof NewTabPageRecyclerView;
         NewTabPageRecyclerView recyclerView = (NewTabPageRecyclerView) getParent();
         recyclerView.setHasSpaceForPeekingCard(hasSpaceForPeekingCard);
+
+        // The first few runs of this method occur before the Most Visited layout has loaded it's
+        // contents. We want to record what the user sees when the layout has stabilized.
+        if (mMostVisitedLayout.getChildCount() > 0 && !mLayoutResultRecorded) {
+            mLayoutResultRecorded = true;
+            NewTabPageUma.recordNTPLayoutResult(layoutResult);
+        }
     }
 
     /**
@@ -223,7 +256,7 @@ public class NewTabPageLayout extends LinearLayout {
         // Make the search box and logo as wide as the most visited items.
         if (mMostVisitedLayout.getVisibility() != GONE) {
             final int width = mMostVisitedLayout.getMeasuredWidth() - mMostVisitedLayoutBleed;
-            measureExactly(mSearchBoxView, width + mSearchboxViewShadowWidth,
+            measureExactly(mSearchBoxView, width + mSearchboxShadowWidth,
                     mSearchBoxView.getMeasuredHeight());
             measureExactly(
                     mSearchProviderLogoView, width, mSearchProviderLogoView.getMeasuredHeight());
@@ -248,35 +281,6 @@ public class NewTabPageLayout extends LinearLayout {
         }
         top += ((MarginLayoutParams) mMostVisitedLayout.getLayoutParams()).topMargin;
         return top;
-    }
-
-    /**
-     * Set the search box style, adding a shadow if required.
-     */
-    private void setSearchBoxStyle() {
-        if (!NtpStyleUtils.shouldUseMaterialDesign()) return;
-
-        Resources resources = getContext().getResources();
-
-        // Adjust the margins to account for the bigger size due to the shadow.
-        MarginLayoutParams layoutParams = (MarginLayoutParams) mSearchBoxView.getLayoutParams();
-        layoutParams.setMargins(
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_margin_left),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_margin_top),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_margin_right),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_margin_bottom));
-        layoutParams.height = resources
-                .getDimensionPixelSize(R.dimen.ntp_search_box_material_height);
-        // Width will be adjusted in onMeasure();
-        mSearchboxViewShadowWidth = resources
-                .getDimensionPixelOffset(R.dimen.ntp_search_box_material_extra_width);
-
-        mSearchBoxView.setBackgroundResource(R.drawable.textbox);
-        mSearchBoxView.setPadding(
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_padding_left),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_padding_top),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_padding_right),
-                resources.getDimensionPixelSize(R.dimen.ntp_search_box_material_padding_bottom));
     }
 
     /**

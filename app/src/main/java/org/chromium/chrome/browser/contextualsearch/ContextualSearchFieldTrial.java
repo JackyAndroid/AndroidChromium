@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import org.chromium.base.CommandLine;
 import org.chromium.base.SysUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.browser.ChromeFeatureList;
 import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.components.variations.VariationsAssociatedData;
 
@@ -108,6 +109,7 @@ public class ContextualSearchFieldTrial {
     private static Boolean sIsContextualCardsBarIntegrationEnabled;
     private static Boolean sIsOnlineDetectionDisabled;
     private static Boolean sIsAmpAsSeparateTabEnabled;
+    private static Boolean sContextualSearchSingleActionsEnabled;
 
     /**
      * Don't instantiate.
@@ -403,6 +405,33 @@ public class ContextualSearchFieldTrial {
             sShouldHideContextualCardsData = getBooleanParam(HIDE_CONTEXTUAL_CARDS_DATA);
         }
         return sShouldHideContextualCardsData;
+    }
+
+    /**
+     * @return Whether detection of device-online should be disabled (default false).
+     */
+    static boolean isOnlineDetectionDisabled() {
+        // TODO(donnd): Convert to test-only after launch and we have confidence it's robust.
+        if (sIsOnlineDetectionDisabled == null) {
+            sIsOnlineDetectionDisabled = getBooleanParam(ONLINE_DETECTION_DISABLED);
+        }
+        return sIsOnlineDetectionDisabled;
+    }
+
+    // ---------------
+    // Features.
+    // ---------------
+
+    /**
+     * @return Whether or not single actions based on Contextual Cards is enabled.
+     */
+    static boolean isContextualSearchSingleActionsEnabled() {
+        if (sContextualSearchSingleActionsEnabled == null) {
+            sContextualSearchSingleActionsEnabled =
+                    ChromeFeatureList.isEnabled(ChromeFeatureList.CONTEXTUAL_SEARCH_SINGLE_ACTIONS);
+        }
+
+        return sContextualSearchSingleActionsEnabled;
     }
 
     // --------------------------------------------------------------------------------------------

@@ -7,4 +7,5 @@
 <string name="sync_confirmation_chrome_sync_message">"您的书签、历史记录、密码及其他设置均将同步到您的 Google 帐号，以便您在自己的任意设备上使用"</string>
 <string name="sync_confirmation_personalize_services_title">"对 Google 服务进行个性化设置"</string>
 <string name="sync_confirmation_personalize_services_body">"Google 可能会利用您的浏览记录为您提供个性化的 Google 搜索、广告和其他 Google 服务"</string>
+<string name="sync_disabled_confirmation_chrome_sync_title">"您的管理员已停用同步"</string>
 </resources>

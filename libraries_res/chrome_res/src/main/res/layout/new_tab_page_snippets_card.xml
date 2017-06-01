@@ -6,11 +6,12 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/snippets_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="@drawable/button_borderless_compat"
-    android:padding="@dimen/snippets_padding_and_peeking_card_height"
+    android:padding="@dimen/snippets_padding"
     android:background="@drawable/ntp_card_single">
 
     <org.chromium.ui.widget.TextViewWithLeading
@@ -38,19 +39,43 @@
         android:textColor="@color/snippets_text_color"
         chrome:leading="20dp" />
 
-    <TextView
-        android:id="@+id/article_publisher"
+    <LinearLayout
+        tools:ignore="UseCompoundDrawables"
+        android:id="@+id/publisher_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/snippets_publisher_margin_top_with_article_snippet"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/article_snippet"
-        android:drawablePadding="8dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="12sp"
-        android:textColor="@color/snippets_publisher_name_color"
-        android:textDirection="locale" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/article_publisher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="8dp"
+            android:paddingStart="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:textColor="@color/snippets_publisher_name_color"
+            android:textDirection="locale" />
+
+        <!-- We can't add this ImageView as a CompoundDrawable to the TextView because we want to
+        have different paddings between the favicon (which is a compound drawable on the TextView)
+        and the offline icon. -->
+        <org.chromium.chrome.browser.widget.TintedImageView
+            android:id="@+id/offline_icon"
+            android:layout_width="@dimen/snippets_offline_icon_size"
+            android:layout_height="@dimen/snippets_offline_icon_size"
+            android:layout_marginStart="6dp"
+            android:alpha="0.54"
+            android:src="@drawable/offline_pin_round"
+            android:contentDescription="@string/accessibility_ntp_offline_badge"
+            android:visibility="gone"
+            chrome:tint="#000" />
+
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/article_thumbnail"

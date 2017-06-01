@@ -37,7 +37,13 @@ public interface TabPersistencePolicy {
     String getStateFileName();
 
     /**
-     * @return The filename of the state that is to be merged.
+     * @return Whether a merge needs to be performed on startup.
+     */
+    boolean shouldMergeOnStartup();
+
+    /**
+     * @return The filename of the state that is to be merged.  If null, no merge will be
+     *         triggered.
      */
     @Nullable
     String getStateToBeMergedFileName();
@@ -94,6 +100,12 @@ public interface TabPersistencePolicy {
      * @param cache The {@link TabContentManager} to use.
      */
     void setTabContentManager(TabContentManager cache);
+
+    /**
+     * Notified when {@link TabPersistentStore#loadState(boolean)} has completed.
+     * @param tabCountAtStartup The number of tabs to be restored at startup.
+     */
+    void notifyStateLoaded(int tabCountAtStartup);
 
     /**
      * Notify that persistent store has been destroyed.

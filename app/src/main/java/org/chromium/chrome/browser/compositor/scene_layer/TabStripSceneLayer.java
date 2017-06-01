@@ -56,7 +56,7 @@ public class TabStripSceneLayer extends SceneOverlayLayer {
      * @param layerTitleCache A layer title cache.
      * @param resourceManager A resource manager.
      * @param stripLayoutTabsToRender Array of strip layout tabs.
-     * @param yOffset Current top controls offset in dp.
+     * @param yOffset Current browser controls offset in dp.
      */
     public void pushAndUpdateStrip(StripLayoutHelperManager layoutHelper,
             LayerTitleCache layerTitleCache, ResourceManager resourceManager,

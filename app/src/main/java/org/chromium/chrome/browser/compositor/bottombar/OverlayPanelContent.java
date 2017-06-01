@@ -348,16 +348,16 @@ public class OverlayPanelContent {
     // ============================================================================================
 
     /**
-     * Calls updateTopControlsState on the ContentViewCore.
+     * Calls updateBrowserControlsState on the ContentViewCore.
      * @param enableHiding Enable the toolbar's ability to hide.
      * @param enableShowing If the toolbar is allowed to show.
      * @param animate If the toolbar should animate when showing/hiding.
      */
-    public void updateTopControlsState(boolean enableHiding, boolean enableShowing,
-            boolean animate) {
+    public void updateBrowserControlsState(
+            boolean enableHiding, boolean enableShowing, boolean animate) {
         if (mContentViewCore != null && mContentViewCore.getWebContents() != null) {
-            mContentViewCore.getWebContents().updateTopControlsState(enableHiding, enableShowing,
-                    animate);
+            mContentViewCore.getWebContents().updateBrowserControlsState(
+                    enableHiding, enableShowing, animate);
         }
     }
 

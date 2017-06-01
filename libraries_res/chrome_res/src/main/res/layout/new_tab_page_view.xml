@@ -19,6 +19,7 @@
     <!-- Bookmarks and Recent tabs buttons -->
     <org.chromium.chrome.browser.ntp.NewTabPageToolbar
         android:id="@+id/ntp_toolbar"
+        android:background="@color/ntp_bg"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_gravity="bottom"

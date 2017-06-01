@@ -39,7 +39,6 @@ public class SiteSettingsCategory {
     public static final String CATEGORY_CAMERA = "camera";
     public static final String CATEGORY_COOKIES = "cookies";
     public static final String CATEGORY_DEVICE_LOCATION = "device_location";
-    public static final String CATEGORY_FULLSCREEN = "fullscreen";
     public static final String CATEGORY_JAVASCRIPT = "javascript";
     public static final String CATEGORY_MICROPHONE = "microphone";
     public static final String CATEGORY_NOTIFICATIONS = "notifications";
@@ -108,10 +107,6 @@ public class SiteSettingsCategory {
         if (CATEGORY_DEVICE_LOCATION.equals(category)) {
             return new LocationCategory();
         }
-        if (CATEGORY_FULLSCREEN.equals(category)) {
-            return new SiteSettingsCategory(CATEGORY_FULLSCREEN, "",
-                    ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN);
-        }
         if (CATEGORY_MICROPHONE.equals(category)) {
             return new SiteSettingsCategory(
                     SiteSettingsCategory.CATEGORY_MICROPHONE,
@@ -164,9 +159,6 @@ public class SiteSettingsCategory {
         }
         if (contentSettingsType == ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION) {
             return fromString(CATEGORY_DEVICE_LOCATION);
-        }
-        if (contentSettingsType == ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN) {
-            return fromString(CATEGORY_FULLSCREEN);
         }
         if (contentSettingsType == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC) {
             return fromString(CATEGORY_MICROPHONE);
@@ -229,13 +221,6 @@ public class SiteSettingsCategory {
     public boolean showCameraSites() {
         return mContentSettingsType
                 == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA;
-    }
-
-    /**
-     * Returns whether this category is the Fullscreen category.
-     */
-    public boolean showFullscreenSites() {
-        return mContentSettingsType == ContentSettingsType.CONTENT_SETTINGS_TYPE_FULLSCREEN;
     }
 
     /**
@@ -305,7 +290,6 @@ public class SiteSettingsCategory {
         if (showBackgroundSyncSites()) return prefs.isBackgroundSyncManaged();
         if (showCameraSites()) return !prefs.isCameraUserModifiable();
         if (showCookiesSites()) return prefs.isAcceptCookiesManaged();
-        if (showFullscreenSites()) return prefs.isFullscreenManaged();
         if (showGeolocationSites()) {
             return !prefs.isAllowLocationUserModifiable();
         }

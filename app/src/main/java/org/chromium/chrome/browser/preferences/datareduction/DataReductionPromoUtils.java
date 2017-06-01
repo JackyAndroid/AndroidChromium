@@ -15,25 +15,44 @@ import org.chromium.chrome.browser.preferences.PrefServiceBridge.AboutVersionStr
  */
 public class DataReductionPromoUtils {
     /**
-     * Keys used to save whether the first run experience or second run promo screen has been shown,
-     * the time in milliseconds since epoch it was shown, the Chrome version it was shown in, and
-     * whether the user opted out of the data reduction proxy in the FRE promo.
+     * Key used to save whether the first run experience or second run promo screen has been shown.
      */
     private static final String SHARED_PREF_DISPLAYED_FRE_OR_SECOND_RUN_PROMO =
             "displayed_data_reduction_promo";
+    /**
+     * Key used to save the time in milliseconds since epoch that the first run experience or second
+     * run promo was shown.
+     */
     private static final String SHARED_PREF_DISPLAYED_FRE_OR_SECOND_PROMO_TIME_MS =
             "displayed_data_reduction_promo_time_ms";
+    /**
+     * Key used to save the Chrome version the first run experience or second run promo was shown
+     * in.
+     */
     private static final String SHARED_PREF_DISPLAYED_FRE_OR_SECOND_PROMO_VERSION =
             "displayed_data_reduction_promo_version";
-    private static final String SHARED_PREF_FRE_PROMO_OPT_OUT = "fre_promo_opt_out";
-
     /**
-     * Keys used to save whether the infobar promo is shown and the Chrome version it was shown in.
+     * Key used to save whether the user opted out of the data reduction proxy in the FRE promo.
+     */
+    private static final String SHARED_PREF_FRE_PROMO_OPT_OUT = "fre_promo_opt_out";
+    /**
+     * Key used to save whether the infobar promo has been shown.
      */
     private static final String SHARED_PREF_DISPLAYED_INFOBAR_PROMO =
             "displayed_data_reduction_infobar_promo";
+    /**
+     * Key used to save the Chrome version the infobar promo was shown in.
+     */
     private static final String SHARED_PREF_DISPLAYED_INFOBAR_PROMO_VERSION =
             "displayed_data_reduction_infobar_promo_version";
+    /**
+     * Key used to save the saved bytes when the snackbar promo was last shown. This value is
+     * initialized to the bytes saved for data saver users that had data saver turned on when this
+     * pref was added. This prevents us from showing promo for savings that have already happened
+     * for existing users.
+     */
+    private static final String SHARED_PREF_DISPLAYED_SNACKBAR_PROMO_SAVED_BYTES =
+            "displayed_data_reduction_snackbar_promo_saved_bytes";
 
     /**
      * Returns whether any of the data reduction proxy promotions can be displayed. Checks if the
@@ -138,5 +157,34 @@ public class DataReductionPromoUtils {
     public static boolean getDisplayedInfoBarPromo() {
         return ContextUtils.getAppSharedPreferences().getBoolean(
                 SHARED_PREF_DISPLAYED_INFOBAR_PROMO, false);
+    }
+
+    /** See {@link #SHARED_PREF_DISPLAYED_SNACKBAR_PROMO_SAVED_BYTES}. */
+    public static void saveSnackbarPromoDisplayed(long dataSavingsInBytes) {
+        ContextUtils.getAppSharedPreferences()
+                .edit()
+                .putLong(SHARED_PREF_DISPLAYED_SNACKBAR_PROMO_SAVED_BYTES, dataSavingsInBytes)
+                .apply();
+    }
+
+    /**
+     * Returns the data savings in bytes from when the promo snackbar was last displayed.
+     *
+     * @return The data savings in bytes, or -1 if the promo has not been displayed before.
+     */
+    public static long getDisplayedSnackbarPromoSavedBytes() {
+        return ContextUtils.getAppSharedPreferences().getLong(
+                SHARED_PREF_DISPLAYED_SNACKBAR_PROMO_SAVED_BYTES, -1);
+    }
+
+    /**
+     * Returns a boolean indicating that the data savings in bytes on the first upgrade to the
+     * version that shows the snackbar has been initialized.
+     *
+     * @return Whether that the starting saved bytes have been initialized.
+     */
+    public static boolean hasSnackbarPromoBeenInitWithStartingSavedBytes() {
+        return ContextUtils.getAppSharedPreferences()
+                .contains(SHARED_PREF_DISPLAYED_SNACKBAR_PROMO_SAVED_BYTES);
     }
 }

@@ -58,7 +58,7 @@ public final class FirstRunSignInProcessor {
         SigninManager signinManager = SigninManager.get(activity.getApplicationContext());
         signinManager.onFirstRunCheckDone();
 
-        boolean firstRunFlowComplete = FirstRunStatus.getFirstRunFlowComplete(activity);
+        boolean firstRunFlowComplete = FirstRunStatus.getFirstRunFlowComplete();
         // We skip signin and the FRE if
         // - FRE is disabled, or
         // - FRE hasn't been completed, but the user has already seen the ToS in the Setup Wizard.
@@ -129,7 +129,7 @@ public final class FirstRunSignInProcessor {
         Log.e(TAG, "Attempt to pass-through without completed FRE");
 
         // Things went wrong -- we want the user to go through the full FRE.
-        FirstRunStatus.setFirstRunFlowComplete(activity, false);
+        FirstRunStatus.setFirstRunFlowComplete(false);
         setFirstRunFlowSignInComplete(activity, false);
         setFirstRunFlowSignInAccountName(activity, null);
         setFirstRunFlowSignInSetup(activity, false);
@@ -207,7 +207,7 @@ public final class FirstRunSignInProcessor {
      * @param data Resulting FRE properties bundle
      */
     public static void finalizeFirstRunFlowState(Context context, Bundle data) {
-        FirstRunStatus.setFirstRunFlowComplete(context, true);
+        FirstRunStatus.setFirstRunFlowComplete(true);
         setFirstRunFlowSignInAccountName(context,
                     data.getString(FirstRunActivity.RESULT_SIGNIN_ACCOUNT_NAME));
         setFirstRunFlowSignInSetup(
@@ -221,7 +221,7 @@ public final class FirstRunSignInProcessor {
     public static void updateSigninManagerFirstRunCheckDone(Context context) {
         SigninManager manager = SigninManager.get(context);
         if (manager.isSignInAllowed()) return;
-        if (!FirstRunStatus.getFirstRunFlowComplete(context)) return;
+        if (!FirstRunStatus.getFirstRunFlowComplete()) return;
         if (!getFirstRunFlowSignInComplete(context)) return;
         manager.onFirstRunCheckDone();
     }

@@ -17,7 +17,7 @@ import android.view.ViewTreeObserver;
 public class ImpressionTracker
         implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
     /**
-     * The Listener will be called back on each impression. Whenever at least 1/3 of the view's
+     * The Listener will be called back on each impression. Whenever at least 2/3 of the view's
      * height is visible, that counts as an impression. Note that this will get called often while
      * the view is visible; it's the implementer's responsibility to count only one impression or
      * reset the {@link ImpressionTracker}.
@@ -91,9 +91,12 @@ public class ImpressionTracker
         ViewParent parent = mView.getParent();
         if (parent != null) {
             Rect rect = new Rect(0, 0, mView.getWidth(), mView.getHeight());
-            parent.getChildVisibleRect(mView, rect, null);
-            // Track impression if at least one third of the view is visible.
-            if (rect.height() >= mView.getHeight() / 3) {
+
+            // Track impression if at least 2/3 of the view is visible.
+            // |getChildVisibleRect| returns false when the view is empty, which may happen when
+            // dismissing or reassigning a View. In this case |rect| appears to be invalid.
+            if (parent.getChildVisibleRect(mView, rect, null)
+                    && rect.height() >= 2 * mView.getHeight() / 3) {
                 mTriggered = true;
                 mListener.onImpression();
             }

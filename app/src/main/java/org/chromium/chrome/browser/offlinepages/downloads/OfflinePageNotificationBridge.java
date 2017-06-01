@@ -75,12 +75,15 @@ public class OfflinePageNotificationBridge {
         DownloadNotifier notifier = getDownloadNotifier(context);
         if (notifier == null) return;
 
+        // Use -1 percentage for interdeterminate progress bar (until we have better value).
+        // TODO(qinmin): get the download percentage from native code,
+        int percentage = -1;
         DownloadInfo downloadInfo = new DownloadInfo.Builder()
                                             .setIsOfflinePage(true)
                                             .setDownloadGuid(guid)
                                             .setFileName(displayName)
                                             .setFilePath(url)
-                                            .setPercentCompleted(-1)
+                                            .setPercentCompleted(percentage)
                                             .setIsOffTheRecord(false)
                                             .setIsResumable(true)
                                             .setTimeRemainingInMillis(0)
@@ -146,7 +149,7 @@ public class OfflinePageNotificationBridge {
      */
     @CalledByNative
     public static void showDownloadingToast(Context context) {
-        Toast.makeText(context, R.string.download_pending, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.download_started, Toast.LENGTH_SHORT).show();
     }
 
     private static DownloadNotifier getDownloadNotifier(Context context) {

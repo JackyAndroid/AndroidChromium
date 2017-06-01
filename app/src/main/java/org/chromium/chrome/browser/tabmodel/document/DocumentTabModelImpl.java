@@ -120,7 +120,7 @@ public class DocumentTabModelImpl extends TabModelJniBridge implements DocumentT
     public DocumentTabModelImpl(ActivityDelegate activityDelegate, StorageDelegate storageDelegate,
             TabCreatorManager tabCreatorManager, boolean isIncognito, int prioritizedTabId,
             Context context) {
-        super(isIncognito);
+        super(isIncognito, false);
         mActivityDelegate = activityDelegate;
         mStorageDelegate = storageDelegate;
         mContext = context;

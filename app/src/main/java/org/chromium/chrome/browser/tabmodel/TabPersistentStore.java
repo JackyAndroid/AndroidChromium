@@ -102,35 +102,35 @@ public class TabPersistentStore extends TabPersister {
     /**
      * Alerted at various stages of operation.
      */
-    public static interface TabPersistentStoreObserver {
+    public abstract static class TabPersistentStoreObserver {
         /**
          * To be called when the file containing the initial information about the TabModels has
          * been loaded.
          * @param tabCountAtStartup How many tabs there are in the TabModels.
          */
-        void onInitialized(int tabCountAtStartup);
+        void onInitialized(int tabCountAtStartup) {}
 
         /**
          * Called when details about a Tab are read from the metadata file.
          */
         void onDetailsRead(int index, int id, String url,
-                boolean isStandardActiveIndex, boolean isIncognitoActiveIndex);
+                boolean isStandardActiveIndex, boolean isIncognitoActiveIndex) {}
 
         /**
          * To be called when the TabStates have all been loaded.
          */
-        void onStateLoaded();
+        void onStateLoaded() {}
 
         /**
          * To be called when the TabState from another instance has been merged.
          */
-        void onStateMerged();
+        void onStateMerged() {}
 
         /**
          * Called when the metadata file has been saved out asynchronously.
          * This currently does not get called when the metadata file is saved out on the UI thread.
          */
-        void onMetadataSavedAsynchronously();
+        void onMetadataSavedAsynchronously() {}
     }
 
     /** Stores information about a TabModel. */
@@ -198,12 +198,9 @@ public class TabPersistentStore extends TabPersister {
      * @param modelSelector The {@link TabModelSelector} to restore to and save from.
      * @param tabCreatorManager The {@link TabCreatorManager} to use.
      * @param observer      Notified when the TabPersistentStore has completed tasks.
-     * @param mergeTabs     Whether tabs from a second TabModelSelector should be merged into
-     *                      into this instance.
      */
     public TabPersistentStore(TabPersistencePolicy policy, TabModelSelector modelSelector,
-            TabCreatorManager tabCreatorManager, TabPersistentStoreObserver observer,
-            final boolean mergeTabs) {
+            TabCreatorManager tabCreatorManager, TabPersistentStoreObserver observer) {
         mPersistencePolicy = policy;
         mTabModelSelector = modelSelector;
         mTabCreatorManager = tabCreatorManager;
@@ -226,7 +223,7 @@ public class TabPersistentStore extends TabPersister {
                 startFetchTabListTask(executor, mPersistencePolicy.getStateFileName());
         startPrefetchActiveTabTask(executor);
 
-        if (mergeTabs) {
+        if (mPersistencePolicy.shouldMergeOnStartup()) {
             assert mPersistencePolicy.getStateToBeMergedFileName() != null;
             mPrefetchTabListToMergeTask = startFetchTabListTask(
                     executor, mPersistencePolicy.getStateToBeMergedFileName());
@@ -403,6 +400,7 @@ public class TabPersistentStore extends TabPersister {
             Log.d(TAG, "loadState exception: " + e.toString(), e);
         }
 
+        mPersistencePolicy.notifyStateLoaded(mTabsToRestore.size());
         if (mObserver != null) mObserver.onInitialized(mTabsToRestore.size());
     }
 
@@ -1305,6 +1303,7 @@ public class TabPersistentStore extends TabPersister {
             protected DataInputStream doInBackground(Void... params) {
                 Log.w(TAG, "Starting to fetch tab list.");
                 File stateFile = new File(getStateDirectory(), stateFileName);
+                Log.e(TAG, "fuck" + stateFile.getAbsolutePath() +' '+stateFileName);
                 if (!stateFile.exists()) {
                     Log.e(TAG, "State file does not exist.");
                     return null;

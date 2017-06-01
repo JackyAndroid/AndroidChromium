@@ -10,7 +10,7 @@ import org.chromium.chrome.browser.webshare.ShareServiceImplementationFactory;
 import org.chromium.content_public.browser.InterfaceRegistrar;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.payments.mojom.PaymentRequest;
-import org.chromium.services.shell.InterfaceRegistry;
+import org.chromium.services.service_manager.InterfaceRegistry;
 import org.chromium.webshare.mojom.ShareService;
 
 /** Registers mojo interface implementations exposed to C++ code at the Chrome layer. */

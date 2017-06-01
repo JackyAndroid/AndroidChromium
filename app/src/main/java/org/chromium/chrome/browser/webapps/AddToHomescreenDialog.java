@@ -17,6 +17,7 @@ import android.widget.ImageView;
 
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.banners.AppBannerManager;
 
 /**
  * Displays the "Add to Homescreen" dialog.
@@ -52,7 +53,7 @@ public class AddToHomescreenDialog implements AddToHomescreenManager.Observer {
         View view = activity.getLayoutInflater().inflate(
                 R.layout.add_to_homescreen_dialog, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.AlertDialogTheme)
-                .setTitle(R.string.menu_add_to_homescreen)
+                .setTitle(AppBannerManager.getHomescreenLanguageOption())
                 .setNegativeButton(R.string.cancel,
                         new DialogInterface.OnClickListener() {
                             @Override

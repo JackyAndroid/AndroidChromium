@@ -4,10 +4,7 @@
 
 package org.chromium.chrome.browser.ntp.cards;
 
-import android.support.annotation.StringRes;
-
 import org.chromium.base.Log;
-import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ntp.NewTabPageView.NewTabPageManager;
 import org.chromium.chrome.browser.ntp.snippets.CategoryInt;
 import org.chromium.chrome.browser.ntp.snippets.ContentSuggestionsCardLayout.ContentSuggestionsCardLayoutEnum;
@@ -39,23 +36,47 @@ public class SuggestionsCategoryInfo {
     private final int mCardLayout;
 
     /**
-     * Whether the category supports a "More" button. The button either triggers
-     * a fixed action (like opening a native page) or, if there is no such fixed
-     * action, it queries the provider for more suggestions.
+     * Whether the category supports a "More" action, that triggers fetching more suggestions for
+     * the category, while keeping the current ones.
+     * @see ActionItem
      */
-    private final boolean mHasMoreButton;
+    private final boolean mHasFetchMoreAction;
+
+    /**
+     * Whether the category supports a "Reload" action, that triggers fetching new suggestions to
+     * replace the current ones.
+     * @see ActionItem
+     */
+    private final boolean mHasReloadAction;
+
+    /**
+     * Whether the category supports a "ViewAll" action, that triggers displaying all the content
+     * related to the current categories.
+     * @see ActionItem
+     * @see #performViewAllAction(NewTabPageManager)
+     */
+    private final boolean mHasViewAllAction;
 
     /** Whether this category should be shown if it offers no suggestions. */
     private final boolean mShowIfEmpty;
 
+    /**
+     * Description text to use on the status card when there are no suggestions in this category.
+     */
+    private final String mNoSuggestionsMessage;
+
     public SuggestionsCategoryInfo(@CategoryInt int category, String title,
-            @ContentSuggestionsCardLayoutEnum int cardLayout, boolean hasMoreButton,
-            boolean showIfEmpty) {
+            @ContentSuggestionsCardLayoutEnum int cardLayout, boolean hasMoreAction,
+            boolean hasReloadAction, boolean hasViewAllAction, boolean showIfEmpty,
+            String noSuggestionsMessage) {
         mCategory = category;
         mTitle = title;
         mCardLayout = cardLayout;
-        mHasMoreButton = hasMoreButton;
+        mHasFetchMoreAction = hasMoreAction;
+        mHasReloadAction = hasReloadAction;
+        mHasViewAllAction = hasViewAllAction;
         mShowIfEmpty = showIfEmpty;
+        mNoSuggestionsMessage = noSuggestionsMessage;
     }
 
     public String getTitle() {
@@ -72,8 +93,16 @@ public class SuggestionsCategoryInfo {
         return mCardLayout;
     }
 
-    public boolean hasMoreButton() {
-        return mHasMoreButton;
+    public boolean hasFetchMoreAction() {
+        return mHasFetchMoreAction;
+    }
+
+    public boolean hasReloadAction() {
+        return mHasReloadAction;
+    }
+
+    public boolean hasViewAllAction() {
+        return mHasViewAllAction;
     }
 
     public boolean showIfEmpty() {
@@ -81,11 +110,18 @@ public class SuggestionsCategoryInfo {
     }
 
     /**
-     * Performs the appropriate action for the provided category, for the case where there are no
-     * suggestions available. In general, this consists in navigating to the view showing all the
-     * content, or fetching new content.
+     * Returns the string to use as description for the status card that is displayed when there
+     * are no suggestions available for the provided category.
      */
-    public void performEmptyStateAction(NewTabPageManager manager, NewTabPageAdapter adapter) {
+    public String getNoSuggestionsMessage() {
+        return mNoSuggestionsMessage;
+    }
+
+    /**
+     * Performs the View All action for the provided category, navigating navigating to the view
+     * showing all the content.
+     */
+    public void performViewAllAction(NewTabPageManager manager) {
         switch (mCategory) {
             case KnownCategories.BOOKMARKS:
                 manager.navigateToBookmarks();
@@ -98,37 +134,10 @@ public class SuggestionsCategoryInfo {
                 break;
             case KnownCategories.PHYSICAL_WEB_PAGES:
             case KnownCategories.RECENT_TABS:
+            case KnownCategories.ARTICLES:
+            default:
                 Log.wtf(TAG, "'Empty State' action called for unsupported category: %d", mCategory);
                 break;
-            case KnownCategories.ARTICLES:
-            default:
-                // TODO(dgn): For now, we assume any unknown sections are remote sections and just
-                // reload all remote sections. crbug.com/656008
-                adapter.reloadSnippets();
-                break;
-        }
-    }
-
-    /**
-     * Returns the string to use as description for the status card that is displayed when there
-     * are no suggestions available for the provided category.
-     */
-    @StringRes
-    public int getNoSuggestionDescription() {
-        switch (mCategory) {
-            case KnownCategories.BOOKMARKS:
-                return R.string.ntp_status_card_no_bookmarks;
-            case KnownCategories.DOWNLOADS:
-            case KnownCategories.FOREIGN_TABS:
-            case KnownCategories.PHYSICAL_WEB_PAGES:
-            case KnownCategories.RECENT_TABS:
-                Log.wtf(TAG, "Requested description for unsupported category: %d", mCategory);
-                return 0;
-            case KnownCategories.ARTICLES:
-            default:
-                // TODO(dgn): For now, we assume any unknown sections are remote sections and just
-                // reuse the string for ARTICLES. crbug.com/656008
-                return R.string.ntp_status_card_no_articles;
         }
     }
 }

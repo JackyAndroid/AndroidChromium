@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.notifications;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.RemoteInput;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -199,8 +200,8 @@ public class NotificationPlatformBridge {
             }
             int actionIndex = intent.getIntExtra(
                     NotificationConstants.EXTRA_NOTIFICATION_INFO_ACTION_INDEX, -1);
-            sInstance.onNotificationClicked(
-                    notificationId, origin, profileId, incognito, tag, webApkPackage, actionIndex);
+            sInstance.onNotificationClicked(notificationId, origin, profileId, incognito, tag,
+                    webApkPackage, actionIndex, getNotificationReply(intent));
             return true;
         } else if (NotificationConstants.ACTION_CLOSE_NOTIFICATION.equals(intent.getAction())) {
             // Notification deleteIntent is executed only "when the notification is explicitly
@@ -213,6 +214,22 @@ public class NotificationPlatformBridge {
 
         Log.e(TAG, "Unrecognized Notification action: " + intent.getAction());
         return false;
+    }
+
+    @Nullable
+    private static String getNotificationReply(Intent intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            // RemoteInput was added in KITKAT_WATCH.
+            Bundle remoteInputResults = RemoteInput.getResultsFromIntent(intent);
+            if (remoteInputResults != null) {
+                CharSequence reply =
+                        remoteInputResults.getCharSequence(NotificationConstants.KEY_TEXT_REPLY);
+                if (reply != null) {
+                    return reply.toString();
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -441,7 +458,6 @@ public class NotificationPlatformBridge {
     /**
      * Displays a notification with the given details.
      *
-     * TODO(crbug.com/650302): Combine the 'action*' parameters into a single array of objects.
      * @param notificationId The id of the notification.
      * @param origin Full text of the origin, including the protocol, owning this notification.
      * @param profileId Id of the profile that showed the notification.
@@ -465,22 +481,14 @@ public class NotificationPlatformBridge {
      * @param renotify Whether the sound, vibration, and lights should be replayed if the
      *                 notification is replacing another notification.
      * @param silent Whether the default sound, vibration and lights should be suppressed.
-     * @param actionTitles Titles of actions to display alongside the notification.
-     * @param actionIcons Icons of actions to display alongside the notification.
-     * @param actionTypes Types of actions to display alongside the notification.
-     * @param actionPlaceholders Placeholders of actions to display alongside the notification.
+     * @param actions Action buttons to display alongside the notification.
      * @see https://developer.android.com/reference/android/app/Notification.html
      */
     @CalledByNative
     private void displayNotification(String notificationId, String origin, String profileId,
             boolean incognito, String tag, String webApkPackage, String title, String body,
             Bitmap image, Bitmap icon, Bitmap badge, int[] vibrationPattern, long timestamp,
-            boolean renotify, boolean silent, String[] actionTitles, Bitmap[] actionIcons,
-            String[] actionTypes, String[] actionPlaceholders) {
-        if (actionTitles.length != actionIcons.length) {
-            throw new IllegalArgumentException("The number of action titles and icons must match.");
-        }
-
+            boolean renotify, boolean silent, ActionInfo[] actions) {
         Resources res = mAppContext.getResources();
 
         // Record whether it's known whether notifications can be shown to the user at all.
@@ -524,19 +532,19 @@ public class NotificationPlatformBridge {
                         .setOrigin(UrlFormatter.formatUrlForSecurityDisplay(
                                 origin, false /* showScheme */));
 
-        for (int actionIndex = 0; actionIndex < actionTitles.length; actionIndex++) {
+        for (int actionIndex = 0; actionIndex < actions.length; actionIndex++) {
             PendingIntent intent = makePendingIntent(
                     NotificationConstants.ACTION_CLICK_NOTIFICATION, notificationId, origin,
                     profileId, incognito, tag, webApkPackage, actionIndex);
+            ActionInfo action = actions[actionIndex];
             // Don't show action button icons when there's an image, as then action buttons go on
             // the same row as the Site Settings button, so icons wouldn't leave room for text.
-            Bitmap actionIcon = hasImage ? null : actionIcons[actionIndex];
-            // TODO(crbug.com/650302): Encode actionTypes with an enum, not a magic string!
-            if (actionTypes[actionIndex].equals("text")) {
-                notificationBuilder.addTextAction(actionIcon, actionTitles[actionIndex], intent,
-                        actionPlaceholders[actionIndex]);
+            Bitmap actionIcon = hasImage ? null : action.icon;
+            if (action.type == NotificationActionType.TEXT) {
+                notificationBuilder.addTextAction(
+                        actionIcon, action.title, intent, action.placeholder);
             } else {
-                notificationBuilder.addButtonAction(actionIcon, actionTitles[actionIndex], intent);
+                notificationBuilder.addButtonAction(actionIcon, action.title, intent);
             }
         }
 
@@ -544,7 +552,7 @@ public class NotificationPlatformBridge {
         // label and icon, so abbreviate it. This has the unfortunate side-effect of unnecessarily
         // abbreviating it on Android Wear also (crbug.com/576656). If custom layouts are enabled,
         // the label and icon provided here only affect Android Wear, so don't abbreviate them.
-        boolean abbreviateSiteSettings = actionTitles.length > 0 && !useCustomLayouts(hasImage);
+        boolean abbreviateSiteSettings = actions.length > 0 && !useCustomLayouts(hasImage);
         int settingsIconId = abbreviateSiteSettings ? 0 : R.drawable.settings_cog;
         CharSequence settingsTitle = abbreviateSiteSettings
                                      ? res.getString(R.string.notification_site_settings_button)
@@ -679,12 +687,15 @@ public class NotificationPlatformBridge {
      * @param webApkPackage The package of the WebAPK associated with the notification.
      *        Empty if the notification is not associated with a WebAPK.
      * @param actionIndex
+     * @param reply User reply to a text action on the notification. Null if the user did not click
+     *              on a text action or if inline replies are not supported.
      */
     private void onNotificationClicked(String notificationId, String origin, String profileId,
-            boolean incognito, String tag, String webApkPackage, int actionIndex) {
+            boolean incognito, String tag, String webApkPackage, int actionIndex,
+            @Nullable String reply) {
         mLastNotificationClickMs = System.currentTimeMillis();
         nativeOnNotificationClicked(mNativeNotificationPlatformBridge, notificationId, origin,
-                profileId, incognito, tag, webApkPackage, actionIndex);
+                profileId, incognito, tag, webApkPackage, actionIndex, reply);
     }
 
     /**
@@ -708,7 +719,7 @@ public class NotificationPlatformBridge {
 
     private native void nativeOnNotificationClicked(long nativeNotificationPlatformBridgeAndroid,
             String notificationId, String origin, String profileId, boolean incognito, String tag,
-            String webApkPackage, int actionIndex);
+            String webApkPackage, int actionIndex, String reply);
     private native void nativeOnNotificationClosed(long nativeNotificationPlatformBridgeAndroid,
             String notificationId, String origin, String profileId, boolean incognito, String tag,
             boolean byUser);

@@ -77,6 +77,7 @@ public class TabbedModeTabPersistencePolicy implements TabPersistencePolicy {
     private final SharedPreferences mPreferences;
     private final int mSelectorIndex;
     private final int mOtherSelectorIndex;
+    private final boolean mMergeTabs;
 
     private TabContentManager mTabContentManager;
     private boolean mDestroyed;
@@ -85,11 +86,14 @@ public class TabbedModeTabPersistencePolicy implements TabPersistencePolicy {
      * Constructs a persistence policy that handles the Tabbed mode specific logic.
      * @param selectorIndex The index that represents which state file to pull and save state to.
      *                      This is used when there can be more than one TabModelSelector.
+     * @param mergeTabs     Whether this policy should handle merging tabs from all available
+     *                      tabbed mode files.
      */
-    public TabbedModeTabPersistencePolicy(int selectorIndex) {
+    public TabbedModeTabPersistencePolicy(int selectorIndex, boolean mergeTabs) {
         mPreferences = ContextUtils.getAppSharedPreferences();
         mSelectorIndex = selectorIndex;
         mOtherSelectorIndex = selectorIndex == 0 ? 1 : 0;
+        mMergeTabs = mergeTabs;
     }
 
     @Override
@@ -100,6 +104,11 @@ public class TabbedModeTabPersistencePolicy implements TabPersistencePolicy {
     @Override
     public String getStateFileName() {
         return getStateFileName(mSelectorIndex);
+    }
+
+    @Override
+    public boolean shouldMergeOnStartup() {
+        return mMergeTabs;
     }
 
     @Override
@@ -352,6 +361,11 @@ public class TabbedModeTabPersistencePolicy implements TabPersistencePolicy {
     @Override
     public void setTabContentManager(TabContentManager cache) {
         mTabContentManager = cache;
+    }
+
+    @Override
+    public void notifyStateLoaded(int tabCountAtStartup) {
+        RecordHistogram.recordCountHistogram("Tabs.CountAtStartup", tabCountAtStartup);
     }
 
     @Override

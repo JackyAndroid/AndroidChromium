@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="wrap_content">
+    <org.chromium.chrome.browser.toolbar.ToolbarControlContainer
+        android:id="@+id/control_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="bottom"
+        android:minHeight="@dimen/control_container_height" >
+        <view
+            class="org.chromium.chrome.browser.toolbar.ToolbarControlContainer$ToolbarViewResourceFrameLayout"
+            android:id="@+id/toolbar_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/toolbar_shadow"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/toolbar_shadow_height"
+                android:src="@drawable/toolbar_shadow"
+                android:scaleType="fitXY"
+                android:scaleY="-1"
+                android:contentDescription="@null" />
+            <ViewStub
+                android:id="@+id/toolbar_stub"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/toolbar_height_no_shadow"
+                android:layout_marginTop="@dimen/toolbar_shadow_height" />
+            <ViewStub
+                android:id="@+id/find_toolbar_stub"
+                android:inflatedId="@+id/find_toolbar"
+                android:visibility="gone"
+                android:layout_marginTop="@dimen/toolbar_shadow_height"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/toolbar_height_no_shadow"
+                android:layout="@layout/find_toolbar" />
+        </view>
+    </org.chromium.chrome.browser.toolbar.ToolbarControlContainer>
+</RelativeLayout>

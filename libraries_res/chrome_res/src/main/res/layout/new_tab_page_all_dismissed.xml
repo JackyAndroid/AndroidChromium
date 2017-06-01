@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/snippets_padding">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="112dp"
+        android:layout_height="112dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="72dp"
+        android:layout_marginBottom="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ntp_all_dismissed"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no" />
+
+    <org.chromium.ui.widget.TextViewWithLeading
+        android:id="@+id/title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/image"
+        android:layout_alignParentStart="true"
+        android:gravity="center_horizontal"
+        android:text="@string/ntp_all_dismissed_title_text"
+        android:textSize="16sp"
+        android:textColor="@color/snippets_headline_text_color"
+        chrome:leading="24dp" />
+
+    <org.chromium.ui.widget.TextViewWithLeading
+        android:id="@+id/body_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title_text"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="8dp"
+        android:gravity="center_horizontal"
+        android:text="@string/ntp_all_dismissed_body_text_morning"
+        android:textSize="14sp"
+        android:textColor="@color/snippets_text_color"
+        chrome:leading="20dp" />
+
+    <Button
+        android:id="@+id/action_button"
+        style="@style/ButtonCompatBorderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/body_text"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:text="@string/ntp_all_dismissed_refresh"
+        android:textAllCaps="true"
+        android:textColor="@color/light_active_color"
+        android:textSize="15sp" />
+
+</RelativeLayout>

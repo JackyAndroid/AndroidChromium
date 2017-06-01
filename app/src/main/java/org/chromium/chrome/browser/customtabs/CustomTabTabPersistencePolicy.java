@@ -120,6 +120,11 @@ public class CustomTabTabPersistencePolicy implements TabPersistencePolicy {
     }
 
     @Override
+    public boolean shouldMergeOnStartup() {
+        return false;
+    }
+
+    @Override
     @Nullable
     public String getStateToBeMergedFileName() {
         return null;
@@ -188,6 +193,10 @@ public class CustomTabTabPersistencePolicy implements TabPersistencePolicy {
 
     @Override
     public void setTabContentManager(TabContentManager cache) {
+    }
+
+    @Override
+    public void notifyStateLoaded(int tabCountAtStartup) {
     }
 
     @Override

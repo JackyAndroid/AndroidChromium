@@ -82,7 +82,7 @@ public class WebsiteAddress implements Comparable<WebsiteAddress>, Serializable 
 
     public String getOrigin() {
         // aaa:80 and aaa must return the same origin string.
-        if (mOrigin != null && mOmitProtocolAndPort) {
+        if (mHost != null && mOmitProtocolAndPort) {
             return HTTP_SCHEME + SCHEME_SUFFIX + mHost;
         } else {
             return mOrigin;

@@ -21,6 +21,8 @@ public class CreditCardNumberFormattingTextWatcher implements TextWatcher {
     /** Character for card number section separator. */
     private static final String SEPARATOR = " ";
 
+    private static final int NUMBER_OF_DIGITS = 16;
+
     /**
      * Whether to format the credit card number. If true, spaces will be inserted
      * automatically between each group of 4 digits in the credit card number as the user types.
@@ -33,7 +35,10 @@ public class CreditCardNumberFormattingTextWatcher implements TextWatcher {
      * This is set true when we are manipulating the text of EditText,
      * and all callback functions should check this boolean to avoid infinite recursion.
      */
-    private boolean mSelfChange = false;
+    private boolean mSelfChange;
+
+    /** Whether the formatting is disabled because the number is too long. */
+    private boolean mNumberTooLong;
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -62,11 +67,17 @@ public class CreditCardNumberFormattingTextWatcher implements TextWatcher {
             removeSeparators(s);
             // If number is too long, do not format it and remove all
             // previous separators.
-            if (s.length() > 16) {
+            if (s.length() > NUMBER_OF_DIGITS) {
+                mNumberTooLong = true;
                 mFormattingEnabled = false;
             } else {
                 insertSeparators(s);
             }
+        } else if (mNumberTooLong && s.length() <= NUMBER_OF_DIGITS) {
+            // If user deletes extra characters, re-enable formatting
+            mNumberTooLong = false;
+            mFormattingEnabled = true;
+            insertSeparators(s);
         }
         // If user clears the input, re-enable formatting
         if (s.length() == 0) mFormattingEnabled = true;

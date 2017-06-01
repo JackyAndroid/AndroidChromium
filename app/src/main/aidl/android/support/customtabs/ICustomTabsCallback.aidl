@@ -22,7 +22,9 @@ import android.os.Bundle;
  * Interface to a CustomTabsCallback.
  * @hide
  */
-oneway interface ICustomTabsCallback {
-    void onNavigationEvent(int navigationEvent, in Bundle extras) = 1;
-    void extraCallback(String callbackName, in Bundle args) = 2;
+interface ICustomTabsCallback {
+    oneway void onNavigationEvent(int navigationEvent, in Bundle extras) = 1;
+    oneway void extraCallback(String callbackName, in Bundle args) = 2;
+    void onMessageChannelReady(in Uri origin, in Bundle extras) = 3;
+    void onPostMessage(String message, in Bundle extras) = 4;
 }

@@ -169,7 +169,7 @@ public class SectionInformation {
         } else if (mDataType == PaymentRequestUI.TYPE_CONTACT_DETAILS) {
             return R.string.payments_add_contact;
         } else if (mDataType == PaymentRequestUI.TYPE_PAYMENT_METHODS) {
-            return R.string.payments_create_card;
+            return R.string.payments_add_card;
         }
         return 0;
     }

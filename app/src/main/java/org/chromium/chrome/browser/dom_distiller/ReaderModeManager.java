@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages UI effects for reader mode including hiding and showing the
  * reader mode and reader mode preferences toolbar icon and hiding the
- * top controls when a reader mode page has finished loading.
+ * browser controls when a reader mode page has finished loading.
  */
 public class ReaderModeManager extends TabModelSelectorTabObserver
         implements InfoBarContainerObserver, ReaderModeManagerDelegate {

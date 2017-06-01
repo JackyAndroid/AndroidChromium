@@ -10,8 +10,14 @@ import org.chromium.base.metrics.RecordHistogram;
  * Centralizes UMA data collection for the Data Reduction Proxy.
  */
 public class DataReductionProxyUma {
-    // Represent the possible user actions in the promo and settings menu. This must
-    // remain in sync with DataReductionProxy.UIAction in
+
+    public static final String UI_ACTION_HISTOGRAM_NAME = "DataReductionProxy.UIAction";
+    public static final String SNACKBAR_HISTOGRAM_NAME =
+            "DataReductionProxy.SnackbarPromo.DataSavings";
+    public static final String PREVIEWS_HISTOGRAM_NAME = "Previews.ContextMenuAction.LoFi";
+
+    // Represent the possible user actions in the various data reduction promos and settings menu.
+    // This must remain in sync with DataReductionProxy.UIAction in
     // tools/metrics/histograms/histograms.xml.
     public static final int ACTION_ENABLED = 0;
     // The value of 1 is reserved for an iOS-specific action. Values 2 and 3 are
@@ -25,7 +31,10 @@ public class DataReductionProxyUma {
     public static final int ACTION_FRE_DISABLED = 10;
     public static final int ACTION_INFOBAR_ENABLED = 11;
     public static final int ACTION_INFOBAR_DISMISSED = 12;
-    public static final int ACTION_INDEX_BOUNDARY = 13;
+    public static final int ACTION_SNACKBAR_LINK_CLICKED = 13;
+    public static final int ACTION_SNACKBAR_LINK_CLICKED_DISABLED = 14;
+    public static final int ACTION_SNACKBAR_DISMISSED = 15;
+    public static final int ACTION_INDEX_BOUNDARY = 16;
 
     // Represent the possible Lo-Fi context menu user actions. This must remain in sync with
     // Previews.ContextMenuAction.LoFi in tools/metrics/histograms/histograms.xml.
@@ -35,6 +44,7 @@ public class DataReductionProxyUma {
     public static final int ACTION_LOFI_LOAD_IMAGES_CONTEXT_MENU_SHOWN = 3;
     public static final int ACTION_LOFI_LOAD_IMAGES_CONTEXT_MENU_CLICKED = 4;
     public static final int ACTION_LOFI_CONTEXT_MENU_INDEX_BOUNDARY = 5;
+
     /**
      * Record the DataReductionProxy.UIAction histogram.
      * @param action User action at the promo, first run experience, or settings screen
@@ -42,8 +52,17 @@ public class DataReductionProxyUma {
     public static void dataReductionProxyUIAction(int action) {
         assert action >= 0 && action < ACTION_INDEX_BOUNDARY;
         RecordHistogram.recordEnumeratedHistogram(
-                "DataReductionProxy.UIAction", action,
+                UI_ACTION_HISTOGRAM_NAME, action,
                 DataReductionProxyUma.ACTION_INDEX_BOUNDARY);
+    }
+
+    /**
+     * Record the DataReductionProxy.SnackbarPromo.DataSavings histogram.
+     * @param promoDataSavingsMB The data savings in MB of the promo that was shown.
+     */
+    public static void dataReductionProxySnackbarPromo(int promoDataSavingsMB) {
+        RecordHistogram.recordCustomCountHistogram(
+                SNACKBAR_HISTOGRAM_NAME, promoDataSavingsMB, 1, 10000, 200);
     }
 
     /**
@@ -53,7 +72,7 @@ public class DataReductionProxyUma {
     public static void previewsLoFiContextMenuAction(int action) {
         assert action >= 0 && action < ACTION_LOFI_CONTEXT_MENU_INDEX_BOUNDARY;
         RecordHistogram.recordEnumeratedHistogram(
-                "Previews.ContextMenuAction.LoFi", action,
+                PREVIEWS_HISTOGRAM_NAME, action,
                 ACTION_LOFI_CONTEXT_MENU_INDEX_BOUNDARY);
     }
 }

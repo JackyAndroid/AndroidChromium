@@ -11,6 +11,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
+import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ShortcutHelper;
 import org.chromium.content_public.browser.WebContents;
 
@@ -128,6 +129,28 @@ public class AppBannerManager {
         mIsEnabledForTab = state;
     }
 
+    /** Returns the language option to use for the add to homescreen dialog and menu item. */
+    public static int getHomescreenLanguageOption() {
+        int languageOption = nativeGetHomescreenLanguageOption();
+        if (languageOption == LanguageOption.ADD) {
+            return R.string.menu_add_to_homescreen_add;
+        } else if (languageOption == LanguageOption.INSTALL) {
+            return R.string.menu_add_to_homescreen_install;
+        }
+        return R.string.menu_add_to_homescreen;
+    }
+
+    /** Returns the language option to use for app banners. */
+    public static int getAppBannerLanguageOption() {
+        int languageOption = nativeGetHomescreenLanguageOption();
+        if (languageOption == LanguageOption.ADD) {
+            return R.string.app_banner_add;
+        } else if (languageOption == LanguageOption.INSTALL) {
+            return R.string.app_banner_install;
+        }
+        return R.string.menu_add_to_homescreen;
+    }
+
     /** Overrides whether the system supports add to home screen. Used in testing. */
     @VisibleForTesting
     public static void setIsSupported(boolean state) {
@@ -138,12 +161,6 @@ public class AppBannerManager {
     @VisibleForTesting
     static void setTimeDeltaForTesting(int days) {
         nativeSetTimeDeltaForTesting(days);
-    }
-
-    /** Disables the HTTPS scheme requirement for testing. */
-    @VisibleForTesting
-    static void disableSecureSchemeCheckForTesting() {
-        nativeDisableSecureSchemeCheckForTesting();
     }
 
     /** Sets the weights of direct and indirect page navigations for testing. */
@@ -163,6 +180,7 @@ public class AppBannerManager {
         return nativeGetJavaBannerManagerForWebContents(webContents);
     }
 
+    private static native int nativeGetHomescreenLanguageOption();
     private static native AppBannerManager nativeGetJavaBannerManagerForWebContents(
             WebContents webContents);
     private native boolean nativeOnAppDetailsRetrieved(long nativeAppBannerManagerAndroid,
@@ -170,7 +188,6 @@ public class AppBannerManager {
 
     // Testing methods.
     private static native void nativeSetTimeDeltaForTesting(int days);
-    private static native void nativeDisableSecureSchemeCheckForTesting();
     private static native void nativeSetEngagementWeights(double directEngagement,
             double indirectEngagement);
     private native boolean nativeIsActiveForTesting(long nativeAppBannerManagerAndroid);

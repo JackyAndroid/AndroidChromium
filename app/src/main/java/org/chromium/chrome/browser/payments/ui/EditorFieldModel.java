@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.util.Pair;
 
 import org.chromium.base.Callback;
+import org.chromium.base.ContextUtils;
 import org.chromium.chrome.browser.preferences.autofill.AutofillProfileBridge.DropdownKeyValue;
 
 import java.util.ArrayList;
@@ -33,6 +34,18 @@ public class EditorFieldModel {
          * @return True if the value is valid.
          */
         boolean isValid(@Nullable CharSequence value);
+    }
+
+    /**
+     * The interface to be implemented by the field value icon generator.
+     */
+    public interface EditorValueIconGenerator {
+        /**
+         * Called to get the field value icon resource Id.
+         * @param value The value of the field.
+         * @return The resouce Id of the value icon, 0 indicates no icon.
+         */
+        int getIconResourceId(@Nullable CharSequence value);
     }
 
     private static final int INPUT_TYPE_HINT_MIN_INCLUSIVE = 0;
@@ -97,6 +110,7 @@ public class EditorFieldModel {
     @Nullable private Set<String> mDropdownKeys;
     @Nullable private List<CharSequence> mSuggestions;
     @Nullable private EditorFieldValidator mValidator;
+    @Nullable private EditorValueIconGenerator mValueIconGenerator;
     @Nullable private CharSequence mRequiredErrorMessage;
     @Nullable private CharSequence mInvalidErrorMessage;
     @Nullable private CharSequence mErrorMessage;
@@ -104,12 +118,12 @@ public class EditorFieldModel {
     @Nullable private CharSequence mMidLabel;
     @Nullable private CharSequence mBottomLabel;
     @Nullable private CharSequence mValue;
+    @Nullable private CharSequence mHint;
     @Nullable private Callback<Pair<String, Runnable>> mDropdownCallback;
-    @Nullable private Runnable mIconAction;
+    @Nullable private Runnable mActionIconAction;
     private int mLabelIconResourceId;
     private int mActionIconResourceId;
-    private int mActionDescriptionForAccessibility;
-    private boolean mIsChecked = false;
+    private int mActionIconDescriptionForAccessibility;
     private boolean mIsFullLine = true;
 
     /**
@@ -139,14 +153,18 @@ public class EditorFieldModel {
     }
 
     /**
-     * Constructs a checkbox to show in the editor. It's unchecked by default.
+     * Constructs a checkbox to show in the editor. It's checked by default.
      *
-     * @param checkboxLabel The label for the checkbox.
+     * @param checkboxLabel      The label for the checkbox.
+     * @param checkboxPreference The shared preference for the checkbox status.
      */
-    public static EditorFieldModel createCheckbox(CharSequence checkboxLabel) {
+    public static EditorFieldModel createCheckbox(
+            CharSequence checkboxLabel, CharSequence checkboxPreference) {
         assert checkboxLabel != null;
+        assert checkboxPreference != null;
         EditorFieldModel result = new EditorFieldModel(INPUT_TYPE_HINT_CHECKBOX);
         result.mLabel = checkboxLabel;
+        result.mValue = checkboxPreference;
         return result;
     }
 
@@ -177,13 +195,16 @@ public class EditorFieldModel {
      * @param label             The human-readable label for user to understand the type of data
      *                          that should be entered into this field.
      * @param dropdownKeyValues The keyed values to display in the dropdown.
+     * @param hint              The optional hint to be displayed when no value is selected.
      */
     public static EditorFieldModel createDropdown(
-            @Nullable CharSequence label, List<DropdownKeyValue> dropdownKeyValues) {
+            @Nullable CharSequence label, List<DropdownKeyValue> dropdownKeyValues,
+            @Nullable CharSequence hint) {
         assert dropdownKeyValues != null;
         EditorFieldModel result = new EditorFieldModel(INPUT_TYPE_HINT_DROPDOWN);
         result.mLabel = label;
         result.mDropdownKeyValues = dropdownKeyValues;
+        result.mHint = hint;
         result.mDropdownKeys = new HashSet<>();
         for (int i = 0; i < result.mDropdownKeyValues.size(); i++) {
             result.mDropdownKeys.add(result.mDropdownKeyValues.get(i).getKey());
@@ -203,12 +224,11 @@ public class EditorFieldModel {
      */
     public static EditorFieldModel createDropdown(
             @Nullable CharSequence label, List<DropdownKeyValue> dropdownKeyValues,
-            EditorFieldValidator validator,
-            CharSequence invalidErrorMessage) {
+            EditorFieldValidator validator, CharSequence invalidErrorMessage) {
         assert dropdownKeyValues != null;
         assert validator != null;
         assert invalidErrorMessage != null;
-        EditorFieldModel result = createDropdown(label, dropdownKeyValues);
+        EditorFieldModel result = createDropdown(label, dropdownKeyValues, null /* hint */);
         result.mValidator = validator;
         result.mInvalidErrorMessage = invalidErrorMessage;
         return result;
@@ -238,6 +258,7 @@ public class EditorFieldModel {
      *                             that should be entered into this field.
      * @param suggestions          Optional set of values to suggest to the user.
      * @param validator            Optional validator for the values in this field.
+     * @param valueIconGenerator   Optional icon generator for the values in this field.
      * @param requiredErrorMessage The optional error message that indicates to the user that they
      *                             cannot leave this field empty.
      * @param invalidErrorMessage  The optional error message that indicates to the user that the
@@ -246,6 +267,7 @@ public class EditorFieldModel {
      */
     public static EditorFieldModel createTextInput(int inputTypeHint, CharSequence label,
             @Nullable Set<CharSequence> suggestions, @Nullable EditorFieldValidator validator,
+            @Nullable EditorValueIconGenerator valueIconGenerator,
             @Nullable CharSequence requiredErrorMessage, @Nullable CharSequence invalidErrorMessage,
             @Nullable CharSequence value) {
         assert label != null;
@@ -253,6 +275,7 @@ public class EditorFieldModel {
         assert result.isTextField();
         result.mSuggestions = suggestions == null ? null : new ArrayList<CharSequence>(suggestions);
         result.mValidator = validator;
+        result.mValueIconGenerator = valueIconGenerator;
         result.mInvalidErrorMessage = invalidErrorMessage;
         result.mRequiredErrorMessage = requiredErrorMessage;
         result.mLabel = label;
@@ -271,8 +294,8 @@ public class EditorFieldModel {
     public void addActionIcon(int icon, int description, Runnable action) {
         assert isTextField();
         mActionIconResourceId = icon;
-        mActionDescriptionForAccessibility = description;
-        mIconAction = action;
+        mActionIconDescriptionForAccessibility = description;
+        mActionIconAction = action;
     }
 
     private EditorFieldModel(int inputTypeHint) {
@@ -286,16 +309,22 @@ public class EditorFieldModel {
         return mActionIconResourceId;
     }
 
-    /** @return The string resource for the human readable description of the action. */
-    public int getActionDescriptionForAccessibility() {
+    /** @return The string resource for the human readable description of the action icon. */
+    public int getActionIconDescriptionForAccessibility() {
         assert isTextField();
-        return mActionDescriptionForAccessibility;
+        return mActionIconDescriptionForAccessibility;
     }
 
-    /** @return The action to invoke when the icon has been tapped. */
-    public Runnable getIconAction() {
+    /** @return The action to invoke when the action icon has been tapped. */
+    public Runnable getActionIconAction() {
         assert isTextField();
-        return mIconAction;
+        return mActionIconAction;
+    }
+
+    /** @return The value icon generator or null if not exist. */
+    public EditorValueIconGenerator getValueIconGenerator() {
+        assert isTextField();
+        return mValueIconGenerator;
     }
 
     private boolean isTextField() {
@@ -311,13 +340,16 @@ public class EditorFieldModel {
     /** @return Whether the checkbox is checked. */
     public boolean isChecked() {
         assert mInputTypeHint == INPUT_TYPE_HINT_CHECKBOX;
-        return mIsChecked;
+        return ContextUtils.getAppSharedPreferences().getBoolean(mValue.toString(), true);
     }
 
     /** Sets the checkbox state. */
     public void setIsChecked(boolean isChecked) {
         assert mInputTypeHint == INPUT_TYPE_HINT_CHECKBOX;
-        mIsChecked = isChecked;
+        ContextUtils.getAppSharedPreferences()
+                .edit()
+                .putBoolean(mValue.toString(), isChecked)
+                .apply();
     }
 
     /** @return The list of icons resource identifiers to display. */
@@ -354,6 +386,12 @@ public class EditorFieldModel {
     /** @return The human-readable label for this field. */
     public CharSequence getLabel() {
         return mLabel;
+    }
+
+    /** @return The human-readable hint for this dropdown field. */
+    public CharSequence getHint() {
+        assert mInputTypeHint == INPUT_TYPE_HINT_DROPDOWN;
+        return mHint;
     }
 
     /** @return The human-readable mid-level label for this field. */

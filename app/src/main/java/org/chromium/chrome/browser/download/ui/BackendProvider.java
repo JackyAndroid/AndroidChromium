@@ -37,7 +37,7 @@ public interface BackendProvider {
         void removeDownload(String guid, boolean isOffTheRecord);
 
         /** See {@link DownloadManagerService#isDownloadOpenableInBrowser}. */
-        boolean isDownloadOpenableInBrowser(String guid, boolean isOffTheRecord, String mimeType);
+        boolean isDownloadOpenableInBrowser(boolean isOffTheRecord, String mimeType);
     }
 
     /** Interacts with the Offline Pages backend. */

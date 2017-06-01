@@ -94,16 +94,16 @@ abstract class OverlayPanelBase {
     private float mToolbarHeight;
 
     /** The height of the Bar when the Panel is peeking, in dps. */
-    private float mBarHeightPeeking;
+    private final float mBarHeightPeeking;
 
     /** The height of the Bar when the Panel is expanded, in dps. */
-    private float mBarHeightExpanded;
+    private final float mBarHeightExpanded;
 
     /** The height of the Bar when the Panel is maximized, in dps. */
-    private float mBarHeightMaximized;
+    private final float mBarHeightMaximized;
 
     /** Ratio of dps per pixel. */
-    protected float mPxToDp;
+    protected final float mPxToDp;
 
     /**
      * The Y coordinate to apply to the Base Page in order to keep the selection
@@ -139,6 +139,20 @@ abstract class OverlayPanelBase {
      */
     public OverlayPanelBase(Context context) {
         mContext = context;
+        mPxToDp = 1.f / mContext.getResources().getDisplayMetrics().density;
+
+        mBarHeightPeeking = mContext.getResources().getDimension(
+                R.dimen.overlay_panel_bar_height) * mPxToDp;
+        mBarHeightMaximized = mContext.getResources().getDimension(
+                R.dimen.toolbar_height_no_shadow) * mPxToDp;
+        mBarHeightExpanded =
+                Math.round((mBarHeightPeeking + mBarHeightMaximized) / 2.f);
+
+        mBarMarginSide = BAR_ICON_SIDE_PADDING_DP;
+        mProgressBarHeight = PROGRESS_BAR_HEIGHT_DP;
+        mBarBorderHeight = BAR_BORDER_HEIGHT_DP;
+
+        mBarHeight = mBarHeightPeeking;
     }
 
     // ============================================================================================
@@ -160,7 +174,7 @@ abstract class OverlayPanelBase {
 
     /**
      * TODO(mdjones): This method should be removed from this class.
-     * @return The resource id that contains how large the top controls are.
+     * @return The resource id that contains how large the browser controls are.
      */
     protected abstract int getControlContainerHeightResource();
 
@@ -683,23 +697,12 @@ abstract class OverlayPanelBase {
      * Initializes the UI state.
      */
     protected void initializeUiState() {
-        mPxToDp = 1.f / mContext.getResources().getDisplayMetrics().density;
-
+        // TODO(pedrosimonetti): Coordinate with mdjones@ to move this to the OverlayPanelBase
+        // constructor, once we are able to get the Activity during instantiation. The Activity
+        // is needed in order to get the correct height of the Toolbar, which varies depending
+        // on the Activity (WebApps have a smaller toolbar for example).
         mToolbarHeight = mContext.getResources().getDimension(
                 getControlContainerHeightResource()) * mPxToDp;
-
-        mBarHeightPeeking = mContext.getResources().getDimension(
-                R.dimen.overlay_panel_bar_height) * mPxToDp;
-        mBarHeightMaximized = mContext.getResources().getDimension(
-                R.dimen.toolbar_height_no_shadow) * mPxToDp;
-        mBarHeightExpanded =
-                Math.round((mBarHeightPeeking + mBarHeightMaximized) / 2.f);
-
-        mBarMarginSide = BAR_ICON_SIDE_PADDING_DP;
-        mProgressBarHeight = PROGRESS_BAR_HEIGHT_DP;
-        mBarBorderHeight = BAR_BORDER_HEIGHT_DP;
-
-        mBarHeight = mBarHeightPeeking;
     }
 
     /**
@@ -864,13 +867,19 @@ abstract class OverlayPanelBase {
         // NOTE(pedrosimonetti): Handle special case from PanelState.UNDEFINED
         // to PanelState.CLOSED, where both have a height of zero. Returning
         // zero here means the Panel will be reset to its CLOSED state.
-        return startSize == 0.f && endSize == 0.f ? 0.f
+        float completionPercent = startSize == 0.f && endSize == 0.f ? 0.f
                 : (height - startSize) / (endSize - startSize);
+
+        return completionPercent;
     }
 
     /**
      * Updates the UI state for the closed to peeked transition (and vice
      * versa), according to a completion |percentage|.
+     *
+     * Note that this method may be called when the panel is going from expanded to peeked because
+     * the end panel state for the transitions is calculated based on the panel height. When the
+     * panel reaches the peeking height, the calculated end state is peeked.
      *
      * @param percentage The completion percentage.
      */
@@ -903,6 +912,10 @@ abstract class OverlayPanelBase {
     /**
      * Updates the UI state for the peeked to expanded transition (and vice
      * versa), according to a completion |percentage|.
+     *
+     * Note that this method will never be called with percentage = 0.f. Once the panel
+     * reaches the peeked state #updatePanelForCloseOrPeek() will be called instead of this method
+     * because the end panel state for transitions is calculated based on the panel height.
      *
      * @param percentage The completion percentage.
      */

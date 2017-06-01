@@ -12,6 +12,7 @@ import org.chromium.base.ApplicationState;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ApplicationStatus.ApplicationStateListener;
 import org.chromium.base.ContextUtils;
+import org.chromium.base.LocaleUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.metrics.RecordHistogram;
@@ -29,7 +30,6 @@ import org.chromium.chrome.browser.util.FeatureUtilities;
 import org.chromium.content.browser.ChildProcessLauncher;
 
 import java.lang.ref.WeakReference;
-import java.util.Locale;
 
 /**
  * Tracks the foreground session state for the Chrome activities.
@@ -182,7 +182,7 @@ public class ChromeActivitySessionTracker {
      */
     private void updateAcceptLanguages() {
         PrefServiceBridge instance = PrefServiceBridge.getInstance();
-        String localeString = Locale.getDefault().toString();  // ex) en_US, de_DE, zh_CN_#Hans
+        String localeString = LocaleUtils.getDefaultLocaleListString();
         if (hasLocaleChanged(localeString)) {
             instance.resetAcceptLanguages(localeString);
             // Clear cache so that accept-languages change can be applied immediately.

@@ -34,6 +34,11 @@ import org.chromium.components.signin.ChromeSigninController;
  * }.start();
  */
 public abstract class FirstRunFlowSequencer  {
+    /**
+     * Sending an intent with this extra will skip the First Run Experience.
+     */
+    public static final String SKIP_FIRST_RUN_EXPERIENCE = "skip_first_run_experience";
+
     private static final int FIRST_RUN_EXPERIENCE_REQUEST_CODE = 101;
 
     private final Activity mActivity;
@@ -78,7 +83,7 @@ public abstract class FirstRunFlowSequencer  {
 
     @VisibleForTesting
     protected boolean isFirstRunFlowComplete() {
-        return FirstRunStatus.getFirstRunFlowComplete(mActivity);
+        return FirstRunStatus.getFirstRunFlowComplete();
     }
 
     @VisibleForTesting
@@ -224,6 +229,10 @@ public abstract class FirstRunFlowSequencer  {
             return null;
         }
 
+        if (fromIntent != null && fromIntent.getBooleanExtra(SKIP_FIRST_RUN_EXPERIENCE, false)) {
+            return null;
+        }
+
         // If Chrome isn't opened via the Chrome icon, and the user accepted the ToS
         // in the Setup Wizard, skip any First Run Experience screens and proceed directly
         // to the intent handling.
@@ -231,13 +240,13 @@ public abstract class FirstRunFlowSequencer  {
                 fromIntent != null && TextUtils.equals(fromIntent.getAction(), Intent.ACTION_MAIN);
         if (!fromChromeIcon && ToSAckedReceiver.checkAnyUserHasSeenToS(context)) return null;
 
-        final boolean baseFreComplete = FirstRunStatus.getFirstRunFlowComplete(context);
+        final boolean baseFreComplete = FirstRunStatus.getFirstRunFlowComplete();
         if (!baseFreComplete) {
             if (forLightweightFre
                     && CommandLine.getInstance().hasSwitch(
                                ChromeSwitches.ENABLE_LIGHTWEIGHT_FIRST_RUN_EXPERIENCE)) {
-                if (!FirstRunStatus.shouldSkipWelcomePage(context)
-                        && !FirstRunStatus.getLightweightFirstRunFlowComplete(context)) {
+                if (!FirstRunStatus.shouldSkipWelcomePage()
+                        && !FirstRunStatus.getLightweightFirstRunFlowComplete()) {
                     return createLightweightFirstRunIntent(context, fromChromeIcon);
                 }
             } else {

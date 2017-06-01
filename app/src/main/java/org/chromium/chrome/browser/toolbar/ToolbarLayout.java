@@ -29,7 +29,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.appmenu.AppMenuButtonHelper;
 import org.chromium.chrome.browser.compositor.Invalidator;
 import org.chromium.chrome.browser.compositor.layouts.LayoutUpdateHost;
-import org.chromium.chrome.browser.fullscreen.FullscreenManager;
+import org.chromium.chrome.browser.fullscreen.BrowserStateBrowserControlsVisibilityDelegate;
 import org.chromium.chrome.browser.ntp.NewTabPage;
 import org.chromium.chrome.browser.omaha.UpdateMenuItemHelper;
 import org.chromium.chrome.browser.omnibox.LocationBar;
@@ -96,6 +96,15 @@ abstract class ToolbarLayout extends FrameLayout implements Toolbar {
                 ApiCompatibilityUtils.getColorStateList(getResources(), R.color.light_mode_tint);
     }
 
+    /**
+     * Get the top margin of the progress bar relative to the toolbar layout. This is used to set
+     * the position of the progress bar (either top or bottom of the toolbar).
+     * @return The top margin of the progress bar.
+     */
+    protected int getProgressBarTopMargin() {
+        return mToolbarHeightWithoutShadow - mProgressBar.getLayoutParams().height;
+    }
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -103,7 +112,7 @@ abstract class ToolbarLayout extends FrameLayout implements Toolbar {
         mProgressBar = (ToolbarProgressBar) findViewById(R.id.progress);
         if (mProgressBar != null) {
             removeView(mProgressBar);
-            mProgressBar.prepareForAttach(mToolbarHeightWithoutShadow);
+            mProgressBar.prepareForAttach(getProgressBarTopMargin());
 
             if (isNativeLibraryReady()) mProgressBar.initializeAnimation();
         }
@@ -316,9 +325,10 @@ abstract class ToolbarLayout extends FrameLayout implements Toolbar {
     public void destroy() { }
 
     /**
-     * Sets the FullscreenManager, which controls when the toolbar is shown.
+     * Sets the delegate to handle visibility of browser controls.
      */
-    public void setFullscreenManager(FullscreenManager manager) { }
+    public void setBrowserControlsVisibilityDelegate(
+            BrowserStateBrowserControlsVisibilityDelegate controlsVisibilityDelegate) { }
 
     /**
      * Sets the OnClickListener that will be notified when the TabSwitcher button is pressed.

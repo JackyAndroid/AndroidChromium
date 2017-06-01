@@ -13,6 +13,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
+import org.chromium.chrome.browser.UrlConstants;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -135,6 +136,12 @@ public class DataReductionProxySettings {
         return nativeIsDataReductionProxyPromoAllowed(mNativeDataReductionProxySettings);
     }
 
+    /** Returns true if the snackbar promo is allowed to be shown. */
+    public boolean isSnackbarPromoAllowed(String url) {
+        return url.startsWith(UrlConstants.HTTP_SCHEME) && isDataReductionProxyEnabled()
+                && isDataReductionProxyPromoAllowed();
+    }
+
     /**
      * Sets the preference on whether to enable/disable the SPDY proxy. This will zero out the
      * data reduction statistics if this is the first time the SPDY proxy has been enabled.
@@ -201,6 +208,14 @@ public class DataReductionProxySettings {
      */
     public ContentLengths getContentLengths() {
         return nativeGetContentLengths(mNativeDataReductionProxySettings);
+    }
+
+    /**
+     * Returns the total HTTP content length saved.
+     * @return The HTTP content length saved.
+     */
+    public long getTotalHttpContentLengthSaved() {
+        return nativeGetTotalHttpContentLengthSaved(mNativeDataReductionProxySettings);
     }
 
     /**
@@ -308,6 +323,8 @@ public class DataReductionProxySettings {
     private native long nativeGetDataReductionLastUpdateTime(
             long nativeDataReductionProxySettingsAndroid);
     private native ContentLengths nativeGetContentLengths(
+            long nativeDataReductionProxySettingsAndroid);
+    private native long nativeGetTotalHttpContentLengthSaved(
             long nativeDataReductionProxySettingsAndroid);
     private native long[] nativeGetDailyOriginalContentLengths(
             long nativeDataReductionProxySettingsAndroid);

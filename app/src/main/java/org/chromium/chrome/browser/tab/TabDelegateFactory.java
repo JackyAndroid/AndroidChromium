@@ -51,12 +51,12 @@ public class TabDelegateFactory {
     }
 
     /**
-     * Creates the {@link TopControlsVisibilityDelegate} the tab will be initialized with.
+     * Creates the {@link BrowserControlsVisibilityDelegate} the tab will be initialized with.
      * @param tab The associated {@link Tab}.
-     * @return {@link TopControlsVisibilityDelegate} to be used for the given tab.
+     * @return {@link BrowserControlsVisibilityDelegate} to be used for the given tab.
      */
-    public TopControlsVisibilityDelegate createTopControlsVisibilityDelegate(Tab tab) {
-        return new TopControlsVisibilityDelegate(tab);
+    public BrowserControlsVisibilityDelegate createBrowserControlsVisibilityDelegate(Tab tab) {
+        return new TabStateBrowserControlsVisibilityDelegate(tab);
     }
 
     public TabDelegateFactory createNewTabDelegateFactory() {

@@ -15,7 +15,6 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.Pair;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
@@ -85,20 +84,17 @@ public class ChromeDownloadDelegate {
             protected Object[] doInBackground(Void... params) {
                 // Check to see if we have an SDCard.
                 String status = Environment.getExternalStorageState();
-                Pair<String, String> result = getDownloadDirectoryNameAndFullPath();
-                String dirName = result.first;
-                String fullDirPath = result.second;
-                boolean fileExists = doesFileAlreadyExists(fullDirPath, fileName);
+                File fullDirPath = getDownloadDirectoryFullPath();
+                boolean fileExists = checkFileExists(fullDirPath, fileName);
 
-                return new Object[] {status, dirName, fullDirPath, fileExists};
+                return new Object[] {status, fullDirPath, fileExists};
             }
 
             @Override
             protected void onPostExecute(Object[] result) {
                 String externalStorageState = (String) result[0];
-                String dirName = (String) result[1];
-                String fullDirPath = (String) result[2];
-                Boolean fileExists = (Boolean) result[3];
+                File fullDirPath = (File) result[1];
+                Boolean fileExists = (Boolean) result[2];
                 if (!checkExternalStorageAndNotify(
                         fileName, fullDirPath, externalStorageState)) {
                     return;
@@ -120,7 +116,7 @@ public class ChromeDownloadDelegate {
 
                 // Not a dangerous file, proceed.
                 if (fileExists) {
-                    launchDownloadInfoBar(newInfo, dirName, fullDirPath);
+                    launchDownloadInfoBar(newInfo, fullDirPath);
                 } else {
                     enqueueDownloadManagerRequest(newInfo);
                 }
@@ -196,22 +192,18 @@ public class ChromeDownloadDelegate {
     }
 
     /**
-     * Return a pair of directory name and its full path. Note that we create the directory if
-     * it does not already exist.
+     * Return the full path of the download directory.
      *
-     * @return A pair of directory name and its full path. A pair of <null, null> will be returned
-     * in case of an error.
+     * @return File object containing the path to the download directory.
      */
-    private static Pair<String, String> getDownloadDirectoryNameAndFullPath() {
+    private static File getDownloadDirectoryFullPath() {
         assert !ThreadUtils.runningOnUiThread();
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        if (!dir.mkdir() && !dir.isDirectory()) return new Pair<>(null, null);
-        String dirName = dir.getName();
-        String fullDirPath = dir.getPath();
-        return new Pair<>(dirName, fullDirPath);
+        if (!dir.mkdir() && !dir.isDirectory()) return null;
+        return dir;
     }
 
-    private static boolean doesFileAlreadyExists(String dirPath, final String fileName) {
+    private static boolean checkFileExists(File dirPath, final String fileName) {
         assert !ThreadUtils.runningOnUiThread();
         final File file = new File(dirPath, fileName);
         return file != null && file.exists();
@@ -259,10 +251,10 @@ public class ChromeDownloadDelegate {
         return closeBlankTab();
     }
 
-    private void launchDownloadInfoBar(DownloadInfo info, String dirName, String fullDirPath) {
+    private void launchDownloadInfoBar(DownloadInfo info, File fullDirPath) {
         if (mTab == null) return;
-        nativeLaunchDownloadOverwriteInfoBar(
-                ChromeDownloadDelegate.this, mTab, info, info.getFileName(), dirName, fullDirPath);
+        nativeLaunchDuplicateDownloadInfoBar(ChromeDownloadDelegate.this, mTab, info,
+                new File(fullDirPath, info.getFileName()).toString(), mTab.isIncognito());
     }
 
     /**
@@ -285,7 +277,7 @@ public class ChromeDownloadDelegate {
      * @return Whether external storage is ok for downloading.
      */
     private boolean checkExternalStorageAndNotify(
-            String filename, String fullDirPath, String externalStorageStatus) {
+            String filename, File fullDirPath, String externalStorageStatus) {
         if (fullDirPath == null) {
             Log.e(TAG, "Download failed: no SD card");
             alertDownloadFailure(
@@ -326,10 +318,8 @@ public class ChromeDownloadDelegate {
      */
     @CalledByNative
     private void onDownloadStarted(String filename) {
-        if (!isDangerousFile(filename)) {
-            DownloadUtils.showDownloadStartToast(mContext);
-            closeBlankTab();
-        }
+        DownloadUtils.showDownloadStartToast(mContext);
+        closeBlankTab();
     }
 
     /**
@@ -383,16 +373,6 @@ public class ChromeDownloadDelegate {
             if (index > 0) return filename.substring(index + 1);
         }
         return MimeTypeMap.getFileExtensionFromUrl(url);
-    }
-
-    /**
-     * Check whether a file is dangerous.
-     *
-     * @param filename Name of the file.
-     * @return true if the file is dangerous, or false otherwise.
-     */
-    protected boolean isDangerousFile(String filename) {
-        return nativeIsDownloadDangerous(filename);
     }
 
     /**
@@ -483,10 +463,8 @@ public class ChromeDownloadDelegate {
 
     private native void nativeInit(WebContents webContents);
     private static native String nativeGetDownloadWarningText(String filename);
-    private static native boolean nativeIsDownloadDangerous(String filename);
-    private static native void nativeLaunchDownloadOverwriteInfoBar(ChromeDownloadDelegate delegate,
-            Tab tab, DownloadInfo downloadInfo, String fileName, String dirName,
-            String dirFullPath);
+    private static native void nativeLaunchDuplicateDownloadInfoBar(ChromeDownloadDelegate delegate,
+            Tab tab, DownloadInfo downloadInfo, String filePath, boolean isIncognito);
     private static native void nativeLaunchPermissionUpdateInfoBar(
             Tab tab, String permission, long callbackId);
 }

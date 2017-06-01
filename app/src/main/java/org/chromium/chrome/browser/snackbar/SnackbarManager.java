@@ -229,7 +229,7 @@ public class SnackbarManager implements OnClickListener {
      * @return The currently showing snackbar. For testing only.
      */
     @VisibleForTesting
-    Snackbar getCurrentSnackbarForTesting() {
+    public Snackbar getCurrentSnackbarForTesting() {
         return mSnackbars.getCurrent();
     }
 }

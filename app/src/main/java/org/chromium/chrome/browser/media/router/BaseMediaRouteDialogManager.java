@@ -6,12 +6,9 @@ package org.chromium.chrome.browser.media.router;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.MediaRouteChooserDialogFragment;
 import android.support.v7.media.MediaRouter;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -111,51 +108,6 @@ public abstract class BaseMediaRouteDialogManager implements MediaRouteDialogMan
         mMediaSource = source;
         mAndroidMediaRouter = ChromeMediaRouter.getAndroidMediaRouter(applicationContext);
         mDelegate = delegate;
-    }
-
-    /**
-     * Base class for media router dialog fragment. Classes inheriting from
-     * BaseMediaRouteDialogManager may extend the implementation but must redirect the empty
-     * constructor to this implementation to handle the case of the Fragment being created via
-     * this method.
-     */
-    public static class Fragment extends MediaRouteChooserDialogFragment {
-        private final Handler mHandler = new Handler();
-        private final SystemVisibilitySaver mVisibilitySaver = new SystemVisibilitySaver();
-        protected BaseMediaRouteDialogManager mManager = null;
-
-        public Fragment() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Fragment.this.dismiss();
-                }
-            });
-        }
-
-        public Fragment(BaseMediaRouteDialogManager manager) {
-            mManager = manager;
-        }
-
-        @Override
-        public void onStart() {
-            mVisibilitySaver.saveSystemVisibility(getActivity());
-            super.onStart();
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-            mVisibilitySaver.restoreSystemVisibility(getActivity());
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            super.onDismiss(dialog);
-            if (mManager == null) return;
-
-            mManager.mDialogFragment = null;
-        }
     }
 
     /**

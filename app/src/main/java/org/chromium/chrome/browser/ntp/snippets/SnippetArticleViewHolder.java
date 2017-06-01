@@ -14,27 +14,23 @@ import android.media.ThumbnailUtils;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.v4.text.BidiFormatter;
-import android.support.v4.view.ViewCompat;
 import android.text.format.DateUtils;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.MeasureSpec;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.Callback;
-import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.favicon.FaviconHelper.FaviconImageCallback;
 import org.chromium.chrome.browser.favicon.FaviconHelper.IconAvailabilityCallback;
+import org.chromium.chrome.browser.ntp.ContextMenuManager;
+import org.chromium.chrome.browser.ntp.ContextMenuManager.ContextMenuItemId;
+import org.chromium.chrome.browser.ntp.ContextMenuManager.Delegate;
 import org.chromium.chrome.browser.ntp.DisplayStyleObserver;
-import org.chromium.chrome.browser.ntp.NewTabPageUma;
 import org.chromium.chrome.browser.ntp.NewTabPageView.NewTabPageManager;
 import org.chromium.chrome.browser.ntp.UiConfig;
 import org.chromium.chrome.browser.ntp.cards.CardViewHolder;
@@ -42,7 +38,6 @@ import org.chromium.chrome.browser.ntp.cards.CardsVariationParameters;
 import org.chromium.chrome.browser.ntp.cards.DisplayStyleObserverAdapter;
 import org.chromium.chrome.browser.ntp.cards.ImpressionTracker;
 import org.chromium.chrome.browser.ntp.cards.NewTabPageRecyclerView;
-import org.chromium.chrome.browser.offlinepages.OfflinePageBridge;
 import org.chromium.ui.mojom.WindowOpenDisposition;
 
 import java.net.URI;
@@ -52,25 +47,21 @@ import java.util.concurrent.TimeUnit;
 /**
  * A class that represents the view for a single card snippet.
  */
-public class SnippetArticleViewHolder extends CardViewHolder implements ImpressionTracker.Listener {
+public class SnippetArticleViewHolder
+        extends CardViewHolder implements ImpressionTracker.Listener, ContextMenuManager.Delegate {
     private static final String PUBLISHER_FORMAT_STRING = "%s - %s";
     private static final int FADE_IN_ANIMATION_TIME_MS = 300;
     private static final int[] FAVICON_SERVICE_SUPPORTED_SIZES = {16, 24, 32, 48, 64};
     private static final String FAVICON_SERVICE_FORMAT =
             "https://s2.googleusercontent.com/s2/favicons?domain=%s&src=chrome_newtab_mobile&sz=%d&alt=404";
 
-    // ContextMenu item ids. These must be unique.
-    private static final int ID_OPEN_IN_NEW_WINDOW = 0;
-    private static final int ID_OPEN_IN_NEW_TAB = 1;
-    private static final int ID_OPEN_IN_INCOGNITO_TAB = 2;
-    private static final int ID_SAVE_FOR_OFFLINE = 3;
-    private static final int ID_REMOVE = 4;
-
     private final NewTabPageManager mNewTabPageManager;
     private final TextView mHeadlineTextView;
     private final TextView mPublisherTextView;
     private final TextView mArticleSnippetTextView;
     private final ImageView mThumbnailView;
+    private final ImageView mOfflineBadge;
+    private final View mPublisherBar;
 
     private FetchImageCallback mImageCallback;
     private SnippetArticle mArticle;
@@ -79,91 +70,26 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
     private final boolean mUseFaviconService;
     private final UiConfig mUiConfig;
 
-    @SuppressFBWarnings("URF_UNREAD_FIELD")
-    private ImpressionTracker mImpressionTracker;
-
     /**
-     * Listener for when the context menu is created.
-     */
-    public interface OnCreateContextMenuListener {
-        /** Called when the context menu is created. */
-        void onCreateContextMenu();
-    }
-
-    private static class ContextMenuItemClickListener implements OnMenuItemClickListener {
-        private final SnippetArticle mArticle;
-        private final NewTabPageManager mManager;
-        private final NewTabPageRecyclerView mRecyclerView;
-
-        public ContextMenuItemClickListener(SnippetArticle article,
-                NewTabPageManager newTabPageManager,
-                NewTabPageRecyclerView newTabPageRecyclerView) {
-            mArticle = article;
-            mManager = newTabPageManager;
-            mRecyclerView = newTabPageRecyclerView;
-        }
-
-        @Override
-        public boolean onMenuItemClick(MenuItem item) {
-            // If the user clicks a snippet then immediately long presses they will create a context
-            // menu while the snippet's URL loads in the background. This means that when they press
-            // an item on context menu the NTP will not actually be open. We add this check here to
-            // prevent taking any action if the user has already left the NTP.
-            // https://crbug.com/640468.
-            // TODO(peconn): Instead, close the context menu when a snippet is clicked.
-            if (!ViewCompat.isAttachedToWindow(mRecyclerView)) return true;
-
-            // The UMA is used to compare how the user views the article linked from a snippet.
-            switch (item.getItemId()) {
-                case ID_OPEN_IN_NEW_WINDOW:
-                    NewTabPageUma.recordOpenSnippetMethod(
-                            NewTabPageUma.OPEN_SNIPPET_METHODS_NEW_WINDOW);
-                    mManager.openSnippet(WindowOpenDisposition.NEW_WINDOW, mArticle);
-                    return true;
-                case ID_OPEN_IN_NEW_TAB:
-                    NewTabPageUma.recordOpenSnippetMethod(
-                            NewTabPageUma.OPEN_SNIPPET_METHODS_NEW_TAB);
-                    mManager.openSnippet(WindowOpenDisposition.NEW_FOREGROUND_TAB, mArticle);
-                    return true;
-                case ID_OPEN_IN_INCOGNITO_TAB:
-                    NewTabPageUma.recordOpenSnippetMethod(
-                            NewTabPageUma.OPEN_SNIPPET_METHODS_INCOGNITO);
-                    mManager.openSnippet(WindowOpenDisposition.OFF_THE_RECORD, mArticle);
-                    return true;
-                case ID_SAVE_FOR_OFFLINE:
-                    NewTabPageUma.recordOpenSnippetMethod(
-                            NewTabPageUma.OPEN_SNIPPET_METHODS_SAVE_FOR_OFFLINE);
-                    mManager.openSnippet(WindowOpenDisposition.SAVE_TO_DISK, mArticle);
-                    return true;
-                case ID_REMOVE:
-                    // UMA is recorded during dismissal.
-                    mRecyclerView.dismissItemWithAnimation(mArticle);
-                    return true;
-                default:
-                    return false;
-            }
-        }
-    }
-
-    /**
-     * Constructs a SnippetCardItemView item used to display snippets
+     * Constructs a {@link SnippetArticleViewHolder} item used to display snippets.
      *
-     * @param parent The ViewGroup that is going to contain the newly created view.
-     * @param manager The NTPManager object used to open an article
-     * @param suggestionsSource The source used to retrieve the thumbnails.
+     * @param parent The NewTabPageRecyclerView that is going to contain the newly created view.
+     * @param manager The NewTabPageManager object used to open an article.
      * @param uiConfig The NTP UI configuration object used to adjust the article UI.
      */
     public SnippetArticleViewHolder(NewTabPageRecyclerView parent, NewTabPageManager manager,
             UiConfig uiConfig) {
-        super(R.layout.new_tab_page_snippets_card, parent, uiConfig);
+        super(R.layout.new_tab_page_snippets_card, parent, uiConfig, manager);
 
         mNewTabPageManager = manager;
         mThumbnailView = (ImageView) itemView.findViewById(R.id.article_thumbnail);
         mHeadlineTextView = (TextView) itemView.findViewById(R.id.article_headline);
         mPublisherTextView = (TextView) itemView.findViewById(R.id.article_publisher);
         mArticleSnippetTextView = (TextView) itemView.findViewById(R.id.article_snippet);
+        mPublisherBar = itemView.findViewById(R.id.publisher_bar);
+        mOfflineBadge = (ImageView) itemView.findViewById(R.id.offline_icon);
 
-        mImpressionTracker = new ImpressionTracker(itemView, this);
+        new ImpressionTracker(itemView, this);
 
         mUiConfig = uiConfig;
         new DisplayStyleObserverAdapter(itemView, uiConfig, new DisplayStyleObserver() {
@@ -180,68 +106,42 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
     public void onImpression() {
         if (mArticle != null && mArticle.trackImpression()) {
             mNewTabPageManager.trackSnippetImpression(mArticle);
+            mRecyclerView.onSnippetImpression();
         }
     }
 
     @Override
     public void onCardTapped() {
         mNewTabPageManager.openSnippet(WindowOpenDisposition.CURRENT_TAB, mArticle);
-        mArticle.trackClick();
     }
 
     @Override
-    protected void createContextMenu(ContextMenu menu) {
-        RecordHistogram.recordSparseSlowlyHistogram(
-                "NewTabPage.Snippets.CardLongPressed", mArticle.mPosition);
-        mArticle.recordAgeAndScore("NewTabPage.Snippets.CardLongPressed");
-
-        OnMenuItemClickListener listener =
-                new ContextMenuItemClickListener(mArticle, mNewTabPageManager, getRecyclerView());
-
-        // Create a context menu akin to the one shown for MostVisitedItems.
-        if (mNewTabPageManager.isOpenInNewWindowEnabled()) {
-            addContextMenuItem(menu, ID_OPEN_IN_NEW_WINDOW,
-                    R.string.contextmenu_open_in_other_window, listener);
-        }
-
-        addContextMenuItem(
-                menu, ID_OPEN_IN_NEW_TAB, R.string.contextmenu_open_in_new_tab, listener);
-
-        if (mNewTabPageManager.isOpenInIncognitoEnabled()) {
-            addContextMenuItem(menu, ID_OPEN_IN_INCOGNITO_TAB,
-                    R.string.contextmenu_open_in_incognito_tab, listener);
-        }
-
-        // TODO(peconn): Only show 'Save for Offline' for appropriate snippet types.
-        if (SnippetsConfig.isSaveToOfflineEnabled()
-                && OfflinePageBridge.canSavePage(mArticle.mUrl)) {
-            addContextMenuItem(
-                    menu, ID_SAVE_FOR_OFFLINE, R.string.contextmenu_save_link, listener);
-        }
-
-        addContextMenuItem(menu, ID_REMOVE, R.string.remove, listener);
-
-        // Disable touch events on the RecyclerView while the context menu is open. This is to
-        // prevent the user long pressing to get the context menu then on the same press scrolling
-        // or swiping to dismiss an item (eg. https://crbug.com/638854, 638555, 636296)
-        final NewTabPageRecyclerView recyclerView = (NewTabPageRecyclerView) itemView.getParent();
-        recyclerView.setTouchEnabled(false);
-
-        mNewTabPageManager.addContextMenuCloseCallback(new Callback<Menu>() {
-            @Override
-            public void onResult(Menu result) {
-                recyclerView.setTouchEnabled(true);
-                mNewTabPageManager.removeContextMenuCloseCallback(this);
-            }
-        });
+    public void openItem(int windowDisposition) {
+        mNewTabPageManager.openSnippet(windowDisposition, mArticle);
     }
 
-    /**
-     * Convenience method to reduce multi-line function call to single line.
-     */
-    private static void addContextMenuItem(
-            ContextMenu menu, int id, int resourceId, OnMenuItemClickListener listener) {
-        menu.add(Menu.NONE, id, Menu.NONE, resourceId).setOnMenuItemClickListener(listener);
+    @Override
+    public void removeItem() {
+        getRecyclerView().dismissItemWithAnimation(this);
+    }
+
+    @Override
+    public String getUrl() {
+        return mArticle.mUrl;
+    }
+
+    @Override
+    public boolean isItemSupported(@ContextMenuItemId int menuItemId) {
+        if (mArticle.isDownload()) {
+            if (menuItemId == ContextMenuManager.ID_OPEN_IN_INCOGNITO_TAB) return false;
+            if (menuItemId == ContextMenuManager.ID_SAVE_FOR_OFFLINE) return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected Delegate getContextMenuDelegate() {
+        return this;
     }
 
     /**
@@ -267,10 +167,10 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
         mHeadlineTextView.setMinLines((narrow && !hideThumbnail) ? 3 : 1);
 
         // If we aren't showing the article snippet, reduce the top margin for publisher text.
-        RelativeLayout.LayoutParams params =
-                (RelativeLayout.LayoutParams) mPublisherTextView.getLayoutParams();
+        ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams) mPublisherBar.getLayoutParams();
 
-        int topMargin = mPublisherTextView.getResources().getDimensionPixelSize(
+        int topMargin = mPublisherBar.getResources().getDimensionPixelSize(
                 hideSnippet ? R.dimen.snippets_publisher_margin_top_without_article_snippet
                             : R.dimen.snippets_publisher_margin_top_with_article_snippet);
 
@@ -279,11 +179,14 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
                           params.rightMargin,
                           params.bottomMargin);
 
-        mPublisherTextView.setLayoutParams(params);
+        mPublisherBar.setLayoutParams(params);
     }
 
     public void onBindViewHolder(SnippetArticle article) {
         super.onBindViewHolder();
+
+        // No longer listen for offline status changes to the old article.
+        if (mArticle != null) mArticle.setOfflineStatusChangeRunnable(null);
 
         mArticle = article;
         updateLayout();
@@ -312,7 +215,7 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
             StrictMode.setThreadPolicy(oldPolicy);
         }
 
-        // The favicon of the publisher should match the textview height.
+        // The favicon of the publisher should match the TextView height.
         int widthSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         mPublisherTextView.measure(widthSpec, heightSpec);
@@ -342,6 +245,22 @@ public class SnippetArticleViewHolder extends CardViewHolder implements Impressi
         } catch (URISyntaxException e) {
             setDefaultFaviconOnView();
         }
+
+        mOfflineBadge.setVisibility(View.GONE);
+        if (SnippetsConfig.isOfflineBadgeEnabled()) {
+            Runnable offlineChecker = new Runnable() {
+                @Override
+                public void run() {
+                    if (mArticle.getOfflinePageOfflineId() != null || mArticle.mIsDownloadedAsset) {
+                        mOfflineBadge.setVisibility(View.VISIBLE);
+                    }
+                }
+            };
+            mArticle.setOfflineStatusChangeRunnable(offlineChecker);
+            offlineChecker.run();
+        }
+
+        mRecyclerView.onSnippetBound(itemView);
     }
 
     private static class FetchImageCallback extends Callback<Bitmap> {

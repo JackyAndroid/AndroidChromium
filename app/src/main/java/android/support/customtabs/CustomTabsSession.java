@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.customtabs.CustomTabsService.Result;
 import android.support.customtabs.CustomTabsSessionToken.DummyCallback;
 import android.widget.RemoteViews;
 
@@ -147,6 +148,23 @@ public final class CustomTabsSession {
             return mService.updateVisuals(mCallback, metaBundle);
         } catch (RemoteException e) {
             return false;
+        }
+    }
+
+    public boolean validatePostMessageOrigin() {
+        try {
+            return mService.validatePostMessageOrigin(mCallback);
+        } catch (RemoteException e) {
+            return false;
+        }
+    }
+
+    @Result
+    public synchronized int postMessage(String message, Bundle extras) {
+        try {
+            return mService.postMessage(mCallback, message, extras);
+        } catch (RemoteException e) {
+            return CustomTabsService.RESULT_FAILURE_REMOTE_ERROR;
         }
     }
 

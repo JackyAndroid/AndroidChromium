@@ -5,8 +5,7 @@
 
 <org.chromium.chrome.browser.ntp.cards.NewTabPageRecyclerView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/ntp_material_design_bg"
-    android:fillViewport="true"
+    android:background="@color/ntp_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:focusable="true"

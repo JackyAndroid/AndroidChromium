@@ -8,6 +8,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
@@ -31,15 +33,19 @@ import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.components.bookmarks.BookmarkId;
 import org.chromium.components.offlinepages.SavePageResult;
+import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.net.ConnectionType;
 import org.chromium.net.NetworkChangeNotifier;
+import org.chromium.ui.base.PageTransition;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -157,7 +163,9 @@ public class OfflinePageUtils {
      * @param tab The current tab.
      */
     public static void showOfflineSnackbarIfNecessary(ChromeActivity activity, Tab tab) {
-        if (OfflinePageTabObserver.getInstance() == null) {
+        if (OfflinePageTabObserver.getInstance() == null
+                || !OfflinePageTabObserver.getInstance().isCurrentContext(
+                           activity.getBaseContext())) {
             SnackbarController snackbarController =
                     createReloadSnackbarController(activity.getTabModelSelector());
             OfflinePageTabObserver.init(
@@ -546,6 +554,60 @@ public class OfflinePageUtils {
         return offlinePageBridge.getOfflinePageHeaderForReload(tab.getWebContents());
     }
 
+    /**
+     * A load url parameters to open offline version of the offline page (i.e. to ensure no
+     * automatic redirection based on the connection status).
+     * @param url       The url of the offline page to open.
+     * @param offlineId The ID of the offline page to open.
+     * @return The LoadUrlParams with a special header.
+     */
+    public static LoadUrlParams getLoadUrlParamsForOpeningOfflineVersion(
+            String url, long offlineId) {
+        LoadUrlParams params = new LoadUrlParams(url);
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("X-Chrome-offline", "persist=1 reason=download id=" + Long.toString(offlineId));
+        params.setExtraHeaders(headers);
+        return params;
+    }
+
+    /**
+     * @return True if an offline preview is being shown.
+     * @param tab The current tab.
+     */
+    public static boolean isShowingOfflinePreview(Tab tab) {
+        OfflinePageBridge offlinePageBridge = getInstance().getOfflinePageBridge(tab.getProfile());
+        if (offlinePageBridge == null) return false;
+        return offlinePageBridge.isShowingOfflinePreview(tab.getWebContents());
+    }
+
+    /**
+     * Reloads specified tab, which should allow to open an online version of the page.
+     * @param tab The tab to be reloaded.
+     */
+    public static void reload(Tab tab) {
+        // If current page is an offline page, reload it with custom behavior defined in extra
+        // header respected.
+        LoadUrlParams params =
+                new LoadUrlParams(tab.getOriginalUrl(), PageTransition.RELOAD);
+        params.setVerbatimHeaders(getOfflinePageHeaderForReload(tab));
+        tab.loadUrl(params);
+    }
+
+    /**
+     * Navigates the given tab to the saved local snapshot of the offline page identified by the URL
+     * and the offline ID. No automatic redirection is happening based on the connection status.
+     * @param url       The URL of the offine page.
+     * @param offlineId The ID of the offline page.
+     * @param tab       The tab to navigate to the page.
+     */
+    public static void openInExistingTab(String url, long offlineId, Tab tab) {
+        LoadUrlParams params =
+                OfflinePageUtils.getLoadUrlParamsForOpeningOfflineVersion(url, offlineId);
+        // Extra headers are not read in loadUrl, but verbatim headers are.
+        params.setVerbatimHeaders(params.getExtraHeadersString());
+        tab.loadUrl(params);
+    }
+
     private static boolean isPowerConnected(Intent batteryStatus) {
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         boolean isConnected = (status == BatteryManager.BATTERY_STATUS_CHARGING
@@ -576,9 +638,41 @@ public class OfflinePageUtils {
         Intent batteryStatus = context.registerReceiver(null, filter);
         if (batteryStatus == null) return null;
 
-        return new DeviceConditions(isPowerConnected(batteryStatus),
-                batteryPercentage(batteryStatus),
-                NetworkChangeNotifier.getInstance().getCurrentConnectionType());
+        // Get the connection type from chromium's internal object.
+        int connectionType = NetworkChangeNotifier.getInstance().getCurrentConnectionType();
+
+        // Sometimes the NetworkConnectionNotifier lags the actual connection type, especially when
+        // the GCM NM wakes us from doze state.  If we are really connected, report the connection
+        // type from android.
+        if (connectionType == ConnectionType.CONNECTION_NONE) {
+            // Get the connection type from android in case chromium's type is not yet set.
+            ConnectivityManager cm =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+            if (isConnected) {
+                connectionType = convertAndroidNetworkTypeToConnectionType(activeNetwork.getType());
+            }
+        }
+
+        return new DeviceConditions(
+                isPowerConnected(batteryStatus), batteryPercentage(batteryStatus), connectionType);
+    }
+
+    /** Returns the NCN network type corresponding to the connectivity manager network type */
+    protected int convertAndroidNetworkTypeToConnectionType(int connectivityManagerNetworkType) {
+        if (connectivityManagerNetworkType == ConnectivityManager.TYPE_WIFI) {
+            return ConnectionType.CONNECTION_WIFI;
+        }
+        // for mobile, we don't know if it is 2G, 3G, or 4G, default to worst case of 2G.
+        if (connectivityManagerNetworkType == ConnectivityManager.TYPE_MOBILE) {
+            return ConnectionType.CONNECTION_2G;
+        }
+        if (connectivityManagerNetworkType == ConnectivityManager.TYPE_BLUETOOTH) {
+            return ConnectionType.CONNECTION_BLUETOOTH;
+        }
+        // Since NetworkConnectivityManager doesn't understand the other types, call them UNKNOWN.
+        return ConnectionType.CONNECTION_UNKNOWN;
     }
 
     @VisibleForTesting

@@ -8,12 +8,14 @@ import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.StrictMode;
 import android.util.Log;
 
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.base.library_loader.ProcessInitException;
 import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
+import org.chromium.chrome.browser.webapps.WebappRegistry;
 
 /**
  * The Notification service receives intents fired as responses to user actions issued on Android
@@ -75,6 +77,18 @@ public class NotificationService extends IntentService {
     private void dispatchIntentOnUIThread(Intent intent) {
         try {
             ChromeBrowserInitializer.getInstance(this).handleSynchronousStartup();
+
+            // Warm up the WebappRegistry, as we need to check if this notification should launch a
+            // standalone web app. This no-ops if the registry is already initialized and warmed,
+            // but triggers a strict mode violation otherwise (i.e. the browser isn't running).
+            // Temporarily disable strict mode to work around the violation.
+            StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
+            try {
+                WebappRegistry.getInstance();
+                WebappRegistry.warmUpSharedPrefs();
+            } finally {
+                StrictMode.setThreadPolicy(oldPolicy);
+            }
 
             // Now that the browser process is initialized, we pass forward the call to the
             // NotificationPlatformBridge which will take care of delivering the appropriate events.
