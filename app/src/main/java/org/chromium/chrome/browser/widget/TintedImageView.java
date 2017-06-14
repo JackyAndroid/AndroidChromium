@@ -37,7 +37,7 @@ public class TintedImageView extends ImageView {
     private void init(Context context, AttributeSet attrs, int defStyle) {
         TypedArray a = context.obtainStyledAttributes(
                 attrs, R.styleable.TintedImage, defStyle, 0);
-        setTintInternal(a.getColorStateList(R.styleable.TintedImage_tint));
+        setTintInternal(a.getColorStateList(R.styleable.TintedImage_tintImage));
         a.recycle();
     }
 
