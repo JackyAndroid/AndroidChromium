@@ -85,6 +85,7 @@ public class ChromeApplication extends ContentApplication {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        MultiDex.install(this);
         ContextUtils.initApplicationContext(this);
     }
 
