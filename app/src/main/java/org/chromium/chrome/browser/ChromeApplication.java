@@ -4,15 +4,6 @@
 
 package org.chromium.chrome.browser;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.SystemClock;
-import android.util.Log;
-
 import org.chromium.base.ActivityState;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.CommandLineInitUtil;
@@ -66,6 +57,16 @@ import org.chromium.content.app.ContentApplication;
 import org.chromium.content.browser.ChildProcessCreationParams;
 import org.chromium.policy.AppRestrictionsProvider;
 import org.chromium.policy.CombinedPolicyProvider;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.support.multidex.MultiDex;
+import android.util.Log;
 
 /**
  * Basic application functionality that should be shared among all browser applications that use

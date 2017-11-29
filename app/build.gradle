@@ -1,14 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        release {
 
-        }
-    }
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
+
     enforceUniquePackageName false
+
     defaultConfig {
         applicationId "org.chromium.chrome.browser"
         minSdkVersion 19
@@ -17,6 +15,13 @@ android {
         versionName "1.0"
         multiDexEnabled true
     }
+
+    signingConfigs {
+        release {
+
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -24,14 +29,15 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
     dexOptions {
         jumboMode = true
         javaMaxHeapSize "4g"
     }
+
     aaptOptions {
         noCompress "dat", "bin", "pak"
     }
-
 
     lintOptions {
         abortOnError false
@@ -64,4 +70,6 @@ dependencies {
     compile project(':libraries_res:chrome_res')
     compile project(':libraries_res:ui_res')
     compile project(':libraries_res:content_res')
+
+    compile 'com.android.support:multidex:1.0.2'
 }

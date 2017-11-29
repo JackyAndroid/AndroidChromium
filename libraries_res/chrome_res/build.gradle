@@ -26,7 +26,6 @@ dependencies {
     compile 'com.android.support:support-annotations:25.4.0'
     compile 'com.android.support:recyclerview-v7:25.4.0'
     compile 'com.android.support:support-v13:25.4.0'
-    compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support:appcompat-v7:25.4.0'
     compile 'com.android.support:mediarouter-v7:25.4.0'
     compile 'com.android.support:design:25.4.0'
