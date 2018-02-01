@@ -1,4 +1,4 @@
-### Welcome to follow me on GitHub or Gold
+### Welcome to follow me on GitHub
 
 GitHub: https://github.com/JackyAndroid
 
