@@ -2,8 +2,6 @@
 
 GitHub: https://github.com/JackyAndroid
 
-Gold: https://gold.xitu.io/user/562dc7cc60b20fc9817962a2
-
 [中文版文档](https://github.com/JackyAndroid/AndroidChromium/blob/master/README-CN.md)
 
 ![](http://www.jackywang.tech/images/gongzh.png)
