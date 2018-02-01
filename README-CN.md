@@ -2,8 +2,6 @@
 
 GitHub: https://github.com/JackyAndroid
 
-掘金: https://gold.xitu.io/user/562dc7cc60b20fc9817962a2
-
 ---
 
 # AndroidChromium
