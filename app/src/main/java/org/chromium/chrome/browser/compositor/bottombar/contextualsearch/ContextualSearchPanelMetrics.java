@@ -9,6 +9,7 @@ import org.chromium.chrome.browser.compositor.bottombar.OverlayPanel.StateChange
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchBlacklist.BlacklistReason;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchHeuristics;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchUma;
+import org.chromium.chrome.browser.contextualsearch.QuickActionCategory;
 
 import java.util.Locale;
 
@@ -35,6 +36,9 @@ public class ContextualSearchPanelMetrics {
     private boolean mWasPanelOpenedBeyondPeek;
     private boolean mWasSelectionPartOfUrl;
     private boolean mWasContextualCardsDataShown;
+    private boolean mWasQuickActionShown;
+    private int mQuickActionCategory;
+    private boolean mWasQuickActionClicked;
     private boolean mWasSelectionAllCaps;
     private boolean mDidSelectionStartWithCapital;
     // Whether any Tap suppression heuristic was satisfied when the panel was shown.
@@ -115,6 +119,12 @@ public class ContextualSearchPanelMetrics {
 
             if (mWasContextualCardsDataShown) {
                 ContextualSearchUma.logContextualCardsResultsSeen(mWasSearchContentViewSeen);
+            }
+            if (mWasQuickActionShown) {
+                ContextualSearchUma.logQuickActionResultsSeen(mWasSearchContentViewSeen,
+                        mQuickActionCategory);
+                ContextualSearchUma.logQuickActionClicked(mWasQuickActionClicked,
+                        mQuickActionCategory);
             }
 
             if (mWasSelectionAllCaps && mWasActivatedByTap) {
@@ -223,6 +233,9 @@ public class ContextualSearchPanelMetrics {
             mIsSerpNavigation = false;
             mWasSelectionPartOfUrl = false;
             mWasContextualCardsDataShown = false;
+            mWasQuickActionShown = false;
+            mQuickActionCategory = QuickActionCategory.NONE;
+            mWasQuickActionClicked = false;
             mWasSelectionAllCaps = false;
             mDidSelectionStartWithCapital = false;
             mWasAnyHeuristicSatisfiedOnPanelShow = false;
@@ -281,6 +294,22 @@ public class ContextualSearchPanelMetrics {
      */
     public void setWasContextualCardsDataShown(boolean wasContextualCardsDataShown) {
         mWasContextualCardsDataShown = wasContextualCardsDataShown;
+    }
+
+    /**
+     * @param wasQuickActionShown Whether a quick action was shown in the Contextual Search Bar.
+     * @param quickActionCategory The {@link QuickActionCategory} for the quick action.
+     */
+    public void setWasQuickActionShown(boolean wasQuickActionShown, int quickActionCategory) {
+        mWasQuickActionShown = wasQuickActionShown;
+        if (mWasQuickActionShown) mQuickActionCategory = quickActionCategory;
+    }
+
+    /**
+     * Sets |mWasQuickActionClicked| to true.
+     */
+    public void setWasQuickActionClicked() {
+        mWasQuickActionClicked = true;
     }
 
     /**

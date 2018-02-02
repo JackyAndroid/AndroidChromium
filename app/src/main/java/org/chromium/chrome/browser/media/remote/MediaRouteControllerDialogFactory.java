@@ -4,20 +4,33 @@
 
 package org.chromium.chrome.browser.media.remote;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.MediaRouteControllerDialog;
 import android.support.v7.app.MediaRouteControllerDialogFragment;
 import android.support.v7.app.MediaRouteDialogFactory;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import org.chromium.base.Log;
+import org.chromium.chrome.browser.media.remote.MediaRouteController.MediaStateListener;
+
 /**
  * The Chrome implementation of the dialog factory so custom behavior can
  * be injected for the disconnect button.
  */
 public class MediaRouteControllerDialogFactory extends MediaRouteDialogFactory {
+    private static final String TAG = "MRCtrlDlg";
+
+    private final MediaStateListener mPlayer;
+
+    MediaRouteControllerDialogFactory(MediaStateListener player) {
+        mPlayer = player;
+    }
 
     private static class SystemVisibilitySaver {
         private int mSystemVisibility;
@@ -52,9 +65,27 @@ public class MediaRouteControllerDialogFactory extends MediaRouteDialogFactory {
      * see https://crbug.com/618993.
      */
     public static final class Fragment extends MediaRouteControllerDialogFragment {
+        final Handler mHandler = new Handler();
         final SystemVisibilitySaver mVisibilitySaver = new SystemVisibilitySaver();
+        final MediaStateListener mPlayer;
 
-        public Fragment() {}
+        // The class has to be a public static class with a zero-argument constructor.
+        // Since we can't pass any callbacks to the fragment easily, just close the dialog.
+        // See https://crbug.com/618993.
+        public Fragment() {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Fragment.this.dismiss();
+                }
+            });
+            mPlayer = null;
+        }
+
+        @SuppressLint("ValidFragment")
+        Fragment(MediaStateListener player) {
+            mPlayer = player;
+        }
 
         @Override
         public Dialog onCreateDialog(Bundle saved) {
@@ -67,10 +98,17 @@ public class MediaRouteControllerDialogFactory extends MediaRouteDialogFactory {
             super.onStop();
             mVisibilitySaver.restoreSystemVisibility(getActivity());
         }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            Log.d(TAG, "onDismiss " + mPlayer);
+            super.onDismiss(dialog);
+            if (mPlayer != null) mPlayer.onRouteDialogCancelled();
+        }
     }
 
     @Override
     public MediaRouteControllerDialogFragment onCreateControllerDialogFragment() {
-        return new MediaRouteControllerDialogFragment();
+        return new Fragment(mPlayer);
     }
 }

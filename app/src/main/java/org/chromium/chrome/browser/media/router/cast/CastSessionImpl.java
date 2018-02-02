@@ -186,6 +186,9 @@ public class CastSessionImpl implements MediaNotificationListener, CastSession {
         mRouteProvider.onSessionStopAction();
     }
 
+    @Override
+    public void onMediaSessionAction(int action) {}
+
     /////////////////////////////////////////////////////////////////////////////////////////////
     // Utility functions.
 

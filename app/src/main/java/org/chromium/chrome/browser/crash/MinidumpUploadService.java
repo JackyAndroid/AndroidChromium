@@ -15,6 +15,9 @@ import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.preferences.ChromePreferenceManager;
+import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager;
+import org.chromium.components.minidump_uploader.CrashFileManager;
+import org.chromium.components.minidump_uploader.MinidumpUploadCallable;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -152,7 +155,7 @@ public class MinidumpUploadService extends IntentService {
 
     private void handleFindAndUploadLastCrash(Intent intent) {
         CrashFileManager fileManager = new CrashFileManager(getApplicationContext().getCacheDir());
-        File[] minidumpFiles = fileManager.getAllMinidumpFilesSorted();
+        File[] minidumpFiles = fileManager.getAllMinidumpFiles(MAX_TRIES_ALLOWED);
         if (minidumpFiles.length == 0) {
             // Try again later. Maybe the minidump hasn't finished being written.
             Log.d(TAG, "Could not find any crash dumps to upload");
@@ -182,7 +185,7 @@ public class MinidumpUploadService extends IntentService {
 
     private void handleFindAndUploadAllCrashes() {
         CrashFileManager fileManager = new CrashFileManager(getApplicationContext().getCacheDir());
-        File[] minidumps = fileManager.getAllMinidumpFiles();
+        File[] minidumps = fileManager.getAllMinidumpFiles(MAX_TRIES_ALLOWED);
         File logfile = fileManager.getCrashUploadLogFile();
         Log.i(TAG, "Attempting to upload accumulated crash dumps.");
         for (File minidump : minidumps) {
@@ -219,6 +222,10 @@ public class MinidumpUploadService extends IntentService {
             return;
         }
         int tries = CrashFileManager.readAttemptNumber(minidumpFileName);
+        // -1 means no attempt number was read.
+        if (tries == -1) {
+            tries = 0;
+        }
 
         // Since we do not rename a file after reaching max number of tries,
         // files that have maxed out tries will NOT reach this.
@@ -334,7 +341,8 @@ public class MinidumpUploadService extends IntentService {
      */
     @VisibleForTesting
     MinidumpUploadCallable createMinidumpUploadCallable(File minidumpFile, File logfile) {
-        return new MinidumpUploadCallable(minidumpFile, logfile, getApplicationContext());
+        return new MinidumpUploadCallable(
+                minidumpFile, logfile, PrivacyPreferencesManager.getInstance());
     }
 
     /**

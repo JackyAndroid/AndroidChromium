@@ -42,4 +42,11 @@ public interface MediaNotificationListener {
      * @param actionSource The source the listener got the action from.
      */
     void onStop(int actionSource);
+
+    /**
+     * Called when the user performed one of the media actions (like fast forward or next track)
+     * supported by MediaSession.
+     * @param action The kind of the initated action.
+     */
+    void onMediaSessionAction(int action);
 }

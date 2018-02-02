@@ -14,6 +14,7 @@ import android.support.annotation.IntDef;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.TextView;
 
@@ -87,7 +88,8 @@ public class SearchEnginePromoDialog extends Dialog
         TextView textView = (TextView) findViewById(R.id.description);
         SpannableString description = SpanApplier.applySpans(
                 getContext().getString(R.string.sogou_explanation),
-                new SpanInfo("<link>", "</link>", mSpan));
+                new SpanInfo("<link>", "</link>", mSpan),
+                new SpanInfo("<b>", "</b>", new StyleSpan(android.graphics.Typeface.BOLD)));
         textView.setText(description);
         textView.setMovementMethod(LinkMovementMethod.getInstance());
     }

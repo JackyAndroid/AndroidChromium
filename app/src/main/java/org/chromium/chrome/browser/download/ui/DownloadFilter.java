@@ -23,9 +23,9 @@ public class DownloadFilter {
     static final int FILTER_PAGE = 1;
     static final int FILTER_VIDEO = 2;
     static final int FILTER_AUDIO = 3;
-    static final int FILTER_IMAGE = 4;
+    public static final int FILTER_IMAGE = 4;
     static final int FILTER_DOCUMENT = 5;
-    static final int FILTER_OTHER = 6;
+    public static final int FILTER_OTHER = 6;
     public static final int FILTER_BOUNDARY = 7;
 
     private static final String MIMETYPE_VIDEO = "video";

@@ -22,7 +22,7 @@ public interface SceneOverlay {
      *
      * @param layerTitleCache A layer title cache.
      * @param resourceManager A resource manager.
-     * @param yOffset Current top controls offset in dp.
+     * @param yOffset Current browser controls offset in dp.
      * @return A {@link SceneOverlayLayer} that represents an scene overlay.
      * Or {@code null} if this {@link SceneOverlay} doesn't have a tree.
      */
@@ -56,9 +56,9 @@ public interface SceneOverlay {
     void getVirtualViews(List<VirtualView> views);
 
     /**
-     * @return True if the overlay requires the Android top controls view to be hidden.
+     * @return True if the overlay requires the Android browser controls view to be hidden.
      */
-    boolean shouldHideAndroidTopControls();
+    boolean shouldHideAndroidBrowserControls();
 
     /**
      * Helper-specific updates. Cascades the values updated by the animations and flings.

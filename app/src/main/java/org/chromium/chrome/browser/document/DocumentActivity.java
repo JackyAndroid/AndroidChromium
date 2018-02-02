@@ -8,10 +8,13 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Pair;
 
 import org.chromium.base.Log;
 import org.chromium.chrome.browser.ChromeActivity;
+import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.document.ActivityDelegate;
 
 /**
@@ -71,5 +74,20 @@ public class DocumentActivity extends ChromeActivity {
                 || TextUtils.equals(className, DocumentActivity.class.getName())
                 || TextUtils.equals(className, LEGACY_CLASS_NAME)
                 || TextUtils.equals(className, LEGACY_INCOGNITO_CLASS_NAME);
+    }
+
+    @Override
+    protected TabModelSelector createTabModelSelector() {
+        return null;
+    }
+
+    @Override
+    protected Pair<TabCreator, TabCreator> createTabCreators() {
+        return null;
+    }
+
+    @Override
+    protected ChromeFullscreenManager createFullscreenManager() {
+        return null;
     }
 }

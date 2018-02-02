@@ -5,7 +5,7 @@
 <string name="autofill_cc_diners">"Diners Club"</string>
 <string name="autofill_cc_discover">"Discover"</string>
 <string name="autofill_cc_jcb">"JCB"</string>
-<string name="autofill_cc_mastercard">"MasterCard"</string>
+<string name="autofill_cc_mastercard">"Mastercard"</string>
 <string name="autofill_cc_union_pay">"中国银联"</string>
 <string name="autofill_cc_visa">"Visa"</string>
 <string name="autofill_scan_credit_card">"扫描新的信用卡"</string>
@@ -27,7 +27,20 @@
 <string name="sad_tab_reload_label">"重新加载"</string>
 <string name="snippets_disabled_signed_out_instructions">"要获取 Google 推荐的个性化内容，请登录 Chrome。"</string>
 <string name="snippets_disabled_generic_prompt">"获取推荐内容"</string>
-<string name="ntp_status_card_title_no_suggestions">"暂时没有新内容"</string>
-<string name="ntp_status_card_no_bookmarks">"您最近访问过的书签将显示在此处。"</string>
-<string name="ntp_status_card_no_articles">"系统会适时显示更多文章。"</string>
+<string name="ntp_status_card_title_no_suggestions">"这就是目前的所有内容"</string>
+<string name="color_picker_button_more">"更多"</string>
+<string name="color_picker_hue">"色调"</string>
+<string name="color_picker_saturation">"饱和度"</string>
+<string name="color_picker_value">"值"</string>
+<string name="color_picker_button_set">"设置"</string>
+<string name="color_picker_button_cancel">"取消"</string>
+<string name="color_picker_dialog_title">"选择颜色"</string>
+<string name="color_picker_button_red">"红色"</string>
+<string name="color_picker_button_cyan">"青色"</string>
+<string name="color_picker_button_blue">"蓝色"</string>
+<string name="color_picker_button_green">"绿色"</string>
+<string name="color_picker_button_magenta">"洋红色"</string>
+<string name="color_picker_button_yellow">"黄色"</string>
+<string name="color_picker_button_black">"黑色"</string>
+<string name="color_picker_button_white">"白色"</string>
 </resources>

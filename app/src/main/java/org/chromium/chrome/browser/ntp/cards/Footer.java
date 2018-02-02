@@ -18,14 +18,15 @@ import org.chromium.ui.text.SpanApplier;
 /**
  * A footer to show some text and a link to learn more.
  */
-public class Footer extends SingleItemGroup {
+public class Footer extends Leaf {
     @Override
-    public int getType() {
-        return NewTabPageItem.VIEW_TYPE_FOOTER;
+    @ItemViewType
+    protected int getItemViewType() {
+        return ItemViewType.FOOTER;
     }
 
     @Override
-    public void onBindViewHolder(NewTabPageViewHolder holder) {
+    protected void onBindViewHolder(NewTabPageViewHolder holder) {
         // Nothing to do (the footer view is static).
     }
 
@@ -45,7 +46,7 @@ public class Footer extends SingleItemGroup {
                 }
             };
 
-            TextView textView = (TextView) itemView;
+            TextView textView = (TextView) itemView.findViewById(R.id.text);
             textView.setText(SpanApplier.applySpans(
                     root.getResources().getString(R.string.ntp_learn_more_about_suggested_content),
                     new SpanApplier.SpanInfo("<link>", "</link>", link)));

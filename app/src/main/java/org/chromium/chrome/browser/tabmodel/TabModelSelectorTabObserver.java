@@ -16,9 +16,7 @@ import java.util.List;
 public class TabModelSelectorTabObserver extends EmptyTabObserver {
 
     private final TabModelSelector mTabModelSelector;
-    private final TabModelObserver mTabModelObserver;
-
-    private TabModelSelectorObserver mSelectorObserver;
+    private final TabModelSelectorTabModelObserver mTabModelObserver;
 
     /**
      * Constructs an observer that should be notified of tabs changes for all tabs owned
@@ -33,7 +31,7 @@ public class TabModelSelectorTabObserver extends EmptyTabObserver {
     public TabModelSelectorTabObserver(TabModelSelector selector) {
         mTabModelSelector = selector;
 
-        mTabModelObserver = new EmptyTabModelObserver() {
+        mTabModelObserver = new TabModelSelectorTabModelObserver(selector) {
             @Override
             public void didAddTab(Tab tab, TabLaunchType type) {
                 // This observer is automatically removed by tab when it is destroyed.
@@ -44,50 +42,27 @@ public class TabModelSelectorTabObserver extends EmptyTabObserver {
             public void tabRemoved(Tab tab) {
                 tab.removeObserver(TabModelSelectorTabObserver.this);
             }
-        };
 
-        List<TabModel> tabModels = selector.getModels();
-        if (tabModels.isEmpty()) {
-            mSelectorObserver = new EmptyTabModelSelectorObserver() {
-                @Override
-                public void onNewTabCreated(Tab tab) {
-                    assert false : "onChange should have happened and unregistered this listener.";
+            @Override
+            protected void onRegistrationComplete() {
+                List<TabModel> tabModels = mTabModelSelector.getModels();
+                for (int i = 0; i < tabModels.size(); i++) {
+                    TabModel tabModel = tabModels.get(i);
+                    TabList comprehensiveTabList = tabModel.getComprehensiveModel();
+                    for (int j = 0; j < comprehensiveTabList.getCount(); j++) {
+                        comprehensiveTabList.getTabAt(j).addObserver(
+                                TabModelSelectorTabObserver.this);
+                    }
                 }
-
-                @Override
-                public void onChange() {
-                    mTabModelSelector.removeObserver(this);
-                    mSelectorObserver = null;
-                    registerModelObservers();
-                }
-            };
-            mTabModelSelector.addObserver(mSelectorObserver);
-        } else {
-            registerModelObservers();
-        }
-    }
-
-    private void registerModelObservers() {
-        List<TabModel> tabModels = mTabModelSelector.getModels();
-        for (int i = 0; i < tabModels.size(); i++) {
-            TabModel tabModel = tabModels.get(i);
-            tabModel.addObserver(mTabModelObserver);
-
-            TabList comprehensiveTabList = tabModel.getComprehensiveModel();
-            for (int j = 0; j < comprehensiveTabList.getCount(); j++) {
-                comprehensiveTabList.getTabAt(j).addObserver(this);
             }
-        }
+        };
     }
 
     /**
      * Destroys the observer and removes itself as a listener for Tab updates.
      */
     public void destroy() {
-        if (mSelectorObserver != null) {
-            mTabModelSelector.removeObserver(mSelectorObserver);
-            mSelectorObserver = null;
-        }
+        mTabModelObserver.destroy();
 
         List<TabModel> tabModels = mTabModelSelector.getModels();
         for (int i = 0; i < tabModels.size(); i++) {

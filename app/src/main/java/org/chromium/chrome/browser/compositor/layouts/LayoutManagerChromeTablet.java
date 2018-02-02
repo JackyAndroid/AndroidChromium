@@ -6,30 +6,25 @@ package org.chromium.chrome.browser.compositor.layouts;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.compositor.LayerTitleCache;
 import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.AreaGestureEventFilter;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.EdgeSwipeEventFilter.ScrollDirection;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.EventFilterHost;
 import org.chromium.chrome.browser.compositor.layouts.eventfilter.GestureHandler;
 import org.chromium.chrome.browser.compositor.overlays.strip.StripLayoutHelperManager;
-import org.chromium.chrome.browser.compositor.scene_layer.SceneLayer;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchManagementDelegate;
 import org.chromium.chrome.browser.dom_distiller.ReaderModeManagerDelegate;
-import org.chromium.chrome.browser.fullscreen.ChromeFullscreenManager;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabObserver;
-import org.chromium.ui.resources.ResourceManager;
 import org.chromium.ui.resources.dynamics.DynamicResourceLoader;
 
 import java.util.List;
@@ -119,7 +114,9 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     @Override
     protected void tabCreated(int id, int sourceId, TabLaunchType launchType, boolean incognito,
             boolean willBeSelected, float originX, float originY) {
-        if (getFullscreenManager() != null) getFullscreenManager().showControlsTransient();
+        if (getFullscreenManager() != null) {
+            getFullscreenManager().getBrowserVisibilityDelegate().showControlsTransient();
+        }
         super.tabCreated(id, sourceId, launchType, incognito, willBeSelected, originX, originY);
     }
 
@@ -187,14 +184,6 @@ public class LayoutManagerChromeTablet extends LayoutManagerChrome {
     @Override
     public StripLayoutHelperManager getStripLayoutHelperManager() {
         return mTabStripLayoutHelperManager;
-    }
-
-    @Override
-    public SceneLayer getUpdatedActiveSceneLayer(Rect viewport, Rect contentViewport,
-            LayerTitleCache layerTitleCache, TabContentManager tabContentManager,
-            ResourceManager resourceManager, ChromeFullscreenManager fullscreenManager) {
-        return super.getUpdatedActiveSceneLayer(viewport, contentViewport, layerTitleCache,
-                tabContentManager, resourceManager, fullscreenManager);
     }
 
     private void updateTitle(Tab tab) {

@@ -4,10 +4,12 @@
      found in the LICENSE file. -->
 
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Name of the card (type + obfuscated number) -->
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/pref_autofill_field_large_top_margin"
         style="@style/PreferenceTitle" />
 
     <TextView
@@ -15,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/PreferenceSummary"
-        android:layout_marginBottom="@dimen/pref_autofill_field_top_margin" />
+        android:layout_marginBottom="@dimen/pref_autofill_field_bottom_margin" />
 
     <include layout="@layout/autofill_billing_address_dropdown" />
 

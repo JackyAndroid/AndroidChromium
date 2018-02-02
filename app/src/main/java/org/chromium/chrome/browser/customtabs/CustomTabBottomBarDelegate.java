@@ -22,9 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 
 import org.chromium.base.Log;
+import org.chromium.base.metrics.CachedMetrics;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeActivity;
-import org.chromium.chrome.browser.metrics.LaunchMetrics;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.ui.interpolators.BakedBezierInterpolator;
 
@@ -35,10 +35,10 @@ import java.util.List;
  */
 class CustomTabBottomBarDelegate {
     private static final String TAG = "CustomTab";
-    private static final LaunchMetrics.ActionEvent REMOTE_VIEWS_SHOWN =
-            new LaunchMetrics.ActionEvent("CustomTabsRemoteViewsShown");
-    private static final LaunchMetrics.ActionEvent REMOTE_VIEWS_UPDATED =
-            new LaunchMetrics.ActionEvent("CustomTabsRemoteViewsUpdated");
+    private static final CachedMetrics.ActionEvent REMOTE_VIEWS_SHOWN =
+            new CachedMetrics.ActionEvent("CustomTabsRemoteViewsShown");
+    private static final CachedMetrics.ActionEvent REMOTE_VIEWS_UPDATED =
+            new CachedMetrics.ActionEvent("CustomTabsRemoteViewsUpdated");
     private static final int SLIDE_ANIMATION_DURATION_MS = 400;
     private ChromeActivity mActivity;
     private ViewGroup mBottomBarView;

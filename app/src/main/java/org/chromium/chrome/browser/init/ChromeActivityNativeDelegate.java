@@ -57,6 +57,11 @@ public interface ChromeActivityNativeDelegate {
     void onNewIntentWithNative(Intent intent);
 
     /**
+     * @return The Intent that launched the activity.
+     */
+    Intent getInitialIntent();
+
+    /**
      * Carry out native code dependent tasks that relate to processing an activity result coming to
      * Activity.onActivityResult().
      * @param requestCode The request code of the response.

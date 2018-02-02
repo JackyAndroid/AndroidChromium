@@ -33,7 +33,7 @@ import java.util.List;
  * Dialog for moving bookmarks from one folder to another. A list of folders are shown and the
  * hierarchy of bookmark model is presented by indentation of list items. This dialog can be shown
  * in two cases. One is when user choose to move an existing bookmark to a new folder. The other is
- * when user creates a new folder/bookmark, he/she can choose which parent the new folder/bookmark
+ * when user creates a new folder/bookmark, they can choose which parent the new folder/bookmark
  * belong to.
  * <p>
  * Note this fragment will not be restarted by OS. It will be dismissed if chrome is killed in

@@ -92,7 +92,18 @@ public class ToSAndUMAFirstRunFragment extends FirstRunPage {
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser && mSendReportCheckBox != null) {
+            // On certain versions of Android, the checkbox will appear unchecked upon revisiting
+            // the page.  Force it to the end state of the drawable animation as a work around.
+            // crbug.com/666258
+            mSendReportCheckBox.jumpDrawablesToCurrentState();
+        }
+    }
+
+    @Override
     public boolean shouldSkipPageOnCreate(Context appContext) {
-        return FirstRunStatus.shouldSkipWelcomePage(appContext);
+        return FirstRunStatus.shouldSkipWelcomePage();
     }
 }

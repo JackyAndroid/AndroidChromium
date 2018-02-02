@@ -356,6 +356,6 @@ public class ToolbarSwipeLayout extends Layout implements Animatable<ToolbarSwip
                 resourceManager, fullscreenManager);
         assert mSceneLayer != null;
         mSceneLayer.pushLayers(getContext(), viewport, contentViewport, this, layerTitleCache,
-                tabContentManager, resourceManager);
+                tabContentManager, resourceManager, fullscreenManager);
     }
 }

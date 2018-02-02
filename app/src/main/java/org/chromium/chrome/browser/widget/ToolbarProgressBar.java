@@ -157,11 +157,11 @@ public class ToolbarProgressBar extends ClipDrawableProgressBar {
 
     /**
      * Prepare the progress bar for being attached to the window.
-     * @param toolbarHeight The height of the toolbar.
+     * @param topMargin The progress bar's top margin.
      */
-    public void prepareForAttach(int toolbarHeight) {
+    public void prepareForAttach(int topMargin) {
         LayoutParams curParams = new LayoutParams(getLayoutParams());
-        mMarginTop = toolbarHeight - curParams.height;
+        mMarginTop = topMargin;
         curParams.topMargin = mMarginTop;
         setLayoutParams(curParams);
     }

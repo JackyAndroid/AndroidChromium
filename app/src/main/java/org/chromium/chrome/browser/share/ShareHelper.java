@@ -41,6 +41,7 @@ import org.chromium.base.ApplicationStatus;
 import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
+import org.chromium.base.StreamUtil;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.base.metrics.RecordHistogram;
@@ -396,18 +397,12 @@ public class ShareHelper {
                         File saveFile = File.createTempFile(fileName, JPEG_EXTENSION, path);
                         fOut = new FileOutputStream(saveFile);
                         screenshot.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
-                        fOut.flush();
-                        fOut.close();
                         return saveFile;
                     }
                 } catch (IOException ie) {
-                    if (fOut != null) {
-                        try {
-                            fOut.close();
-                        } catch (IOException e) {
-                            // Ignore exception.
-                        }
-                    }
+                    Log.w(TAG, "Ignoring IOException when saving screenshot.", ie);
+                } finally {
+                    StreamUtil.closeQuietly(fOut);
                 }
 
                 return null;

@@ -10,6 +10,8 @@ import org.chromium.base.annotations.CalledByNative;
 import org.chromium.blimp_public.BlimpClientContext;
 import org.chromium.blimp_public.BlimpClientContextDelegate;
 import org.chromium.chrome.browser.ApplicationLifetime;
+import org.chromium.chrome.browser.blimp.ui.BlimpMessageBuilder;
+import org.chromium.chrome.browser.blimp.ui.BlimpMessageBuilder.MessageLength;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.signin.AccountSigninActivity;
 import org.chromium.chrome.browser.signin.SigninAccessPoint;
@@ -60,6 +62,12 @@ public class ChromeBlimpClientContextDelegate implements BlimpClientContextDeleg
     public void startUserSignInFlow(Context context) {
         // TODO(xingliu): Figure out if Blimp should have its own SigninAccessPoint.
         AccountSigninActivity.startAccountSigninActivity(context, SigninAccessPoint.SETTINGS);
+    }
+
+    @CalledByNative
+    private void showMessage(String message, boolean shortMessage) {
+        MessageLength length = shortMessage ? MessageLength.SHORT : MessageLength.LONG;
+        new BlimpMessageBuilder().setDuration(length).showMessage(message);
     }
 
     /**

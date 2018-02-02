@@ -6,7 +6,6 @@ package org.chromium.chrome.browser.signin;
 
 import android.accounts.Account;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import com.google.android.gms.auth.AccountChangeEvent;
@@ -28,9 +27,7 @@ import org.chromium.components.sync.AndroidSyncSettings;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -55,8 +52,6 @@ public class SigninHelper {
     // events of the current signed in account.
     private static final String ACCOUNT_RENAME_EVENT_INDEX_PREFS_KEY =
             "prefs_sync_account_rename_event_index";
-
-    private static final String ANDROID_ACCOUNTS_PREFS_KEY = "prefs_sync_android_accounts";
 
     private static SigninHelper sInstance;
 
@@ -140,34 +135,20 @@ public class SigninHelper {
 
         Account syncAccount = mChromeSigninController.getSignedInUser();
         if (syncAccount == null) {
+            ChromePreferenceManager chromePreferenceManager =
+                    ChromePreferenceManager.getInstance(mContext);
+            if (chromePreferenceManager.getShowSigninPromo()) return;
+
             // Never shows a signin promo if user has manually disconnected.
             String lastSyncAccountName =
                     PrefServiceBridge.getInstance().getSyncLastAccountName();
             if (lastSyncAccountName != null && !lastSyncAccountName.isEmpty()) return;
 
-            SharedPreferences sharedPrefs = ContextUtils.getAppSharedPreferences();
-            boolean hasKnownAccountKeys = sharedPrefs.contains(ANDROID_ACCOUNTS_PREFS_KEY);
-            // Nothing to do if Android accounts are not changed and already known to Chrome.
-            if (hasKnownAccountKeys && !accountsChanged) return;
-
-            List<String> currentAccountNames =
-                    AccountManagerHelper.get(mContext).getGoogleAccountNames();
-            if (hasKnownAccountKeys) {
-                ChromePreferenceManager chromePreferenceManager =
-                        ChromePreferenceManager.getInstance(mContext);
-                if (!chromePreferenceManager.getSigninPromoShown()) {
-                    Set<String> lastKnownAccountNames = sharedPrefs.getStringSet(
-                            ANDROID_ACCOUNTS_PREFS_KEY, new HashSet<String>());
-                    Set<String> newAccountNames = new HashSet<String>(currentAccountNames);
-                    newAccountNames.removeAll(lastKnownAccountNames);
-                    if (!newAccountNames.isEmpty()) {
-                        chromePreferenceManager.setShowSigninPromo(true);
-                    }
-                }
+            if (!chromePreferenceManager.getSigninPromoShown()
+                    && AccountManagerHelper.get(mContext).getGoogleAccountNames().size() > 0) {
+                chromePreferenceManager.setShowSigninPromo(true);
             }
 
-            sharedPrefs.edit().putStringSet(
-                    ANDROID_ACCOUNTS_PREFS_KEY, new HashSet<String>(currentAccountNames)).apply();
             return;
         }
 

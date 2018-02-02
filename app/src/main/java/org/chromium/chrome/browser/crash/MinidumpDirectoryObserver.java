@@ -13,6 +13,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.base.PathUtils;
 import org.chromium.base.metrics.RecordUserAction;
+import org.chromium.components.minidump_uploader.CrashFileManager;
 
 import java.io.File;
 

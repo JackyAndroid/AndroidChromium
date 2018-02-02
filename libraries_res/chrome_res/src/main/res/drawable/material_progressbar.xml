@@ -8,7 +8,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape>
-            <solid android:color="#dbdbdb" />
+            <solid android:color="@color/material_progressbar_bg" />
         </shape>
     </item>
 
@@ -16,6 +16,14 @@
         <clip>
             <shape>
                 <solid android:color="@color/light_active_color" />
+            </shape>
+        </clip>
+    </item>
+
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape>
+                <solid android:color="@color/google_grey_600" />
             </shape>
         </clip>
     </item>

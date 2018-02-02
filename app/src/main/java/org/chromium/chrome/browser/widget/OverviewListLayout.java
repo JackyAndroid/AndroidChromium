@@ -73,7 +73,7 @@ public class OverviewListLayout extends Layout implements AccessibilityTabModelA
         FrameLayout.LayoutParams params =
                 (FrameLayout.LayoutParams) mTabModelWrapper.getLayoutParams();
         if (params == null) return;
-        params.topMargin = (int) ((getHeight() - getHeightMinusTopControls()) * mDpToPx);
+        params.topMargin = (int) ((getHeight() - getHeightMinusBrowserControls()) * mDpToPx);
         mTabModelWrapper.setLayoutParams(params);
     }
 

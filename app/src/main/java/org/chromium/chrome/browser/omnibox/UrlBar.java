@@ -534,7 +534,7 @@ public class UrlBar extends VerticallyFixedEditText {
         if (event.getAction() == MotionEvent.ACTION_DOWN && currentTab != null) {
             // Make sure to hide the current ContentView ActionBar.
             ContentViewCore viewCore = currentTab.getContentViewCore();
-            if (viewCore != null) viewCore.hideSelectActionMode();
+            if (viewCore != null) viewCore.destroySelectActionMode();
         }
 
         return super.onTouchEvent(event);

@@ -13,12 +13,14 @@
     android:layout_height="match_parent"
     android:fillViewport="true" >
 
-    <!-- All fields go into this LinearLayout. -->
+    <!-- All fields go into this LinearLayout. Note that some horizontal margins are set, but the
+         embedded views are responsible for their top margins. -->
     <LinearLayout
-        style="@style/PreferenceScreenLayout"
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingStart="@dimen/pref_autofill_content_spacing"
+        android:paddingEnd="@dimen/pref_autofill_content_spacing"
         android:orientation="vertical" />
 
 </org.chromium.chrome.browser.payments.ui.FadingEdgeScrollView>

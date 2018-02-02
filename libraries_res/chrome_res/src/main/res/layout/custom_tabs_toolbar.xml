@@ -5,7 +5,10 @@
 
 <org.chromium.chrome.browser.toolbar.CustomTabToolbar
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:chrome="http://schemas.android.com/apk/res-auto" >
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/custom_tabs_control_container_height" >
     <ImageButton
         android:id="@+id/close_button"
         style="@style/ToolbarButton"

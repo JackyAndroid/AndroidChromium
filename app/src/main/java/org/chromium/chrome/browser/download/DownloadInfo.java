@@ -4,6 +4,8 @@
 
 package org.chromium.chrome.browser.download;
 
+import org.chromium.content_public.browser.DownloadState;
+
 /**
  * Class representing the state of a single download.
  */
@@ -28,6 +30,7 @@ public final class DownloadInfo {
     private final boolean mIsPaused;
     private final boolean mIsOffTheRecord;
     private final boolean mIsOfflinePage;
+    private final int mState;
 
     private DownloadInfo(Builder builder) {
         mUrl = builder.mUrl;
@@ -50,6 +53,7 @@ public final class DownloadInfo {
         mIsPaused = builder.mIsPaused;
         mIsOffTheRecord = builder.mIsOffTheRecord;
         mIsOfflinePage = builder.mIsOfflinePage;
+        mState = builder.mState;
     }
 
     public String getUrl() {
@@ -135,6 +139,10 @@ public final class DownloadInfo {
         return mIsOfflinePage;
     }
 
+    public int state() {
+        return mState;
+    }
+
     /**
      * Helper class for building the DownloadInfo object.
      */
@@ -159,6 +167,7 @@ public final class DownloadInfo {
         private boolean mIsPaused;
         private boolean mIsOffTheRecord;
         private boolean mIsOfflinePage = false;
+        private int mState = DownloadState.IN_PROGRESS;
 
         public Builder setUrl(String url) {
             mUrl = url;
@@ -261,6 +270,11 @@ public final class DownloadInfo {
             return this;
         }
 
+        public Builder setState(int downloadState) {
+            mState = downloadState;
+            return this;
+        }
+
         public DownloadInfo build() {
             return new DownloadInfo(this);
         }
@@ -291,7 +305,8 @@ public final class DownloadInfo {
                     .setIsResumable(downloadInfo.isResumable())
                     .setIsPaused(downloadInfo.isPaused())
                     .setIsOffTheRecord(downloadInfo.isOffTheRecord())
-                    .setIsOfflinePage(downloadInfo.isOfflinePage());
+                    .setIsOfflinePage(downloadInfo.isOfflinePage())
+                    .setState(downloadInfo.state());
             return builder;
         }
 

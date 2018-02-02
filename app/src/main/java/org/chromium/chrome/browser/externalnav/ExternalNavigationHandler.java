@@ -48,8 +48,13 @@ public class ExternalNavigationHandler {
     @VisibleForTesting
     static final String EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url";
 
-    // Supervisor package name
-    private static final Object SUPERVISOR_PKG = "com.google.android.instantapps.supervisor";
+    @VisibleForTesting
+    static final String SUPERVISOR_PKG = "com.google.android.instantapps.supervisor";
+    @VisibleForTesting
+    static final String[] SUPERVISOR_START_ACTIONS = {
+            "com.google.android.instantapps.START",
+            "com.google.android.instantapps.nmr1.INSTALL",
+            "com.google.android.instantapps.nmr1.VIEW" };
 
     // An extra that may be specified on an intent:// URL that contains an encoded value for the
     // referrer field passed to the market:// URL in the case where the app is not present.
@@ -133,6 +138,7 @@ public class ExternalNavigationHandler {
     }
 
     private boolean resolversSubsetOf(List<ResolveInfo> infos, List<ResolveInfo> container) {
+        if (container == null) return false;
         HashSet<ComponentName> containerSet = new HashSet<>();
         for (ResolveInfo info : container) {
             containerSet.add(
@@ -157,11 +163,6 @@ public class ExternalNavigationHandler {
         }
         // http://crbug.com/464669 : Disallow firing external intent from background tab.
         if (params.isBackgroundTabNavigation()) {
-            return OverrideUrlLoadingResult.NO_OVERRIDE;
-        }
-
-        // http://crbug.com/605302 : Allow Chrome to handle all pdf file downloads.
-        if (mDelegate.isPdfDownload(params.getUrl())) {
             return OverrideUrlLoadingResult.NO_OVERRIDE;
         }
 
@@ -192,6 +193,11 @@ public class ExternalNavigationHandler {
         // http://crbug.com/164194 . A navigation forwards or backwards should never trigger
         // the intent picker.
         if (isForwardBackNavigation) {
+            return OverrideUrlLoadingResult.NO_OVERRIDE;
+        }
+
+        // http://crbug.com/605302 : Allow Chrome to handle all pdf file downloads.
+        if (!isExternalProtocol && mDelegate.isPdfDownload(params.getUrl())) {
             return OverrideUrlLoadingResult.NO_OVERRIDE;
         }
 
@@ -320,6 +326,8 @@ public class ExternalNavigationHandler {
         }
 
         List<ResolveInfo> resolvingInfos = mDelegate.queryIntentActivities(intent);
+        if (resolvingInfos == null) return OverrideUrlLoadingResult.NO_OVERRIDE;
+
         boolean canResolveActivity = resolvingInfos.size() > 0;
         // check whether the intent can be resolved. If not, we will see
         // whether we can download it from the Market.
@@ -444,15 +452,14 @@ public class ExternalNavigationHandler {
 
                     if (previousIntent != null
                             && resolversSubsetOf(resolvingInfos,
-                                       mDelegate.queryIntentActivities(previousIntent))) {
+                                    mDelegate.queryIntentActivities(previousIntent))) {
                         return OverrideUrlLoadingResult.NO_OVERRIDE;
                     }
                 }
             }
         }
 
-        boolean isDirectInstantAppsIntent = isExternalProtocol
-                && SUPERVISOR_PKG.equals(intent.getPackage());
+        boolean isDirectInstantAppsIntent = isExternalProtocol && isIntentToInstantApp(intent);
         boolean shouldProxyForInstantApps = isDirectInstantAppsIntent
                 && mDelegate.isSerpReferrer(params.getReferrerUrl(), params.getTab());
         if (shouldProxyForInstantApps) {
@@ -532,6 +539,23 @@ public class ExternalNavigationHandler {
     }
 
     /**
+     * Checks whether {@param intent} is for an Instant App. Considers both package and actions that
+     * would resolve to Supervisor.
+     * @return Whether the given intent is going to open an Instant App.
+     */
+    private boolean isIntentToInstantApp(Intent intent) {
+        if (SUPERVISOR_PKG.equals(intent.getPackage())) return true;
+
+        String intentAction = intent.getAction();
+        for (String action: SUPERVISOR_START_ACTIONS) {
+            if (action.equals(intentAction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Clobber the current tab with fallback URL.
      *
      * @param browserFallbackUrl The fallback URL.
@@ -564,8 +588,10 @@ public class ExternalNavigationHandler {
         if (url.startsWith(SCHEME_WTAI_MC)) return true;
         try {
             Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-            return intent.getPackage() != null
-                    || mDelegate.queryIntentActivities(intent).size() > 0;
+            if (intent.getPackage() != null) return true;
+
+            List<ResolveInfo> resolvingInfos = mDelegate.queryIntentActivities(intent);
+            if (resolvingInfos != null && resolvingInfos.size() > 0) return true;
         } catch (Exception ex) {
             // Ignore the error.
             Log.w(TAG, "Bad URI %s", url, ex);

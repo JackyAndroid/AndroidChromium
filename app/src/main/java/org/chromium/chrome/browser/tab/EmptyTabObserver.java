@@ -89,9 +89,8 @@ public class EmptyTabObserver implements TabObserver {
             int errorCode, String description, String failingUrl) { }
 
     @Override
-    public void onDidStartProvisionalLoadForFrame(Tab tab, long frameId, long parentFrameId,
-            boolean isMainFrame, String validatedUrl, boolean isErrorPage,
-            boolean isIframeSrcdoc) { }
+    public void onDidStartProvisionalLoadForFrame(
+            Tab tab, boolean isMainFrame, String validatedUrl) {}
 
     @Override
     public void onDidCommitProvisionalLoadForFrame(Tab tab, long frameId, boolean isMainFrame,
@@ -120,8 +119,9 @@ public class EmptyTabObserver implements TabObserver {
     public void onBackgroundColorChanged(Tab tab, int color) { }
 
     @Override
-    public void webContentsCreated(Tab tab, WebContents sourceWebContents, long openerRenderFrameId,
-            String frameName, String targetUrl, WebContents newWebContents) { }
+    public void webContentsCreated(Tab tab, WebContents sourceWebContents,
+            long openerRenderProcessId, long openerRenderFrameId, String frameName,
+            String targetUrl, WebContents newWebContents) {}
 
     @Override
     public void onReparentingFinished(Tab tab) { }

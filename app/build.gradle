@@ -1,22 +1,27 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+    enforceUniquePackageName false
+
+    defaultConfig {
+        applicationId "org.chromium.chrome.browser"
+        minSdkVersion 19
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+    }
+
     signingConfigs {
         release {
 
         }
     }
-    compileSdkVersion 24
-    buildToolsVersion "24.0.3"
-    enforceUniquePackageName false
-    defaultConfig {
-        applicationId "org.chromium.chrome.browser"
-        minSdkVersion 19
-        targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
-        multiDexEnabled true
-    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -24,16 +29,14 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
     dexOptions {
         jumboMode = true
         javaMaxHeapSize "4g"
     }
+
     aaptOptions {
         noCompress "dat", "bin", "pak"
-    }
-
-    productFlavors {
-        wandoujia {}
     }
 
     lintOptions {
@@ -61,10 +64,12 @@ dependencies {
     compile files('libs/device/vibration/mojo_bindings_java.jar')
     compile files('libs/mojo/public/java/bindings.jar')
     compile files('libs/mojo/public/java/system.jar')
-    compile files('libs/services/shell/public/interfaces/interfaces_java.jar')
+    compile files('libs/services/service_manager/public/interfaces/interfaces_java.jar')
     compile files('libs/third_party/WebKit/public/android_mojo_bindings_java.jar')
     compile files('libs/ui/base/mojo/mojo_bindings_java.jar')
     compile project(':libraries_res:chrome_res')
     compile project(':libraries_res:ui_res')
     compile project(':libraries_res:content_res')
+
+    compile 'com.android.support:multidex:1.0.2'
 }

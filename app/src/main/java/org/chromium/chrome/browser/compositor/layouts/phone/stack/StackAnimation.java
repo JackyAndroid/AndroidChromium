@@ -80,7 +80,7 @@ public abstract class StackAnimation {
 
     protected final float mWidth;
     protected final float mHeight;
-    protected final float mHeightMinusTopControls;
+    protected final float mHeightMinusBrowserControls;
     protected final float mBorderTopHeight;
     protected final float mBorderTopOpaqueHeight;
     protected final float mBorderLeftWidth;
@@ -90,17 +90,17 @@ public abstract class StackAnimation {
      *
      * @param width                       The width of the layout in dp.
      * @param height                      The height of the layout in dp.
-     * @param heightMinusTopControls      The height of the layout minus the top controls in dp.
+     * @param heightMinusBrowserControls  The height of the layout minus the browser controls in dp.
      * @param borderFramePaddingTop       The top padding of the border frame in dp.
      * @param borderFramePaddingTopOpaque The opaque top padding of the border frame in dp.
      * @param borderFramePaddingLeft      The left padding of the border frame in dp.
      */
-    protected StackAnimation(float width, float height, float heightMinusTopControls,
+    protected StackAnimation(float width, float height, float heightMinusBrowserControls,
             float borderFramePaddingTop, float borderFramePaddingTopOpaque,
             float borderFramePaddingLeft) {
         mWidth = width;
         mHeight = height;
-        mHeightMinusTopControls = heightMinusTopControls;
+        mHeightMinusBrowserControls = heightMinusBrowserControls;
 
         mBorderTopHeight = borderFramePaddingTop;
         mBorderTopOpaqueHeight = borderFramePaddingTopOpaque;
@@ -113,7 +113,7 @@ public abstract class StackAnimation {
      *
      * @param width                       The width of the layout in dp.
      * @param height                      The height of the layout in dp.
-     * @param heightMinusTopControls      The height of the layout minus the top controls in dp.
+     * @param heightMinusBrowserControls  The height of the layout minus the browser controls in dp.
      * @param borderFramePaddingTop       The top padding of the border frame in dp.
      * @param borderFramePaddingTopOpaque The opaque top padding of the border frame in dp.
      * @param borderFramePaddingLeft      The left padding of the border frame in dp.
@@ -122,17 +122,17 @@ public abstract class StackAnimation {
      * @return                            The TabSwitcherAnimationFactory instance.
      */
     public static StackAnimation createAnimationFactory(float width, float height,
-            float heightMinusTopControls, float borderFramePaddingTop,
+            float heightMinusBrowserControls, float borderFramePaddingTop,
             float borderFramePaddingTopOpaque, float borderFramePaddingLeft, int orientation) {
         StackAnimation factory = null;
         switch (orientation) {
             case Orientation.LANDSCAPE:
-                factory = new StackAnimationLandscape(width, height, heightMinusTopControls,
+                factory = new StackAnimationLandscape(width, height, heightMinusBrowserControls,
                         borderFramePaddingTop, borderFramePaddingTopOpaque, borderFramePaddingLeft);
                 break;
             case Orientation.PORTRAIT:
             default:
-                factory = new StackAnimationPortrait(width, height, heightMinusTopControls,
+                factory = new StackAnimationPortrait(width, height, heightMinusBrowserControls,
                         borderFramePaddingTop, borderFramePaddingTopOpaque, borderFramePaddingLeft);
                 break;
         }
@@ -431,7 +431,7 @@ public abstract class StackAnimation {
      *         border.
      */
     protected float getToolbarOffsetToLineUpWithBorder() {
-        final float toolbarHeight = mHeight - mHeightMinusTopControls;
+        final float toolbarHeight = mHeight - mHeightMinusBrowserControls;
         return toolbarHeight - mBorderTopOpaqueHeight;
     }
 }

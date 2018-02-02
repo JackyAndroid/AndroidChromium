@@ -21,13 +21,13 @@ import com.google.android.gms.gcm.PeriodicTask;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
+import org.chromium.base.NonThreadSafe;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.base.library_loader.LibraryLoader;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.browser.ChromeBackgroundService;
 import org.chromium.chrome.browser.ChromeVersionInfo;
-import org.chromium.chrome.browser.util.NonThreadSafe;
 import org.chromium.components.precache.DeviceState;
 import org.chromium.components.sync.ModelType;
 

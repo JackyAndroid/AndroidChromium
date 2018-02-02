@@ -90,6 +90,10 @@ public class SelectionToolbar<E> extends Toolbar implements SelectionObserver<E>
         mSelectionDelegate.addObserver(this);
 
         if (mDrawerLayout != null) initActionBarDrawerToggle();
+
+        setBackgroundColor(ApiCompatibilityUtils.getColor(getResources(),
+                R.color.appbar_background));
+        if (mTitleResId != 0) setTitle(mTitleResId);
     }
 
     @Override

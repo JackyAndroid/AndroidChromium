@@ -135,8 +135,10 @@ public class PhysicalWebDiagnosticsPage extends BasicNativePage {
                 || !isLocationPermissionGranted
                 || !isPreferenceEnabled) {
             prerequisitesResult = Utils.RESULT_FAILURE;
+            mLaunchButton.setEnabled(false);
         } else if (bluetoothStatus == Utils.RESULT_INDETERMINATE) {
             prerequisitesResult = Utils.RESULT_INDETERMINATE;
+            mLaunchButton.setEnabled(false);
         }
 
         sb.append("<h2>Status</h2>");

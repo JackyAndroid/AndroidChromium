@@ -1,13 +1,4 @@
 dfalcantara@chromium.org
+dominickn@chromium.org
 mlamouri@chromium.org
 changwan@chromium.org
-
-per-file AddToHomescreen*=dominickn@chromium.org
-per-file ManifestUpgradeDetector.java=dominickn@chromium.org
-per-file ManifestUpgradeDetectorFetcher.java=dominickn@chromium.org
-per-file WebApkUpdateManager.java=dominickn@chromium.org
-per-file WebappActivity.java=dominickn@chromium.org
-per-file WebappDataStorage.java=dominickn@chromium.org
-per-file WebappInfo.java=dominickn@chromium.org
-per-file WebappLauncherActivity.java=dominickn@chromium.org
-per-file WebappRegistry.java=dominickn@chromium.org

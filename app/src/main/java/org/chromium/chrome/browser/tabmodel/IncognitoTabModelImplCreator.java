@@ -50,7 +50,7 @@ class IncognitoTabModelImplCreator implements IncognitoTabModelDelegate {
 
     @Override
     public TabModel createTabModel() {
-        return new TabModelImpl(true, mRegularTabCreator, mIncognitoTabCreator, mUma,
+        return new TabModelImpl(true, false, mRegularTabCreator, mIncognitoTabCreator, mUma,
                 mOrderController, mTabContentManager, mTabSaver, mModelDelegate, false);
     }
 

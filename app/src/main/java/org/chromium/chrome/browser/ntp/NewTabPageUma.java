@@ -20,7 +20,6 @@ import org.chromium.ui.base.PageTransition;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Records UMA stats for which actions the user takes on the NTP in the
@@ -48,12 +47,12 @@ public final class NewTabPageUma {
     public static final int ACTION_OPENED_FOREIGN_SESSION = 6;
     // User navigated to the webpage for a snippet shown on the NTP.
     public static final int ACTION_OPENED_SNIPPET = 7;
-    // User clicked on an interest item.
-    public static final int ACTION_CLICKED_INTEREST = 8;
     // User clicked on the "learn more" link in the footer.
     public static final int ACTION_CLICKED_LEARN_MORE = 9;
+    // User clicked on the "Refresh" button in the "all dismissed" state.
+    public static final int ACTION_CLICKED_ALL_DISMISSED_REFRESH = 10;
     // The number of possible actions
-    private static final int NUM_ACTIONS = 10;
+    private static final int NUM_ACTIONS = 11;
 
     // User navigated to a page using the omnibox.
     private static final int RAPPOR_ACTION_NAVIGATED_USING_OMNIBOX = 0;
@@ -69,49 +68,27 @@ public final class NewTabPageUma {
     // The number of possible NTP impression types
     private static final int NUM_NTP_IMPRESSION = 2;
 
-    /** Possible interactions with the snippets.
-     * Do not remove or change existing values other than NUM_SNIPPETS_ACTIONS. */
-    @IntDef({SNIPPETS_ACTION_SHOWN, SNIPPETS_ACTION_SCROLLED, SNIPPETS_ACTION_CLICKED,
-             SNIPPETS_ACTION_DISMISSED_OBSOLETE, SNIPPETS_ACTION_DISMISSED_VISITED,
-             SNIPPETS_ACTION_DISMISSED_UNVISITED})
+    /** Possible results when sizing the NewTabPageLayout.
+     * Do not remove or change existing values other than NUM_NTP_LAYOUT_RESULTS. */
+    @IntDef({NTP_LAYOUT_DOES_NOT_FIT, NTP_LAYOUT_FITS_WITHOUT_FIELD_TRIAL,
+             NTP_LAYOUT_FITS_WITH_FIELD_TRIAL, NUM_NTP_LAYOUT_RESULTS})
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SnippetsAction {}
-    /** Snippets are enabled and are being shown to the user. */
-    public static final int SNIPPETS_ACTION_SHOWN = 0;
-    /** The snippet list has been scrolled. */
-    public static final int SNIPPETS_ACTION_SCROLLED = 1;
-    /** A snippet has been clicked. */
-    public static final int SNIPPETS_ACTION_CLICKED = 2;
-    /** A snippet has been dismissed, made obsolete by the next two actions. */
-    public static final int SNIPPETS_ACTION_DISMISSED_OBSOLETE = 3;
-    /** A snippet has been swiped away, it had been viewed by the user (on this device). */
-    public static final int SNIPPETS_ACTION_DISMISSED_VISITED = 4;
-    /** A snippet has been swiped away, it had not been viewed by the user (on this device). */
-    public static final int SNIPPETS_ACTION_DISMISSED_UNVISITED = 5;
-    /** Obsolete. The snippet list has been scrolled below the fold (once per NTP load). */
-    // public static final int SNIPPETS_ACTION_SCROLLED_BELOW_THE_FOLD_ONCE = 6;
-    /** The number of possible actions. */
-    private static final int NUM_SNIPPETS_ACTIONS = 7;
+    public @interface NTPLayoutResult {}
+    /** The NewTabPageLayout does not fit above the fold and it is displayed as is. */
+    public static final int NTP_LAYOUT_DOES_NOT_FIT = 0;
+    /** The NewTabPageLayout does not fit above the fold, but we added some extra space so that
+     * Most Likely is cut off, indicating to the user they can scroll. */
+    public static final int NTP_LAYOUT_DOES_NOT_FIT_PUSH_MOST_LIKELY = 1;
+    /** The NewTabPageLayout fits above the fold, the field trial is not enabled. */
+    public static final int NTP_LAYOUT_FITS_NO_FIELD_TRIAL = 2;
+    /** The NewTabPageLayout fits above the fold, but cannot allow space for the field trial
+     * experiment. */
+    public static final int NTP_LAYOUT_FITS_WITHOUT_FIELD_TRIAL = 3;
+    /** The NewTabPageLayout fits above the fold allowing space for the field trial experiment. */
+    public static final int NTP_LAYOUT_FITS_WITH_FIELD_TRIAL = 4;
+    /** The number of possible results for the NewTabPageLayout calculations. */
+    public static final int NUM_NTP_LAYOUT_RESULTS = 5;
 
-    /** Possible ways to follow the link provided by a snippet.
-     * Do not remove or change existing values other than NUM_OPEN_SNIPPET_METHODS. */
-    @IntDef({OPEN_SNIPPET_METHODS_PLAIN_CLICK, OPEN_SNIPPET_METHODS_NEW_WINDOW,
-            OPEN_SNIPPET_METHODS_NEW_TAB, OPEN_SNIPPET_METHODS_INCOGNITO,
-            OPEN_SNIPPET_METHODS_SAVE_FOR_OFFLINE, NUM_OPEN_SNIPPET_METHODS})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface OpenSnippetMethod {}
-    /** The article was opened taking over the tab. */
-    public static final int OPEN_SNIPPET_METHODS_PLAIN_CLICK = 0;
-    /** The article was opened in a new window. */
-    public static final int OPEN_SNIPPET_METHODS_NEW_WINDOW = 1;
-    /** The article was opened in a new tab, */
-    public static final int OPEN_SNIPPET_METHODS_NEW_TAB = 2;
-    /** The article was opened in an incognito tab. */
-    public static final int OPEN_SNIPPET_METHODS_INCOGNITO = 3;
-    /** The article was saved to be viewed offline. */
-    public static final int OPEN_SNIPPET_METHODS_SAVE_FOR_OFFLINE = 4;
-    /** The number of ways an article can be viewed. */
-    public static final int NUM_OPEN_SNIPPET_METHODS = 5;
     /**
      * Records an action taken by the user on the NTP.
      * @param action One of the ACTION_* values defined in this class.
@@ -176,21 +153,12 @@ public final class NewTabPageUma {
     }
 
     /**
-     * Records important events related to snippets.
-     * @param action action key, one of {@link SnippetsAction}'s values.
+     * Records how the NewTabPageLayout fits on the user's screen.
+     * @param result result key, one of {@link NTPLayoutResult}'s values.
      */
-    public static void recordSnippetAction(@SnippetsAction int action) {
+    public static void recordNTPLayoutResult(@NTPLayoutResult int result) {
         RecordHistogram.recordEnumeratedHistogram(
-                "NewTabPage.Snippets.Interactions", action, NUM_SNIPPETS_ACTIONS);
-    }
-
-    /**
-     * Records how the article linked from a snippet was viewed.
-     * @param method method key, one of {@link OpenSnippetMethod}'s values.
-     */
-    public static void recordOpenSnippetMethod(@OpenSnippetMethod int method) {
-        RecordHistogram.recordEnumeratedHistogram(
-                "NewTabPage.Snippets.OpenMethod", method, NUM_OPEN_SNIPPET_METHODS);
+                "NewTabPage.Layout", result, NUM_NTP_LAYOUT_RESULTS);
     }
 
     /**
@@ -268,8 +236,6 @@ public final class NewTabPageUma {
             if (removeObserverFromTab != null) removeObserverFromTab.removeObserver(this);
             RecordUserAction.record("MobileNTP.Snippets.VisitEnd");
             long visitTimeMs = SystemClock.elapsedRealtime() - mStartTimeMs;
-            RecordHistogram.recordLongTimesHistogram(
-                    "NewTabPage.Snippets.VisitDuration", visitTimeMs, TimeUnit.MILLISECONDS);
             SnippetsBridge.onSuggestionTargetVisited(mCategory, visitTimeMs);
         }
     }

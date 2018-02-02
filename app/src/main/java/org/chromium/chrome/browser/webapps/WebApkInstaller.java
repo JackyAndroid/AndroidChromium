@@ -4,21 +4,21 @@
 
 package org.chromium.chrome.browser.webapps;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Looper;
-import android.provider.Settings;
 
 import org.chromium.base.ApplicationState;
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ContentUriUtils;
 import org.chromium.base.ContextUtils;
-import org.chromium.base.Log;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.browser.ShortcutHelper;
 import org.chromium.chrome.browser.banners.InstallerDelegate;
+import org.chromium.chrome.browser.util.IntentUtils;
 
 import java.io.File;
 
@@ -70,11 +70,6 @@ public class WebApkInstaller {
     @CalledByNative
     private boolean installAsyncAndMonitorInstallationFromNative(
             String filePath, String packageName) {
-        if (!installingFromUnknownSourcesAllowed()) {
-            Log.e(TAG,
-                    "WebAPK install failed because installation from unknown sources is disabled.");
-            return false;
-        }
         mIsInstall = true;
         mWebApkPackageName = packageName;
 
@@ -95,16 +90,24 @@ public class WebApkInstaller {
      * @param filePath File to install.
      */
     private boolean installDownloadedWebApk(String filePath) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        Uri fileUri = Uri.fromFile(new File(filePath));
-        intent.setDataAndType(fileUri, "application/vnd.android.package-archive");
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            ContextUtils.getApplicationContext().startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            return false;
+        // TODO(pkotwicz|hanxi): For Chrome Stable figure out a different way of installing
+        // WebAPKs which does not involve enabling "installation from Unsigned Sources".
+        Context context = ContextUtils.getApplicationContext();
+        Intent intent;
+        File pathToInstall = new File(filePath);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            intent = new Intent(Intent.ACTION_VIEW);
+            Uri fileUri = Uri.fromFile(pathToInstall);
+            intent.setDataAndType(fileUri, "application/vnd.android.package-archive");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        } else {
+            Uri source = ContentUriUtils.getContentUriFromFile(context, pathToInstall);
+            intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setData(source);
         }
-        return true;
+        return IntentUtils.safeStartActivity(context, intent);
     }
 
     private InstallerDelegate.Observer createInstallerDelegateObserver() {
@@ -137,28 +140,8 @@ public class WebApkInstaller {
      */
     @CalledByNative
     private boolean updateAsyncFromNative(String filePath) {
-        if (!installingFromUnknownSourcesAllowed()) {
-            Log.e(TAG,
-                    "WebAPK update failed because installation from unknown sources is disabled.");
-            return false;
-        }
         mIsInstall = false;
         return installDownloadedWebApk(filePath);
-    }
-
-    /**
-     * Returns whether the user has enabled installing apps from sources other than the Google Play
-     * Store.
-     */
-    private static boolean installingFromUnknownSourcesAllowed() {
-        Context context = ContextUtils.getApplicationContext();
-        try {
-            return Settings.Secure.getInt(
-                           context.getContentResolver(), Settings.Secure.INSTALL_NON_MARKET_APPS)
-                    == 1;
-        } catch (Settings.SettingNotFoundException e) {
-            return false;
-        }
     }
 
     private ApplicationStatus.ApplicationStateListener createApplicationStateListener() {

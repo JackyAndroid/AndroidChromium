@@ -13,11 +13,9 @@ import org.chromium.chrome.browser.UrlConstants;
 import org.chromium.chrome.browser.contextualsearch.ContextualSearchObserver;
 import org.chromium.chrome.browser.sync.ProfileSyncService;
 import org.chromium.chrome.browser.tab.Tab;
-import org.chromium.chrome.browser.tabmodel.EmptyTabModelObserver;
-import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabSelectionType;
-import org.chromium.chrome.browser.tabmodel.TabModelObserver;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
+import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabObserver;
 import org.chromium.components.sync.ModelType;
 import org.chromium.components.sync.PassphraseType;
@@ -59,7 +57,7 @@ public class ContextReporter {
     private final ChromeActivity mActivity;
     private final GSAContextReportDelegate mDelegate;
     private TabModelSelectorTabObserver mSelectorTabObserver;
-    private TabModelObserver mModelObserver;
+    private TabModelSelectorTabModelObserver mModelObserver;
     private ContextualSearchObserver mContextualSearchObserver;
     private boolean mLastContextWasTitleChange;
     private final AtomicBoolean mContextInUse;
@@ -102,15 +100,12 @@ public class ContextReporter {
         }
         if (mModelObserver == null) {
             assert !selector.getModels().isEmpty();
-            mModelObserver = new EmptyTabModelObserver() {
+            mModelObserver = new TabModelSelectorTabModelObserver(selector) {
                 @Override
                 public void didSelectTab(Tab tab, TabSelectionType type, int lastId) {
                     reportUsageOfCurrentContextIfPossible(tab, false, null);
                 }
             };
-            for (TabModel model : selector.getModels()) {
-                model.addObserver(mModelObserver);
-            }
         }
         if (mContextualSearchObserver == null && mActivity.getContextualSearchManager() != null) {
             mContextualSearchObserver = new ContextualSearchObserver() {
@@ -139,9 +134,7 @@ public class ContextReporter {
             mSelectorTabObserver = null;
         }
         if (mModelObserver != null) {
-            for (TabModel model : mActivity.getTabModelSelector().getModels()) {
-                model.removeObserver(mModelObserver);
-            }
+            mModelObserver.destroy();
             mModelObserver = null;
         }
         if (mContextualSearchObserver != null && mActivity.getContextualSearchManager() != null) {

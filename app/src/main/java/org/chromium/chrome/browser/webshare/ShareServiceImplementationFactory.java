@@ -5,7 +5,7 @@
 package org.chromium.chrome.browser.webshare;
 
 import org.chromium.content_public.browser.WebContents;
-import org.chromium.services.shell.InterfaceFactory;
+import org.chromium.services.service_manager.InterfaceFactory;
 import org.chromium.webshare.mojom.ShareService;
 
 /**

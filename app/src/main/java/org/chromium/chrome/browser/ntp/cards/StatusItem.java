@@ -5,6 +5,7 @@
 package org.chromium.chrome.browser.ntp.cards;
 
 import android.content.Context;
+import android.support.annotation.StringRes;
 
 import org.chromium.chrome.R;
 
@@ -12,48 +13,55 @@ import org.chromium.chrome.R;
  * Card that is shown when the user needs to be made aware of some information about their
  * configuration that affects the NTP suggestions.
  */
-public class StatusItem implements NewTabPageItem {
-    private final int mHeaderStringId;
-    private final int mDescriptionStringId;
-    private final int mActionStringId;
+public abstract class StatusItem extends OptionalLeaf implements StatusCardViewHolder.DataSource {
 
-    protected StatusItem(int headerStringId, int descriptionStringId, int actionStringId) {
-        mHeaderStringId = headerStringId;
-        mDescriptionStringId = descriptionStringId;
-        mActionStringId = actionStringId;
+    protected StatusItem(NodeParent parent) {
+        super(parent);
     }
 
-    public static StatusItem createNoSuggestionsItem(SuggestionsCategoryInfo categoryInfo) {
-        return new StatusItem(R.string.ntp_status_card_title_no_suggestions,
-                categoryInfo.getNoSuggestionDescription(), 0);
+    public static StatusItem createNoSuggestionsItem(SuggestionsSection parentSection) {
+        return new NoSuggestionsItem(parentSection);
     }
 
-    protected void performAction(Context context) {}
+    private static class NoSuggestionsItem extends StatusItem {
+        private final String mDescription;
+        public NoSuggestionsItem(SuggestionsSection parentSection) {
+            super(parentSection);
+            mDescription = parentSection.getCategoryInfo().getNoSuggestionsMessage();
+        }
 
-    protected boolean hasAction() {
-        return mActionStringId != 0;
+        @Override
+        @StringRes
+        public int getHeader() {
+            return R.string.ntp_status_card_title_no_suggestions;
+        }
+
+        @Override
+        public String getDescription() {
+            return mDescription;
+        }
+
+        @Override
+        @StringRes
+        public int getActionLabel() {
+            return 0;
+        }
+
+        @Override
+        public void performAction(Context context) {
+            assert false;
+        }
     }
 
     @Override
-    public int getType() {
-        return NewTabPageItem.VIEW_TYPE_STATUS;
+    @ItemViewType
+    protected int getItemViewType() {
+        return ItemViewType.STATUS;
     }
 
     @Override
-    public void onBindViewHolder(NewTabPageViewHolder holder) {
+    protected void onBindViewHolder(NewTabPageViewHolder holder) {
         assert holder instanceof StatusCardViewHolder;
         ((StatusCardViewHolder) holder).onBindViewHolder(this);
-    }
-
-    public int getHeader() {
-        return mHeaderStringId;
-    }
-
-    public int getDescription() {
-        return mDescriptionStringId;
-    }
-
-    public int getActionLabel() {
-        return mActionStringId;
     }
 }

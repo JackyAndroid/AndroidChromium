@@ -180,7 +180,7 @@ public class MediaCaptureNotificationService extends Service {
                 // into a high priority one.
                 builder.setPriority(Notification.PRIORITY_HIGH);
                 builder.setVibrate(new long[0]);
-                builder.addAction(R.drawable.ic_vidcontrol_stop,
+                builder.addAction(R.drawable.ic_media_control_stop,
                         mContext.getResources().getString(R.string.accessibility_stop),
                         buildStopCapturePendingIntent(notificationId));
             } else {

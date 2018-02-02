@@ -22,7 +22,7 @@ public class ContextualSearchImageControl
       * Animation properties.
       */
     protected enum AnimationType {
-        THUMBNAIL_VISIBILITY
+        STATIC_IMAGE_VISIBILITY
     }
 
     /** The current context. */
@@ -31,10 +31,27 @@ public class ContextualSearchImageControl
     /** The OverlayPanelAnimation used to add animations. */
     private final OverlayPanelAnimation mOverlayPanelAnimation;
 
+    /** The percentage the panel is expanded. 1.f is fully expanded and 0.f is peeked. */
+    private float mExpandedPercentage;
+
     public ContextualSearchImageControl(OverlayPanelAnimation overlayPanelAnimation,
             Context context) {
         mContext = context;
         mOverlayPanelAnimation = overlayPanelAnimation;
+    }
+
+    /**
+     * Updates the Bar image when in transition between peeked to expanded states.
+     * @param percentage The percentage to the more opened state.
+     */
+    public void onUpdateFromPeekToExpand(float percentage) {
+        mExpandedPercentage = percentage;
+
+        if (mQuickActionIconVisible || mThumbnailVisible) {
+
+            mStaticImageVisibilityPercentage = 1.f - percentage;
+            getIconSpriteControl().setIsVisible(mStaticImageVisibilityPercentage < 1.f);
+        }
     }
 
     // ============================================================================================
@@ -62,6 +79,43 @@ public class ContextualSearchImageControl
     }
 
     // ============================================================================================
+    // Quick Action Icon
+    // ============================================================================================
+
+    /**
+     * The resource id of the quick action icon to display.
+     */
+    private int mQuickActionIconResourceId;
+
+    /**
+     * Whether the quick action icon is visible.
+     */
+    private boolean mQuickActionIconVisible;
+
+    /**
+     * @param resId The resource id of the quick action icon to display.
+     */
+    public void setQuickActionIconResourceId(int resId) {
+        mQuickActionIconResourceId = resId;
+        mQuickActionIconVisible = true;
+        animateStaticImageVisibility(true);
+    }
+
+    /**
+     * @return The resource id of the quick action icon to display.
+     */
+    public int getQuickActionIconResourceId() {
+        return mQuickActionIconResourceId;
+    }
+
+    /**
+     * @return Whether the quick action icon is visible.
+     */
+    public boolean getQuickActionIconVisible() {
+        return mQuickActionIconVisible;
+    }
+
+    // ============================================================================================
     // Thumbnail
     // ============================================================================================
 
@@ -71,25 +125,17 @@ public class ContextualSearchImageControl
     private String mThumbnailUrl;
 
     /**
-     * The height and width of the thumbnail.
-     */
-    private int mThumbnailSize;
-
-    /**
      * Whether the thumbnail is visible.
      */
     private boolean mThumbnailVisible;
 
     /**
-     * The thumbnail visibility percentage, which dictates how and where to draw the thumbnail.
-     * The thumbnail is not visible at all at 0.f and completely visible at 1.f.
-     */
-    private float mThumbnailVisibilityPercentage = 0.f;
-
-    /**
      * @param thumbnailUrl The URL of the thumbnail to display
      */
     public void setThumbnailUrl(String thumbnailUrl) {
+        // If a quick action icon is showing, the thumbnail should not be shown.
+        if (mQuickActionIconVisible) return;
+
         mThumbnailUrl = thumbnailUrl;
     }
 
@@ -102,44 +148,10 @@ public class ContextualSearchImageControl
     }
 
     /**
-     * Hides the thumbnail if it is visible and makes the icon sprite visible. Also resets the
-     * thumbnail URL.
-     * @param animate Whether hiding the thumbnail should be animated.
-     */
-    public void hideThumbnail(boolean animate) {
-        getIconSpriteControl().setIsVisible(true);
-        if (mThumbnailVisible && animate) {
-            animateThumbnailVisibility(false);
-        } else {
-            mOverlayPanelAnimation.cancelAnimation(this, AnimationType.THUMBNAIL_VISIBILITY);
-            onThumbnailHidden();
-        }
-    }
-
-    /**
-     * @return The height and width of the thumbnail in px.
-     */
-    public int getThumbnailSize() {
-        if (mThumbnailSize == 0) {
-            mThumbnailSize = mContext.getResources().getDimensionPixelSize(
-                    R.dimen.contextual_search_thumbnail_size);
-        }
-        return mThumbnailSize;
-    }
-
-    /**
      * @return Whether the thumbnail is visible.
      */
     public boolean getThumbnailVisible() {
         return mThumbnailVisible;
-    }
-
-    /**
-     * @return The thumbnail visibility percentage, which dictates how and where to draw the
-     *         thumbnail. The thumbnail is not visible at all at 0.f and completely visible at 1.f.
-     */
-    public float getThumbnailVisibilityPercentage() {
-        return mThumbnailVisibilityPercentage;
     }
 
     /**
@@ -154,52 +166,114 @@ public class ContextualSearchImageControl
 
         // TODO(twellington): if the icon sprite is animating wait to start the thumbnail visibility
         //                    animation.
-        animateThumbnailVisibility(true);
+        animateStaticImageVisibility(true);
     }
 
-    private void onThumbnailHidden() {
+    // ============================================================================================
+    // Static Image -- either a thumbnail or quick action icon
+    // ============================================================================================
+
+    /**
+     * The height and width of the static image.
+     */
+    private int mStaticImageSize;
+
+    /**
+     * The static image visibility percentage, which dictates how and where to draw the static
+     * image. The static image is not visible at all at 0.f and completely visible at 1.f.
+     */
+    private float mStaticImageVisibilityPercentage = 0.f;
+
+    /**
+     * Hides the static image if it is visible and makes the icon sprite visible. Also resets the
+     * thumbnail URL and quick action icon resource id.
+     * @param animate Whether hiding the thumbnail should be animated.
+     */
+    public void hideStaticImage(boolean animate) {
+        getIconSpriteControl().setIsVisible(true);
+        if ((mThumbnailVisible || mQuickActionIconVisible) && animate) {
+            animateStaticImageVisibility(false);
+        } else {
+            mOverlayPanelAnimation.cancelAnimation(this, AnimationType.STATIC_IMAGE_VISIBILITY);
+            onStaticImageHidden();
+        }
+    }
+
+    /**
+     * @return The height and width of the static image in px.
+     */
+    public int getStaticImageSize() {
+        if (mStaticImageSize == 0) {
+            mStaticImageSize = mContext.getResources().getDimensionPixelSize(
+                    R.dimen.contextual_search_static_image_size);
+        }
+        return mStaticImageSize;
+    }
+
+    /**
+     * @return The static image visibility percentage, which dictates how and where to draw the
+     *         static image. The static image is not visible at all at 0.f and completely visible at
+     *         1.f. The static image may be either a thumbnail or quick action icon.
+     */
+    public float getStaticImageVisibilityPercentage() {
+        return mStaticImageVisibilityPercentage;
+    }
+
+    /**
+     * Called when the static image finishes hiding to reset thumbnail and quick action icon values.
+     */
+    private void onStaticImageHidden() {
+        mQuickActionIconResourceId = 0;
+        mQuickActionIconVisible = false;
+
         mThumbnailUrl = "";
         mThumbnailVisible = false;
         getIconSpriteControl().setIsVisible(true);
-        mThumbnailVisibilityPercentage = 0.f;
+        mStaticImageVisibilityPercentage = 0.f;
     }
 
     // ============================================================================================
     // Thumbnail Animation
     // ============================================================================================
 
-    private Interpolator mThumbnailVisibilityInterpolator;
+    private Interpolator mStaticImageVisibilityInterpolator;
 
-    private void animateThumbnailVisibility(boolean visible) {
-        if (mThumbnailVisibilityInterpolator == null) {
-            mThumbnailVisibilityInterpolator = PathInterpolatorCompat.create(0.4f, 0.f, 0.6f, 1.f);
+    private void animateStaticImageVisibility(boolean visible) {
+        // If the panel is expanded then #onUpdateFromPeekToExpand() is responsible for setting
+        // mStaticImageVisibility and the static image appearance should not be animated.
+        if (visible && mExpandedPercentage > 0.f) return;
+
+        if (mStaticImageVisibilityInterpolator == null) {
+            mStaticImageVisibilityInterpolator =
+                    PathInterpolatorCompat.create(0.4f, 0.f, 0.6f, 1.f);
         }
 
-        mOverlayPanelAnimation.cancelAnimation(this, AnimationType.THUMBNAIL_VISIBILITY);
+        mOverlayPanelAnimation.cancelAnimation(this, AnimationType.STATIC_IMAGE_VISIBILITY);
 
         float endValue = visible ? 1.f : 0.f;
-        mOverlayPanelAnimation.addToAnimation(this, AnimationType.THUMBNAIL_VISIBILITY,
-                mThumbnailVisibilityPercentage, endValue,
+        mOverlayPanelAnimation.addToAnimation(this, AnimationType.STATIC_IMAGE_VISIBILITY,
+                mStaticImageVisibilityPercentage, endValue,
                 OverlayPanelAnimation.BASE_ANIMATION_DURATION_MS, 0, false,
-                mThumbnailVisibilityInterpolator);
+                mStaticImageVisibilityInterpolator);
     }
 
     @Override
     public void setProperty(AnimationType prop, float val) {
-        if (prop == AnimationType.THUMBNAIL_VISIBILITY) {
-            mThumbnailVisibilityPercentage = val;
+        if (prop == AnimationType.STATIC_IMAGE_VISIBILITY) {
+            // If the panel is expanded, #onUpdateFromPeekedToExpanded() is responsible for setting
+            // mStaticImageVisiblityPercentage.
+            if (mExpandedPercentage == 0.f) mStaticImageVisibilityPercentage = val;
         }
     }
 
     @Override
     public void onPropertyAnimationFinished(AnimationType prop) {
-        if (prop == AnimationType.THUMBNAIL_VISIBILITY) {
-            if (mThumbnailVisibilityPercentage == 0.f) {
-                onThumbnailHidden();
-            } else {
+        if (prop == AnimationType.STATIC_IMAGE_VISIBILITY) {
+            if (mStaticImageVisibilityPercentage == 0.f) {
+                onStaticImageHidden();
+            } else if (mStaticImageVisibilityPercentage == 1.f) {
                 getIconSpriteControl().setIsVisible(false);
             }
         }
     }
-
 }

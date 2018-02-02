@@ -50,7 +50,7 @@ public class IncognitoNotificationService extends IntentService {
     public static PendingIntent getRemoveAllIncognitoTabsIntent(Context context) {
         Intent intent = new Intent(context, IncognitoNotificationService.class);
         intent.setAction(ACTION_CLOSE_ALL_INCOGNITO);
-        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /** Empty public constructor needed by Android. */

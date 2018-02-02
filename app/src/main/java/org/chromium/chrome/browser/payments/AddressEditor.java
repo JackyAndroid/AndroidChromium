@@ -6,7 +6,6 @@ package org.chromium.chrome.browser.payments;
 
 import android.os.Handler;
 import android.telephony.PhoneNumberUtils;
-import android.text.TextUtils;
 import android.util.Pair;
 
 import org.chromium.base.Callback;
@@ -43,31 +42,6 @@ public class AddressEditor extends EditorBase<AutofillAddress> {
     @Nullable private List<AddressUiComponent> mAddressUiComponents;
 
     /**
-     * Returns whether the given profile can be sent to the merchant as-is without editing first. If
-     * the country code is not set or invalid, but all fields for the default locale's country code
-     * are present, then the profile is deemed "complete." AutoflllAddress.toPaymentAddress() will
-     * use the default locale to fill in a blank country code before sending the address to the
-     * renderer.
-     *
-     * @param profile The profile to check.
-     * @return Whether the profile is complete.
-     */
-    public boolean isProfileComplete(@Nullable AutofillProfile profile) {
-        if (profile == null || TextUtils.isEmpty(profile.getFullName())
-                || !getPhoneValidator().isValid(profile.getPhoneNumber())) {
-            return false;
-        }
-
-        List<Integer> requiredFields = AutofillProfileBridge.getRequiredAddressFields(
-                AutofillAddress.getCountryCode(profile));
-        for (int i = 0; i < requiredFields.size(); i++) {
-            if (TextUtils.isEmpty(getProfileField(profile, requiredFields.get(i)))) return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Adds the given phone number to the autocomplete set, if it's valid.
      *
      * @param phoneNumber The phone number to possibly add.
@@ -98,22 +72,23 @@ public class AddressEditor extends EditorBase<AutofillAddress> {
         boolean isNewAddress = toEdit == null;
 
         // Ensure that |address| and |profile| are always not null.
-        final AutofillAddress address = isNewAddress
-                ? new AutofillAddress(new AutofillProfile(), false)
-                : toEdit;
+        final AutofillAddress address =
+                isNewAddress ? new AutofillAddress(mContext, new AutofillProfile()) : toEdit;
         final AutofillProfile profile = address.getProfile();
 
         // The title of the editor depends on whether we're adding a new address or editing an
         // existing address.
-        final EditorModel editor = new EditorModel(mContext.getString(isNewAddress
-                ? R.string.autofill_create_profile
-                : R.string.autofill_edit_profile));
+        final EditorModel editor =
+                new EditorModel(isNewAddress
+                        ? mContext.getString(R.string.autofill_create_profile)
+                        : toEdit.getEditTitle());
 
         // The country dropdown is always present on the editor.
         if (mCountryField == null) {
             mCountryField = EditorFieldModel.createDropdown(
                     mContext.getString(R.string.autofill_profile_editor_country),
-                    AutofillProfileBridge.getSupportedCountries());
+                    AutofillProfileBridge.getSupportedCountries(),
+                    null /* hint */);
         }
 
         // Changing the country will update which fields are in the model. The actual fields are not
@@ -169,7 +144,7 @@ public class AddressEditor extends EditorBase<AutofillAddress> {
         // Address fields are cached, so their values need to be updated for every new profile
         // that's being edited.
         for (Map.Entry<Integer, EditorFieldModel> entry : mAddressFields.entrySet()) {
-            entry.getValue().setValue(getProfileField(profile, entry.getKey()));
+            entry.getValue().setValue(AutofillAddress.getProfileField(profile, entry.getKey()));
         }
 
         // Both country code and language code dictate which fields should be added to the editor.
@@ -182,7 +157,7 @@ public class AddressEditor extends EditorBase<AutofillAddress> {
         if (mPhoneField == null) {
             mPhoneField = EditorFieldModel.createTextInput(EditorFieldModel.INPUT_TYPE_HINT_PHONE,
                     mContext.getString(R.string.autofill_profile_editor_phone_number),
-                    mPhoneNumbers, getPhoneValidator(),
+                    mPhoneNumbers, getPhoneValidator(), null,
                     mContext.getString(R.string.payments_field_required_validation_message),
                     mContext.getString(R.string.payments_phone_invalid_validation_message), null);
         }
@@ -245,38 +220,12 @@ public class AddressEditor extends EditorBase<AutofillAddress> {
         // Calculate the label for this profile. The label's format depends on the country and
         // language code for the profile.
         PersonalDataManager pdm = PersonalDataManager.getInstance();
+        // TODO(crbug.com/666048): New billing address label is wrong.
         profile.setLabel(pdm.getAddressLabelForPaymentRequest(profile));
 
-        // Save the edited autofill profile.
-        profile.setGUID(pdm.setProfile(profile));
-    }
-
-    /** @return The given autofill profile field. */
-    private static String getProfileField(AutofillProfile profile, int field) {
-        assert profile != null;
-        switch (field) {
-            case AddressField.COUNTRY:
-                return profile.getCountryCode();
-            case AddressField.ADMIN_AREA:
-                return profile.getRegion();
-            case AddressField.LOCALITY:
-                return profile.getLocality();
-            case AddressField.DEPENDENT_LOCALITY:
-                return profile.getDependentLocality();
-            case AddressField.SORTING_CODE:
-                return profile.getSortingCode();
-            case AddressField.POSTAL_CODE:
-                return profile.getPostalCode();
-            case AddressField.STREET_ADDRESS:
-                return profile.getStreetAddress();
-            case AddressField.ORGANIZATION:
-                return profile.getCompanyName();
-            case AddressField.RECIPIENT:
-                return profile.getFullName();
-        }
-
-        assert false;
-        return null;
+        // Save the edited autofill profile locally.
+        profile.setGUID(pdm.setProfileToLocal(profile));
+        profile.setIsLocal(true);
     }
 
     /** Writes the given value into the specified autofill profile field. */

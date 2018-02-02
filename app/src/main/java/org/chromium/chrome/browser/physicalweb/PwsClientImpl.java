@@ -8,7 +8,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.text.TextUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.chromium.base.LocaleUtils;
 import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
@@ -18,14 +24,12 @@ import org.chromium.chrome.browser.ChromeVersionInfo;
 import org.chromium.chrome.browser.physicalweb.PwsClient.FetchIconCallback;
 import org.chromium.chrome.browser.physicalweb.PwsClient.ResolveScanCallback;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.Locale;
 
 /**
@@ -140,8 +144,8 @@ class PwsClientImpl implements PwsClient {
         try {
             JSONObject payload = createResolveScanPayload(broadcastUrls);
             String url = ENDPOINT_URL + "?key=" + getApiKey();
-            request = new JsonObjectHttpRequest(url, getUserAgent(), getAcceptLanguage(), payload,
-                    requestCallback);
+            request = new JsonObjectHttpRequest(
+                    url, getUserAgent(), updateAcceptLanguage(), payload, requestCallback);
         } catch (MalformedURLException e) {
             Log.e(TAG, "Error creating PWS HTTP request", e);
             return;
@@ -183,8 +187,8 @@ class PwsClientImpl implements PwsClient {
         // Create the request.
         BitmapHttpRequest request = null;
         try {
-            request = new BitmapHttpRequest(iconUrl, getUserAgent(), getAcceptLanguage(),
-                    requestCallback);
+            request = new BitmapHttpRequest(
+                    iconUrl, getUserAgent(), updateAcceptLanguage(), requestCallback);
         } catch (MalformedURLException e) {
             Log.e(TAG, "Error creating icon request", e);
             return;
@@ -219,79 +223,67 @@ class PwsClientImpl implements PwsClient {
     }
 
     /**
-     * Construct the Accept-Language string based on the current locale.
-     * @return An Accept-Language string.
+     * Update an Accept-Language string based on the current default locales and make a string of
+     * an Accept-Language header with q-values.
+     * @return An Accept-Language string made of an Accept-Language header with q-values.
      */
     @VisibleForTesting
-    String getAcceptLanguage() {
-        String defaultLocale = Locale.getDefault().toString();
-        if (sDefaultLocale == null || !sDefaultLocale.equals(defaultLocale)) {
+    String updateAcceptLanguage() {
+        String localeString = LocaleUtils.getDefaultLocaleListString();
+        if (sDefaultLocale == null || !sDefaultLocale.equals(localeString)) {
             String acceptLanguages = mContext.getResources().getString(R.string.accept_languages);
-            acceptLanguages = prependToAcceptLanguagesIfNecessary(defaultLocale, acceptLanguages);
+            acceptLanguages = prependToAcceptLanguagesIfNecessary(localeString, acceptLanguages);
             sAcceptLanguage = generateAcceptLanguageHeader(acceptLanguages);
-            sDefaultLocale = defaultLocale;
+            sDefaultLocale = localeString;
         }
         return sAcceptLanguage;
     }
 
     /**
-     * Handle the special cases in converting a language code/region code pair into an ISO-639-1
-     * language tag.
-     * @param language The 2-character language code
-     * @param region The 2-character country code
-     * @return A language tag.
-     */
-    @VisibleForTesting
-    static String makeLanguageTag(String language, String region) {
-        // Java mostly follows ISO-639-1 and ICU, except for the following three.
-        // See documentation on java.util.Locale constructor for more.
-        String isoLanguage;
-        if ("iw".equals(language)) {
-            isoLanguage = "he";
-        } else if ("ji".equals(language)) {
-            isoLanguage = "yi";
-        } else if ("in".equals(language)) {
-            isoLanguage = "id";
-        } else {
-            isoLanguage = language;
-        }
-
-        return isoLanguage + "-" + region;
-    }
-
-    /**
-     * Get the language code for the default locale and prepend it to the Accept-Language string if
-     * it isn't already present. The logic should match PrependToAcceptLanguagesIfNecessary in
+     * Get the language code for the default locales and prepend it to the Accept-Language string
+     * if it isn't already present. The logic should match PrependToAcceptLanguagesIfNecessary in
      * chrome/browser/android/preferences/pref_service_bridge.cc
-     * @param locale A string representing the default locale.
-     * @param acceptLanguages The default language list for the language of the user's locale.
+     * @param locales A comma separated string that represents a list of default locales.
+     * @param acceptLanguages The default language list for the language of the user's locales.
      * @return An updated language list.
      */
     @VisibleForTesting
-    static String prependToAcceptLanguagesIfNecessary(String locale, String acceptLanguages)
-    {
-        if (locale.length() != 5 || locale.charAt(2) != '_') {
-            return acceptLanguages;
+    static String prependToAcceptLanguagesIfNecessary(String locales, String acceptLanguages) {
+        String localeStrings = locales + "," + acceptLanguages;
+        String[] localeList = localeStrings.split(",");
+
+        ArrayList<Locale> uniqueList = new ArrayList<>();
+        for (String localeString : localeList) {
+            Locale locale = LocaleUtils.forLanguageTag(localeString);
+            if (uniqueList.contains(locale) || locale.getLanguage().isEmpty()) {
+                continue;
+            }
+            uniqueList.add(locale);
         }
 
-        String language = locale.substring(0, 2);
-        String region = locale.substring(3);
-        String languageTag = makeLanguageTag(language, region);
-
-        if (acceptLanguages.contains(languageTag)) {
-            return acceptLanguages;
-        }
-
-        Formatter parts = new Formatter();
-        parts.format("%s,", languageTag);
         // If language is not in the accept languages list, also add language code.
-        // This will work with the IDS_ACCEPT_LANGUAGES localized strings bundled with Chrome but
-        // may fail on arbitrary lists of language tags due to differences in case and whitespace.
-        if (!acceptLanguages.contains(language + ",") && !acceptLanguages.endsWith(language)) {
-            parts.format("%s,", language);
+        // A language code should only be inserted after the last languageTag that
+        // contains that language.
+        // This will work with the IDS_ACCEPT_LANGUAGE localized strings bundled
+        // with Chrome but may fail on arbitrary lists of language tags due to
+        // differences in case and whitespace.
+        HashSet<String> seenLanguages = new HashSet<>();
+        ArrayList<String> outputList = new ArrayList<>();
+        for (int i = uniqueList.size() - 1; i >= 0; i--) {
+            Locale localeAdd = uniqueList.get(i);
+            String languageAdd = localeAdd.getLanguage();
+            String countryAdd = localeAdd.getCountry();
+
+            if (!seenLanguages.contains(languageAdd)) {
+                seenLanguages.add(languageAdd);
+                outputList.add(languageAdd);
+            }
+            if (!countryAdd.isEmpty()) {
+                outputList.add(LocaleUtils.toLanguageTag(localeAdd));
+            }
         }
-        parts.format("%s", acceptLanguages);
-        return parts.toString();
+        Collections.reverse(outputList);
+        return TextUtils.join(",", outputList);
     }
 
     /**

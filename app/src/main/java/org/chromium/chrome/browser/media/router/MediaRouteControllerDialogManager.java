@@ -6,8 +6,10 @@ package org.chromium.chrome.browser.media.router;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.MediaRouteControllerDialogFragment;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 
@@ -40,26 +42,46 @@ public class MediaRouteControllerDialogManager extends BaseMediaRouteDialogManag
     /**
      * Fragment implementation for MediaRouteControllerDialogManager.
      */
-    public static class Fragment extends BaseMediaRouteDialogManager.Fragment {
-        MediaRouter.Callback mCallback = null;
+    public static class Fragment extends MediaRouteControllerDialogFragment {
+        private final Handler mHandler = new Handler();
+        private final SystemVisibilitySaver mVisibilitySaver = new SystemVisibilitySaver();
+        private BaseMediaRouteDialogManager mManager = null;
+        private MediaRouter.Callback mCallback = null;
 
         public Fragment() {
-            super();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Fragment.this.dismiss();
+                }
+            });
         }
 
         public Fragment(BaseMediaRouteDialogManager manager, MediaRouter.Callback callback) {
-            super(manager);
+            mManager = manager;
             mCallback = callback;
         }
 
         @Override
-        public void onDismiss(DialogInterface dialog) {
-            if (mManager != null) {
-                mManager.delegate().onDialogCancelled();
-                mManager.androidMediaRouter().removeCallback(mCallback);
-            }
+        public void onStart() {
+            mVisibilitySaver.saveSystemVisibility(getActivity());
+            super.onStart();
+        }
 
+        @Override
+        public void onStop() {
+            super.onStop();
+            mVisibilitySaver.restoreSystemVisibility(getActivity());
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
+            if (mManager == null) return;
+
+            mManager.delegate().onDialogCancelled();
+            mManager.androidMediaRouter().removeCallback(mCallback);
+            mManager.mDialogFragment = null;
         }
     };
 

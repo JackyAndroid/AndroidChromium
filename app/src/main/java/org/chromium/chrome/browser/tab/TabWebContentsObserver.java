@@ -189,11 +189,7 @@ public class TabWebContentsObserver extends WebContentsObserver {
             boolean isIframeSrcdoc) {
         if (isMainFrame) mTab.didStartPageLoad(validatedUrl, isErrorPage);
 
-        RewindableIterator<TabObserver> observers = mTab.getTabObservers();
-        while (observers.hasNext()) {
-            observers.next().onDidStartProvisionalLoadForFrame(mTab, frameId, parentFrameId,
-                    isMainFrame, validatedUrl, isErrorPage, isIframeSrcdoc);
-        }
+        mTab.handleDidStartProvisionalLoadForFrame(isMainFrame, validatedUrl);
     }
 
     @Override

@@ -4,9 +4,10 @@
 
 package org.chromium.chrome.browser.payments;
 
-import org.json.JSONObject;
+import org.chromium.payments.mojom.PaymentMethodData;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,11 +33,12 @@ public interface PaymentApp {
      * cards for the current profile. Can return null or empty list, e.g., if user has no locally
      * stored credit cards.
      *
-     * @param details  The payment-method specific data, e.g., whether the app should be invoked in
-     *                 test or production mode, merchant identifier, or a public key.
-     * @param callback The object that will receive the list of instruments.
+     * @param methodData The map from methods to method specific data. The data contains such
+     *                   information as whether the app should be invoked in test or production
+     *                   mode, merchant identifier, or a public key.
+     * @param callback   The object that will receive the list of instruments.
      */
-    void getInstruments(JSONObject details, InstrumentsCallback callback);
+    void getInstruments(Map<String, PaymentMethodData> methodData, InstrumentsCallback callback);
 
     /**
      * Returns a list of all payment method names that this app supports. For example, ["visa",
@@ -45,7 +47,7 @@ public interface PaymentApp {
      *
      * @return The list of all payment method names that this app supports.
      */
-    Set<String> getSupportedMethodNames();
+    Set<String> getAppMethodNames();
 
     /**
      * Returns the identifier for this payment app to be saved in user preferences. For example,
@@ -53,5 +55,5 @@ public interface PaymentApp {
      *
      * @return The identifier for this payment app.
      */
-    String getIdentifier();
+    String getAppIdentifier();
 }

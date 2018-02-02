@@ -23,6 +23,8 @@ import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
 import org.chromium.chrome.browser.preferences.ChromeSwitchPreference;
 import org.chromium.chrome.browser.preferences.ManagedPreferenceDelegate;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.snackbar.DataReductionPromoSnackbarController;
+import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.third_party.android.datausagechart.NetworkStats;
 import org.chromium.third_party.android.datausagechart.NetworkStatsHistory;
 
@@ -39,6 +41,8 @@ public class DataReductionPreferences extends PreferenceFragment {
 
     private boolean mIsEnabled;
     private boolean mWasEnabledAtCreation;
+    /** Whether the current Activity is started from the snackbar promo. */
+    private boolean mFromPromo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,14 +57,28 @@ public class DataReductionPreferences extends PreferenceFragment {
         updatePreferences(isEnabled);
 
         setHasOptionsMenu(true);
+
+        if (getActivity() != null) {
+            mFromPromo = IntentUtils.safeGetBooleanExtra(getActivity().getIntent(),
+                    DataReductionPromoSnackbarController.FROM_PROMO, false);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        if (mWasEnabledAtCreation && !mIsEnabled) {
+            // If the user manually disables Data Saver, don't show the infobar promo.
+            DataReductionPromoUtils.saveInfoBarPromoDisplayed();
+        }
+
         int statusChange;
-        if (mWasEnabledAtCreation) {
+        if (mFromPromo) {
+            statusChange = mIsEnabled
+                    ? DataReductionProxyUma.ACTION_SNACKBAR_LINK_CLICKED
+                    : DataReductionProxyUma.ACTION_SNACKBAR_LINK_CLICKED_DISABLED;
+        } else if (mWasEnabledAtCreation) {
             statusChange = mIsEnabled
                     ? DataReductionProxyUma.ACTION_ON_TO_ON
                     : DataReductionProxyUma.ACTION_ON_TO_OFF;

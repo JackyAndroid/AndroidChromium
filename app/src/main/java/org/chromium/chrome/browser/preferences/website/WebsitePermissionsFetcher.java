@@ -55,8 +55,6 @@ public class WebsitePermissionsFetcher {
         queue.add(new MidiInfoFetcher());
         // Cookies are stored per-host.
         queue.add(new CookieExceptionInfoFetcher());
-        // Fullscreen are stored per-origin.
-        queue.add(new FullscreenInfoFetcher());
         // Keygen permissions are per-origin.
         queue.add(new KeygenInfoFetcher());
         // Local storage info is per-origin.
@@ -112,9 +110,6 @@ public class WebsitePermissionsFetcher {
             queue.add(new LocalStorageInfoFetcher());
             // Website storage is per-host.
             queue.add(new WebStorageInfoFetcher());
-        } else if (category.showFullscreenSites()) {
-            // Full screen is per-origin.
-            queue.add(new FullscreenInfoFetcher());
         } else if (category.showCameraSites()) {
             // Camera capture permission is per-origin and per-embedder.
             queue.add(new CameraCaptureInfoFetcher());
@@ -282,21 +277,6 @@ public class WebsitePermissionsFetcher {
                 if (origin == null) continue;
                 WebsiteAddress embedder = WebsiteAddress.create(info.getEmbedder());
                 findOrCreateSite(origin, embedder).setKeygenInfo(info);
-            }
-        }
-    }
-
-    /**
-     * Class for fetching the fullscreen information.
-     */
-    private class FullscreenInfoFetcher extends Task {
-        @Override
-        public void run() {
-            for (FullscreenInfo info : WebsitePreferenceBridge.getFullscreenInfo()) {
-                WebsiteAddress origin = WebsiteAddress.create(info.getOrigin());
-                if (origin == null) continue;
-                WebsiteAddress embedder = WebsiteAddress.create(info.getEmbedder());
-                findOrCreateSite(origin, embedder).setFullscreenInfo(info);
             }
         }
     }

@@ -15,12 +15,13 @@ import org.chromium.base.CommandLine;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.FieldTrialList;
 import org.chromium.base.Log;
+import org.chromium.base.metrics.CachedMetrics.EnumeratedHistogramSample;
+import org.chromium.base.metrics.CachedMetrics.TimesHistogramSample;
 import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.IntentHandler;
 import org.chromium.chrome.browser.ShortcutHelper;
 import org.chromium.chrome.browser.externalnav.ExternalNavigationDelegateImpl;
-import org.chromium.chrome.browser.metrics.LaunchMetrics.TimesHistogramSample;
 import org.chromium.chrome.browser.preferences.ChromePreferenceManager;
 import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.content_public.browser.WebContents;
@@ -56,6 +57,9 @@ public class InstantAppsHandler {
     public static final String IS_GOOGLE_SEARCH_REFERRER =
             "com.google.android.gms.instantapps.IS_GOOGLE_SEARCH_REFERRER";
 
+    private static final String BROWSER_LAUNCH_REASON =
+            "com.google.android.gms.instantapps.BROWSER_LAUNCH_REASON";
+
     /** Finch experiment name. */
     private static final String INSTANT_APPS_EXPERIMENT_NAME = "InstantApps";
 
@@ -75,7 +79,27 @@ public class InstantAppsHandler {
 
     /** A histogram to record how long the GMS Core API call took. */
     private static final TimesHistogramSample sInstantAppsApiCallTimes = new TimesHistogramSample(
-            "Android.InstantApps.ApiCallDuration", TimeUnit.MILLISECONDS);
+            "Android.InstantApps.ApiCallDuration2", TimeUnit.MILLISECONDS);
+
+    // Only two possible call sources for fallback intents, set boundary at n+1.
+    private static final int SOURCE_BOUNDARY = 3;
+
+    private static final EnumeratedHistogramSample sFallbackCallSource =
+            new EnumeratedHistogramSample("Android.InstantApps.CallSource", SOURCE_BOUNDARY);
+
+    /**
+     * A histogram to record how long the GMS Core API call took when the instant app was found.
+     */
+    private static final TimesHistogramSample sInstantAppsApiCallTimesHasApp =
+            new TimesHistogramSample("Android.InstantApps.ApiCallDurationWithApp",
+                    TimeUnit.MILLISECONDS);
+
+    /**
+     * A histogram to record how long the GMS Core API call took when the instant app was not found.
+     */
+    private static final TimesHistogramSample sInstantAppsApiCallTimesNoApp =
+            new TimesHistogramSample("Android.InstantApps.ApiCallDurationWithoutApp",
+                    TimeUnit.MILLISECONDS);
 
     /** @return The singleton instance of {@link InstantAppsHandler}. */
     public static InstantAppsHandler getInstance() {
@@ -121,16 +145,36 @@ public class InstantAppsHandler {
     }
 
     /**
-     * In the case Chrome is called through the fallback mechanism from Instant Apps, record the
-     * amount of time the whole trip took.
+     * Record the amount of time spent in the Instant Apps API call.
+     * @param startTime The time at which we started doing computations.
+     * @param hasApp Whether the API has found an Instant App during the call.
+     */
+    protected void recordInstantAppsApiCallTime(long startTime, boolean hasApp) {
+        if (hasApp) {
+            sInstantAppsApiCallTimesHasApp.record(SystemClock.elapsedRealtime() - startTime);
+        } else {
+            sInstantAppsApiCallTimesNoApp.record(SystemClock.elapsedRealtime() - startTime);
+        }
+    }
+
+    /**
+     * In the case where Chrome is called through the fallback mechanism from Instant Apps,
+     * record the amount of time the whole trip took and which UI took the user back to Chrome,
+     * if any.
      * @param intent The current intent.
      */
-    private void maybeRecordFallbackDuration(Intent intent) {
-        if (intent.hasExtra(INSTANT_APP_START_TIME_EXTRA)) {
-            Long startTime = intent.getLongExtra(INSTANT_APP_START_TIME_EXTRA, 0);
-            if (startTime != 0) {
-                sFallbackIntentTimes.record(SystemClock.elapsedRealtime() - startTime);
-            }
+    private void maybeRecordFallbackStats(Intent intent) {
+        Long startTime = IntentUtils.safeGetLongExtra(intent, INSTANT_APP_START_TIME_EXTRA, 0);
+        if (startTime > 0) {
+            sFallbackIntentTimes.record(SystemClock.elapsedRealtime() - startTime);
+            intent.removeExtra(INSTANT_APP_START_TIME_EXTRA);
+        }
+        int callSource = IntentUtils.safeGetIntExtra(intent, BROWSER_LAUNCH_REASON, 0);
+        if (callSource > 0 && callSource < SOURCE_BOUNDARY) {
+            sFallbackCallSource.record(callSource);
+            intent.removeExtra(BROWSER_LAUNCH_REASON);
+        } else if (callSource >= SOURCE_BOUNDARY) {
+            Log.e(TAG, "Unexpected call source constant for Instant Apps: " + callSource);
         }
     }
 
@@ -173,20 +217,27 @@ public class InstantAppsHandler {
 
     private boolean handleIncomingIntentInternal(
             Context context, Intent intent, boolean isCustomTabsIntent, long startTime) {
-        if (!isEnabled(context)
-                || IntentUtils.safeGetBooleanExtra(intent, DO_NOT_LAUNCH_EXTRA, false)
-                || IntentUtils.safeGetBooleanExtra(
-                        intent, IntentHandler.EXTRA_OPEN_NEW_INCOGNITO_TAB, false)
-                || IntentUtils.safeHasExtra(intent, ShortcutHelper.EXTRA_SOURCE)
-                || (isCustomTabsIntent && !IntentUtils.safeGetBooleanExtra(
-                        intent, CUSTOM_APPS_INSTANT_APP_EXTRA, false))
-                || isIntentFromChrome(context, intent)
-                || (IntentHandler.getUrlFromIntent(intent) == null)) {
-            Log.i(TAG, "Not handling with Instant Apps");
+        boolean isEnabled = isEnabled(context);
+        if (!isEnabled || (isCustomTabsIntent && !IntentUtils.safeGetBooleanExtra(
+                intent, CUSTOM_APPS_INSTANT_APP_EXTRA, false))) {
+            Log.i(TAG, "Not handling with Instant Apps. Enabled? " + isEnabled);
             return false;
         }
 
-        maybeRecordFallbackDuration(intent);
+        if (IntentUtils.safeGetBooleanExtra(intent, DO_NOT_LAUNCH_EXTRA, false)) {
+            maybeRecordFallbackStats(intent);
+            Log.i(TAG, "Not handling with Instant Apps (DO_NOT_LAUNCH_EXTRA)");
+            return false;
+        }
+
+        if (IntentUtils.safeGetBooleanExtra(
+                intent, IntentHandler.EXTRA_OPEN_NEW_INCOGNITO_TAB, false)
+                || IntentUtils.safeHasExtra(intent, ShortcutHelper.EXTRA_SOURCE)
+                || isIntentFromChrome(context, intent)
+                || (IntentHandler.getUrlFromIntent(intent) == null)) {
+            Log.i(TAG, "Not handling with Instant Apps (other)");
+            return false;
+        }
 
         // Used to search for the intent handlers. Needs null component to return correct results.
         Intent intentCopy = new Intent(intent);

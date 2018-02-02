@@ -22,6 +22,7 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:textColorHighlight">@color/text_highlight_color</item>
         <item name="android:textColorLink">@color/light_active_color</item>
+        <item name="colorPrimaryDark">@android:color/black</item>
         <item name="android:statusBarColor" tools:targetApi="21">@android:color/black</item>
 
         <!--  Overriding AppCompat values -->
@@ -45,19 +46,16 @@
         <item name="android:windowBackground">@drawable/window_background</item>
     </style>
 
-    <style name="FullscreenWhiteDialog" parent="Theme.AppCompat.Light" >
+    <style name="FullscreenWhite" parent="Theme.AppCompat.Light" >
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:textColorLink">@color/light_active_color</item>
-        <item name="android:statusBarColor" tools:targetApi="21">@android:color/black</item>
+        <item name="colorPrimaryDark">@android:color/black</item>
         <item name="colorPrimary">@color/light_active_color</item>
         <item name="colorAccent">@color/light_active_color</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="DownloadActivityTheme" parent="FullscreenWhiteDialog">
-        <item name="colorPrimaryDark">@android:color/black</item>
-
-        <!-- Remove ActionBar -->
-        <item name="windowNoTitle">true</item>
+    <style name="FullscreenWhiteActivityTheme" parent="FullscreenWhite">
         <item name="windowActionBar">false</item>
     </style>
 
@@ -75,13 +73,8 @@
         <item name="android:maxLines">2</item>
     </style>
 
-    <!-- A theme for alert dialogs. The colors are copied from MainTheme, and the window
-         dimensions are copied from *.MinWidth theme variants. Sadly there is no
-         AppCompat.Light.Dialog.Alert or even AppCompat.Light.Dialog.MinWidth. -->
-    <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="android:textColorHighlight">@color/text_highlight_color</item>
-        <item name="android:windowMinWidthMajor">@android:dimen/dialog_min_width_major</item>
-        <item name="android:windowMinWidthMinor">@android:dimen/dialog_min_width_minor</item>
 
         <!--  Overriding AppCompat values -->
         <item name="colorAccent">@color/light_active_color</item>
@@ -400,28 +393,14 @@
     <!-- First Run and Bookmark/recent-tabs dialogs -->
     <style name="DialogWhenLarge" parent="Theme.AppCompat.Light.DialogWhenLarge" >
         <item name="android:windowBackground">@drawable/bg_white_dialog</item>
-        <item name="android:statusBarColor" tools:targetApi="21">@android:color/black</item>
+        <item name="android:textColor">@color/default_text_color</item>
         <item name="android:textColorLink">@color/light_active_color</item>
-        <item name="colorPrimary">@color/light_active_color</item>
-        <item name="colorAccent">@color/light_active_color</item>
-
-        <!-- Remove ActionBar -->
-        <item name="windowNoTitle">true</item>
-        <item name="windowActionBar">false</item>
-    </style>
-
-    <!-- Drawer layouts -->
-    <style name="DrawerDialog" parent="Theme.AppCompat.Light.DialogWhenLarge">
-        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/black</item>
         <item name="colorAccent">@color/light_active_color</item>
 
         <!-- Remove ActionBar -->
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
-    </style>
-    <style name="DrawerDialogWhite" parent="DrawerDialog">
-      <item name="android:windowBackground">@drawable/bg_white_dialog</item>
     </style>
 
     <!-- Bookmarks -->
@@ -447,8 +426,7 @@
     </style>
 
     <!-- Signin promo dialog-->
-    <style name="SigninPromoDialog" parent="FullscreenWhiteDialog">
-        <item name="android:windowNoTitle">true</item>
+    <style name="SigninPromoDialog" parent="FullscreenWhite">
         <item name="android:windowFrame">@null</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowContentOverlay">@null</item>
@@ -469,6 +447,7 @@
     <style name="ContextualSearchTextView">
         <item name="android:layout_height">match_parent</item>
         <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">false</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">#000</item>
         <item name="android:textSize">@dimen/overlay_panel_text_size</item>
@@ -476,10 +455,11 @@
     <style name="ContextualSearchContextTextView">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
         <item name="android:ellipsize">none</item>
         <item name="android:fadingEdge">horizontal</item>
         <item name="android:fadingEdgeLength">30dp</item>
-        <item name="android:layout_weight">1</item>
+        <item name="android:includeFontPadding">false</item>
         <item name="android:requiresFadingEdge">horizontal</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">#CCC</item>
@@ -493,6 +473,7 @@
         <item name="android:layout_marginEnd">7dp</item>
         <item name="android:background">#FFF</item>
         <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">false</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">#444</item>
         <item name="android:textSize">@dimen/contextual_search_caption_text_size</item>
@@ -534,6 +515,9 @@
     </style>
     <style name="PaymentsUiSectionDescriptiveTextEndAligned" parent="PaymentsUiSectionDescriptiveText">
         <item name="android:textAlignment">viewEnd</item>
+    </style>
+    <style name="PaymentsUiSectionPendingTextEndAligned" parent="PaymentsUiSectionDescriptiveTextEndAligned">
+        <item name="android:textColor">@color/explanation_text_color</item>
     </style>
     <style name="PaymentsUiSectionAddButtonLabel">
         <item name="android:textColor">@color/light_active_color</item>
@@ -582,6 +566,14 @@
     </style>
     <style name="MaterialProgressBar" parent="Widget.AppCompat.ProgressBar.Horizontal">
         <item name="android:progressDrawable">@drawable/material_progressbar</item>
+    </style>
+    <style name="NumberRollTextViewStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
     <!-- New tab page RecyclerView overscroll color -->

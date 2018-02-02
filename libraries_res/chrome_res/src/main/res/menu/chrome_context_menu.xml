@@ -21,8 +21,6 @@
             android:title="@string/contextmenu_copy_link_text"/>
         <item android:id="@+id/contextmenu_save_link_as"
             android:title="@string/contextmenu_save_link" />
-        <item android:id="@+id/contextmenu_save_offline"
-            android:title="@string/contextmenu_save_offline" />
     </group>
     <group android:id="@+id/contextmenu_group_image">
         <item android:id="@+id/contextmenu_load_original_image"

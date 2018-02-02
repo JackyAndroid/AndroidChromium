@@ -9,6 +9,7 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <files-path name="images" path="images/"/>
     <cache-path name="cache" path="net-export/"/>
+    <cache-path name="webapk" path="webapks/" />
 
     <!-- Note(twellington): This path is included to facilitate creating
          content:// URIs for downloads. This may no longer work if/when users

@@ -4,7 +4,7 @@
 
 package org.chromium.chrome.browser.metrics;
 
-import static org.chromium.chrome.browser.metrics.LaunchMetrics.EnumeratedHistogramSample;
+import static org.chromium.base.metrics.CachedMetrics.EnumeratedHistogramSample;
 
 import android.content.Intent;
 
@@ -23,8 +23,7 @@ public class MediaNotificationUma {
             "org.chromium.chrome.browser.metrics.MediaNotificationUma.EXTRA_CLICK_SOURCE";
 
     private static final EnumeratedHistogramSample sClickSourceHistogram =
-            new LaunchMetrics.EnumeratedHistogramSample(
-                    "Media.Notification.Click", SOURCE_MAX);
+            new EnumeratedHistogramSample("Media.Notification.Click", SOURCE_MAX);
 
     /**
      * Record the UMA as specified by {@link intent}. The {@link intent} should contain intent extra

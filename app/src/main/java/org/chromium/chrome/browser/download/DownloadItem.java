@@ -6,7 +6,10 @@ package org.chromium.chrome.browser.download;
 
 /**
  * A generic class representing a download item. The item can be either downloaded through the
- * Android DownloadManager, or through Chrome's network stack
+ * Android DownloadManager, or through Chrome's network stack.
+ *
+ * This represents the native DownloadItem at a specific point in time -- the native side
+ * DownloadManager must be queried for the correct status.
  */
 public class DownloadItem {
     static final long INVALID_DOWNLOAD_ID = -1L;

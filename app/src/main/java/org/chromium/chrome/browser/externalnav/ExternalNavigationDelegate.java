@@ -18,7 +18,8 @@ import java.util.List;
  */
 interface ExternalNavigationDelegate {
     /**
-     * Get the list of component name of activities which can resolve |intent|.
+     * Get the list of component name of activities which can resolve |intent|.  If the request
+     * fails, null will be returned.
      */
     List<ResolveInfo> queryIntentActivities(Intent intent);
 

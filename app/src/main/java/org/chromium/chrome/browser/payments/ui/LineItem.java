@@ -11,18 +11,21 @@ public class LineItem {
     private final String mLabel;
     private final String mCurrency;
     private final String mPrice;
+    private final boolean mIsPending;
 
     /**
      * Builds a line item.
      *
-     * @param label The line item label.
-     * @param currency The currency code.
-     * @param price The price string.
+     * @param label     The line item label.
+     * @param currency  The currency code.
+     * @param price     The price string.
+     * @param isPending Whether the price is pending.
      */
-    public LineItem(String label, String currency, String price) {
+    public LineItem(String label, String currency, String price, boolean isPending) {
         mLabel = label;
         mCurrency = currency;
         mPrice = price;
+        mIsPending = isPending;
     }
 
     /**
@@ -50,5 +53,10 @@ public class LineItem {
      */
     public String getPrice() {
         return mPrice;
+    }
+
+    /** @return Whether the price is pending. */
+    public boolean getIsPending() {
+        return mIsPending;
     }
 }

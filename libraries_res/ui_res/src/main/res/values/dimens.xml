@@ -5,14 +5,7 @@
      found in the LICENSE file.
 -->
 <resources>
-
-    <!--
-         14.5 = Seekbar thumb width - border width, but it depends on the width
-         of the seek bar icon.
-    -->
-    <dimen name="color_picker_gradient_margin">14.5dp</dimen>
-    <dimen name="color_button_height">60dp</dimen>
-    <dimen name="dropdown_item_height">44dp</dimen>
+    <dimen name="dropdown_item_height">50dp</dimen>
     <dimen name="dropdown_item_divider_height">1px</dimen>
 
     <!--
@@ -21,10 +14,4 @@
          Note: Constants taken directly from Android's core/res/values/config.xml.
     -->
     <dimen name="config_min_scaling_span">12.0mm</dimen>
-
-    <dimen name="keyboard_accessory_chip_height">32dp</dimen>
-    <dimen name="keyboard_accessory_half_padding">4dp</dimen>
-    <dimen name="keyboard_accessory_height">48dp</dimen>
-    <dimen name="keyboard_accessory_padding">8dp</dimen>
-    <dimen name="keyboard_accessory_text_size">14sp</dimen>
 </resources>

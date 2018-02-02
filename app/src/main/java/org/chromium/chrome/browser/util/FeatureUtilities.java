@@ -23,8 +23,11 @@ import org.chromium.base.FieldTrialList;
 import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.browser.ApplicationLifetime;
+import org.chromium.chrome.browser.ChromeFeatureList;
 import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.download.DownloadUtils;
+import org.chromium.chrome.browser.firstrun.FirstRunGlueImpl;
 import org.chromium.chrome.browser.instantapps.InstantAppsHandler;
 import org.chromium.chrome.browser.preferences.ChromePreferenceManager;
 import org.chromium.chrome.browser.tabmodel.DocumentModeAssassin;
@@ -45,7 +48,7 @@ public class FeatureUtilities {
 
     private static Boolean sHasGoogleAccountAuthenticator;
     private static Boolean sHasRecognitionIntentHandler;
-    private static Boolean sDocumentModeDisabled;
+    private static Boolean sChromeHomeEnabled;
 
     private static String sCachedHerbFlavor;
     private static boolean sIsHerbFlavorCached;
@@ -188,6 +191,8 @@ public class FeatureUtilities {
         DownloadUtils.cacheIsDownloadHomeEnabled();
         InstantAppsHandler.getInstance().cacheInstantAppsEnabled();
         ChromeWebApkHost.cacheEnabledStateForNextLaunch();
+        cacheChromeHomeEnabled();
+        FirstRunGlueImpl.cacheFirstRunPrefs();
     }
 
     /**
@@ -229,7 +234,42 @@ public class FeatureUtilities {
      * @return True if tab model merging for Android N+ is enabled.
      */
     public static boolean isTabModelMergingEnabled() {
+        if (CommandLine.getInstance().hasSwitch(ChromeSwitches.DISABLE_TAB_MERGING_FOR_TESTING)) {
+            return false;
+        }
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.M;
+    }
+
+    /**
+     * Cache whether or not Chrome Home is enabled.
+     */
+    public static void cacheChromeHomeEnabled() {
+        Context context = ContextUtils.getApplicationContext();
+
+        // Chrome Home doesn't work with tablets.
+        if (DeviceFormFactor.isTablet(context)) return;
+
+        boolean isChromeHomeEnabled = ChromeFeatureList.isEnabled(ChromeFeatureList.CHROME_HOME);
+        ChromePreferenceManager manager = ChromePreferenceManager.getInstance(context);
+        boolean valueChanged = isChromeHomeEnabled != manager.isChromeHomeEnabled();
+        manager.setChromeHomeEnabled(isChromeHomeEnabled);
+        sChromeHomeEnabled = isChromeHomeEnabled;
+
+        // If the cached value changed, restart chrome.
+        if (valueChanged) ApplicationLifetime.terminate(true);
+    }
+
+    /**
+     * @return Whether or not chrome should attach the toolbar to the bottom of the screen.
+     */
+    public static boolean isChromeHomeEnabled() {
+        if (sChromeHomeEnabled == null) {
+            ChromePreferenceManager manager =
+                    ChromePreferenceManager.getInstance(ContextUtils.getApplicationContext());
+            sChromeHomeEnabled = manager.isChromeHomeEnabled();
+        }
+
+        return sChromeHomeEnabled;
     }
 
     private static native void nativeSetCustomTabVisible(boolean visible);

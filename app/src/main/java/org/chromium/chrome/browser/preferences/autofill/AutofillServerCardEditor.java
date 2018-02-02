@@ -90,19 +90,14 @@ public class AutofillServerCardEditor extends AutofillCreditCardEditor {
     }
 
     @Override
-    protected void saveEntry() {
+    protected boolean saveEntry() {
         PersonalDataManager.getInstance().updateServerCardBillingAddress(mCard.getServerId(),
                 ((AutofillProfile) mBillingAddress.getSelectedItem()).getGUID());
+        return true;
     }
 
     @Override
     protected boolean getIsDeletable() {
         return false;
-    }
-
-    @Override
-    protected void initializeButtons(View v) {
-        super.initializeButtons(v);
-        mBillingAddress.setOnItemSelectedListener(this);
     }
 }

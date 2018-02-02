@@ -4,9 +4,13 @@
 
 package org.chromium.chrome.browser.init;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.chromium.base.ContextUtils;
@@ -14,6 +18,9 @@ import org.chromium.base.ThreadUtils;
 import org.chromium.base.library_loader.LibraryLoader;
 import org.chromium.base.library_loader.LibraryProcessType;
 import org.chromium.base.library_loader.ProcessInitException;
+import org.chromium.chrome.browser.ChromeVersionInfo;
+import org.chromium.chrome.browser.firstrun.FirstRunFlowSequencer;
+import org.chromium.components.variations.firstrun.VariationsSeedService;
 import org.chromium.content.browser.ChildProcessLauncher;
 
 import java.util.ArrayList;
@@ -35,8 +42,10 @@ class NativeInitializationController {
     private boolean mOnResumePending;
     private List<Intent> mPendingNewIntents;
     private List<ActivityResult> mPendingActivityResults;
-    private boolean mWaitingForFirstDraw;
+
+    private boolean mLibraryLoaded;
     private boolean mHasDoneFirstDraw;
+    private boolean mWaitingForVariationsFetch;
     private boolean mInitializationComplete;
 
     /**
@@ -65,6 +74,14 @@ class NativeInitializationController {
         mActivityDelegate = activityDelegate;
     }
 
+    private static boolean shouldFetchVariationsSeedBeforeFRE() {
+        // For now, only do the fetching on official canary and dev builds, as there is a concern
+        // about the extra latency this adds.
+        // TODO(asvitkine): Revise this logic based on histogram data.
+        return ChromeVersionInfo.isOfficialBuild()
+                && (ChromeVersionInfo.isCanaryBuild() || ChromeVersionInfo.isDevBuild());
+    }
+
     /**
      * Start loading the native library in the background. This kicks off the native initialization
      * process.
@@ -73,6 +90,28 @@ class NativeInitializationController {
      *                                false if you know that no new renderer is needed.
      */
     public void startBackgroundTasks(final boolean allocateChildConnection) {
+        ThreadUtils.assertOnUiThread();
+
+        if (shouldFetchVariationsSeedBeforeFRE()) {
+            Context context = ContextUtils.getApplicationContext();
+            Intent initialIntent = mActivityDelegate.getInitialIntent();
+            if (FirstRunFlowSequencer.checkIfFirstRunIsNecessary(context, initialIntent, false)
+                    != null) {
+                mWaitingForVariationsFetch = true;
+                IntentFilter filter = new IntentFilter(VariationsSeedService.COMPLETE_BROADCAST);
+                LocalBroadcastManager.getInstance(context).registerReceiver(
+                        new BroadcastReceiver() {
+                            @Override
+                            public void onReceive(Context context, Intent intent) {
+                                mWaitingForVariationsFetch = false;
+                                signalNativeLibraryLoadedIfReady();
+                            }
+                        },
+                        filter);
+                context.startService(new Intent(context, VariationsSeedService.class));
+            }
+        }
+
         // TODO(yusufo) : Investigate using an AsyncTask for this.
         new Thread() {
             @Override
@@ -103,19 +142,28 @@ class NativeInitializationController {
                 ThreadUtils.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        onLibraryLoaded();
+                        mLibraryLoaded = true;
+                        signalNativeLibraryLoadedIfReady();
                     }
                 });
             }
         }.start();
     }
 
-    private void onLibraryLoaded() {
-        if (mHasDoneFirstDraw) {
-            // First draw is done
-            onNativeLibraryLoaded();
-        } else {
-            mWaitingForFirstDraw = true;
+    private void signalNativeLibraryLoadedIfReady() {
+        ThreadUtils.assertOnUiThread();
+
+        // Called on UI thread when any of the booleans below have changed.
+        if (mHasDoneFirstDraw && mLibraryLoaded && !mWaitingForVariationsFetch) {
+            // Allow the UI thread to continue its initialization - so that this call back
+            // doesn't block priority work on the UI thread until it's idle.
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mActivityDelegate.isActivityDestroyed()) return;
+                    mActivityDelegate.onCreateWithNative();
+                }
+            });
         }
     }
 
@@ -125,23 +173,7 @@ class NativeInitializationController {
      */
     public void firstDrawComplete() {
         mHasDoneFirstDraw = true;
-
-        if (mWaitingForFirstDraw) {
-            mWaitingForFirstDraw = false;
-            // Allow the UI thread to continue its initialization
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    onNativeLibraryLoaded();
-                }
-            });
-        }
-    }
-
-    private void onNativeLibraryLoaded() {
-        // Callback from LibraryLoader on UI thread, when the load has completed.
-        if (mActivityDelegate.isActivityDestroyed()) return;
-        mActivityDelegate.onCreateWithNative();
+        signalNativeLibraryLoadedIfReady();
     }
 
     /**

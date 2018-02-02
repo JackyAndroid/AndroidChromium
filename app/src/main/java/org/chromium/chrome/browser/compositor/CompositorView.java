@@ -29,7 +29,6 @@ import org.chromium.chrome.browser.compositor.layouts.Layout;
 import org.chromium.chrome.browser.compositor.layouts.LayoutProvider;
 import org.chromium.chrome.browser.compositor.layouts.LayoutRenderHost;
 import org.chromium.chrome.browser.compositor.layouts.components.LayoutTab;
-import org.chromium.chrome.browser.compositor.layouts.content.ContentOffsetProvider;
 import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
 import org.chromium.chrome.browser.compositor.resources.StaticResourcePreloads;
 import org.chromium.chrome.browser.compositor.scene_layer.SceneLayer;
@@ -47,14 +46,13 @@ import org.chromium.ui.resources.ResourceManager;
  */
 @JNINamespace("android")
 public class CompositorView
-        extends SurfaceView implements ContentOffsetProvider, SurfaceHolder.Callback {
+        extends SurfaceView implements SurfaceHolder.Callback {
     private static final String TAG = "CompositorView";
     private static final long NANOSECONDS_PER_MILLISECOND = 1000000;
 
     // Cache objects that should not be created every frame
     private final Rect mCacheViewport = new Rect();
     private final Rect mCacheAppRect = new Rect();
-    private final Rect mCacheVisibleViewport = new Rect();
     private final int[] mCacheViewPosition = new int[2];
 
     private long mNativeCompositorView;
@@ -345,20 +343,13 @@ public class CompositorView
         // If you do, you could inadvertently trigger follow up renders.  For further information
         // see dtrainor@, tedchoc@, or klobag@.
 
-        // TODO(jscholler): change 1.0f to dpToPx once the native part is fully supporting dp.
-        mRenderHost.getVisibleViewport(mCacheVisibleViewport);
-        mCacheVisibleViewport.right = mCacheVisibleViewport.left + mSurfaceWidth;
-        mCacheVisibleViewport.bottom = mCacheVisibleViewport.top + mSurfaceHeight;
-
         provider.getViewportPixel(mCacheViewport);
-        nativeSetLayoutViewport(mNativeCompositorView, mCacheViewport.left, mCacheViewport.top,
-                mCacheViewport.width(), mCacheViewport.height(), mCacheVisibleViewport.left,
-                mCacheVisibleViewport.top, 1.0f);
+
+        nativeSetLayoutBounds(mNativeCompositorView);
 
         SceneLayer sceneLayer =
-                provider.getUpdatedActiveSceneLayer(mCacheViewport, mCacheVisibleViewport,
-                        mLayerTitleCache, mTabContentManager, mResourceManager,
-                        provider.getFullscreenManager());
+                provider.getUpdatedActiveSceneLayer(mCacheViewport, mLayerTitleCache,
+                        mTabContentManager, mResourceManager, provider.getFullscreenManager());
 
         nativeSetSceneLayer(mNativeCompositorView, sceneLayer);
 
@@ -378,13 +369,6 @@ public class CompositorView
         return mLastLayerCount;
     }
 
-    @Override
-    public int getOverlayTranslateY() {
-        return mRenderHost.areTopControlsPermanentlyHidden()
-                ? mRenderHost.getTopControlsHeightPixels()
-                : mRenderHost.getVisibleViewport(mCacheVisibleViewport).top;
-    }
-
     // Implemented in native
     private native long nativeInit(boolean lowMemDevice, long nativeWindowAndroid,
             LayerTitleCache layerTitleCache, TabContentManager tabContentManager);
@@ -396,9 +380,7 @@ public class CompositorView
             long nativeCompositorView, int format, int width, int height, Surface surface);
     private native void nativeFinalizeLayers(long nativeCompositorView);
     private native void nativeSetNeedsComposite(long nativeCompositorView);
-    private native void nativeSetLayoutViewport(long nativeCompositorView, float x, float y,
-            float width, float height, float visibleXOffset, float visibleYOffset,
-            float dpToPixel);
+    private native void nativeSetLayoutBounds(long nativeCompositorView);
     private native void nativeSetOverlayVideoMode(long nativeCompositorView, boolean enabled);
     private native void nativeSetSceneLayer(long nativeCompositorView, SceneLayer sceneLayer);
 }

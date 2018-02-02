@@ -4,21 +4,17 @@
 
 package org.chromium.chrome.browser.tabmodel;
 
+import android.app.Activity;
 import android.os.Handler;
 
 import org.chromium.base.VisibleForTesting;
-import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.chrome.browser.ChromeActivity;
-import org.chromium.chrome.browser.ChromeTabbedActivity;
 import org.chromium.chrome.browser.compositor.layouts.OverviewModeBehavior;
 import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabPersistentStore.TabPersistentStoreObserver;
-import org.chromium.chrome.browser.util.FeatureUtilities;
 import org.chromium.content_public.browser.LoadUrlParams;
-import org.chromium.ui.base.WindowAndroid;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -30,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TabModelSelectorImpl extends TabModelSelectorBase implements TabModelDelegate {
     public static final int CUSTOM_TABS_SELECTOR_INDEX = -1;
 
-    private final ChromeActivity mActivity;
+    private final TabCreatorManager mTabCreatorManager;
 
     /** Flag set to false when the asynchronous loading of tabs is finished. */
     private final AtomicBoolean mSessionRestoreInProgress =
@@ -42,6 +38,10 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
     private boolean mActiveState = false;
 
     private boolean mIsUndoSupported;
+
+    // Whether the Activity that owns that TabModelSelector is tabbed or not.
+    // Used by sync to determine how to handle restore on cold start.
+    private boolean mIsTabbedActivityForSync;
 
     private final TabModelOrderController mOrderController;
 
@@ -57,51 +57,28 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
 
     /**
      * Builds a {@link TabModelSelectorImpl} instance.
-     * @param activity      The {@link ChromeActivity} this model selector lives in.
-     * @param windowAndroid The {@link WindowAndroid} associated with this model selector.
-     * @param supportUndo   Whether a tab closure can be undone.
+     *
+     * @param activity An {@link Activity} instance.
+     * @param tabCreatorManager A {@link TabCreatorManager} instance.
+     * @param persistencePolicy A {@link TabPersistencePolicy} instance.
+     * @param supportUndo Whether a tab closure can be undone.
      */
-    public TabModelSelectorImpl(ChromeActivity activity, TabPersistencePolicy persistencePolicy,
-            WindowAndroid windowAndroid, boolean supportUndo) {
+    public TabModelSelectorImpl(Activity activity, TabCreatorManager tabCreatorManager,
+            TabPersistencePolicy persistencePolicy, boolean supportUndo, boolean isTabbedActivity) {
         super();
-        mActivity = activity;
-        mUma = new TabModelSelectorUma(mActivity);
+        mTabCreatorManager = tabCreatorManager;
+        mUma = new TabModelSelectorUma(activity);
         final TabPersistentStoreObserver persistentStoreObserver =
                 new TabPersistentStoreObserver() {
             @Override
             public void onStateLoaded() {
                 markTabStateInitialized();
             }
-
-            @Override
-            public void onStateMerged() {
-            }
-
-            @Override
-            public void onDetailsRead(int index, int id, String url, boolean isStandardActiveIndex,
-                    boolean isIncognitoActiveIndex) {
-            }
-
-            @Override
-            public void onInitialized(int tabCountAtStartup) {
-                RecordHistogram.recordCountHistogram("Tabs.CountAtStartup", tabCountAtStartup);
-            }
-
-            @Override
-            public void onMetadataSavedAsynchronously() {
-            }
         };
         mIsUndoSupported = supportUndo;
-        // Merge tabs if this is the TabModelSelector for ChromeTabbedActivity and there are no
-        // other instances running. This indicates that it is a complete cold start of
-        // ChromeTabbedActivity. Tabs should only be merged during a cold start of
-        // ChromeTabbedActivity and not other instances (e.g. ChromeTabbedActivity2).
-        boolean mergeTabs = FeatureUtilities.isTabModelMergingEnabled()
-                && mActivity.getClass().equals(ChromeTabbedActivity.class)
-                && TabWindowManager.getInstance().getNumberOfAssignedTabModelSelectors() == 0;
-
-        mTabSaver = new TabPersistentStore(persistencePolicy, this, mActivity,
-                persistentStoreObserver, mergeTabs);
+        mIsTabbedActivityForSync = isTabbedActivity;
+        mTabSaver = new TabPersistentStore(
+                persistencePolicy, this, mTabCreatorManager, persistentStoreObserver);
         mOrderController = new TabModelOrderController(this);
     }
 
@@ -151,10 +128,13 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
         assert !mActiveState : "onNativeLibraryReady called twice!";
         mTabContentManager = tabContentProvider;
 
-        ChromeTabCreator regularTabCreator = (ChromeTabCreator) mActivity.getTabCreator(false);
-        ChromeTabCreator incognitoTabCreator = (ChromeTabCreator) mActivity.getTabCreator(true);
-        TabModelImpl normalModel = new TabModelImpl(false, regularTabCreator, incognitoTabCreator,
-                mUma, mOrderController, mTabContentManager, mTabSaver, this, mIsUndoSupported);
+        ChromeTabCreator regularTabCreator =
+                (ChromeTabCreator) mTabCreatorManager.getTabCreator(false);
+        ChromeTabCreator incognitoTabCreator =
+                (ChromeTabCreator) mTabCreatorManager.getTabCreator(true);
+        TabModelImpl normalModel = new TabModelImpl(false, mIsTabbedActivityForSync,
+                regularTabCreator, incognitoTabCreator, mUma, mOrderController, mTabContentManager,
+                mTabSaver, this, mIsUndoSupported);
         TabModel incognitoModel = new IncognitoTabModel(new IncognitoTabModelImplCreator(
                 regularTabCreator, incognitoTabCreator, mUma, mOrderController,
                 mTabContentManager, mTabSaver, this));
@@ -337,7 +317,8 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
     @Override
     public Tab openNewTab(LoadUrlParams loadUrlParams, TabLaunchType type, Tab parent,
             boolean incognito) {
-        return mActivity.getTabCreator(incognito).createNewTab(loadUrlParams, type, parent);
+        return mTabCreatorManager.getTabCreator(incognito).createNewTab(
+                loadUrlParams, type, parent);
     }
 
     /**
@@ -365,7 +346,6 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
                     cacheTabBitmap(mVisibleTab);
                 }
                 mVisibleTab.hide();
-                mVisibleTab.setFullscreenManager(null);
                 mTabSaver.addTabToSaveQueue(mVisibleTab);
             }
             mVisibleTab = null;
@@ -383,8 +363,6 @@ public class TabModelSelectorImpl extends TabModelSelectorBase implements TabMod
             tab.loadIfNeeded();
             return;
         }
-
-        tab.setFullscreenManager(mActivity.getFullscreenManager());
         mVisibleTab = tab;
 
         // Don't execute the tab display part if Chrome has just been sent to background. This

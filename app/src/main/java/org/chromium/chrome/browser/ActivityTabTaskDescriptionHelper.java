@@ -13,13 +13,12 @@ import org.chromium.chrome.browser.ntp.NewTabPage;
 import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
-import org.chromium.chrome.browser.tabmodel.EmptyTabModelObserver;
 import org.chromium.chrome.browser.tabmodel.EmptyTabModelSelectorObserver;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabSelectionType;
-import org.chromium.chrome.browser.tabmodel.TabModelObserver;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorObserver;
+import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
 import org.chromium.chrome.browser.util.UrlUtilities;
 import org.chromium.components.security_state.ConnectionSecurityLevel;
 
@@ -40,7 +39,7 @@ public class ActivityTabTaskDescriptionHelper {
     private final FaviconHelper mFaviconHelper;
 
     private final TabModelSelectorObserver mTabModelSelectorObserver;
-    private final TabModelObserver mTabModelObserver;
+    private final TabModelSelectorTabModelObserver mTabModelObserver;
     private final TabObserver mTabObserver;
 
     private Bitmap mLargestFavicon;
@@ -134,7 +133,7 @@ public class ActivityTabTaskDescriptionHelper {
             }
         };
 
-        mTabModelObserver = new EmptyTabModelObserver() {
+        mTabModelObserver = new TabModelSelectorTabModelObserver(mTabModelSelector) {
             @Override
             public void didSelectTab(Tab tab, TabSelectionType type, int lastId) {
                 refreshSelectedTab();
@@ -167,7 +166,6 @@ public class ActivityTabTaskDescriptionHelper {
         };
 
         mTabModelSelector.addObserver(mTabModelSelectorObserver);
-        for (TabModel model : mTabModelSelector.getModels()) model.addObserver(mTabModelObserver);
         refreshSelectedTab();
     }
 
@@ -272,8 +270,6 @@ public class ActivityTabTaskDescriptionHelper {
         }
 
         mTabModelSelector.removeObserver(mTabModelSelectorObserver);
-        for (TabModel model : mTabModelSelector.getModels()) {
-            model.removeObserver(mTabModelObserver);
-        }
+        mTabModelObserver.destroy();
     }
 }

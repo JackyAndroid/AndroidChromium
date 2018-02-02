@@ -9,9 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.customtabs.CustomTabsCallback;
+import android.support.customtabs.CustomTabsService;
 import android.support.customtabs.CustomTabsSessionToken;
 import android.text.TextUtils;
 import android.util.SparseBooleanArray;
@@ -21,6 +23,7 @@ import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.IntentHandler;
 import org.chromium.chrome.browser.util.UrlUtilities;
+import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.common.Referrer;
 
 import java.util.ArrayList;
@@ -54,6 +57,7 @@ class ClientManager {
         public final int uid;
         public final DisconnectCallback disconnectCallback;
         public final String packageName;
+        public final PostMessageHandler postMessageHandler;
         public boolean mIgnoreFragments;
         private boolean mShouldHideDomain;
         private boolean mShouldPrerenderOnCellular;
@@ -62,10 +66,12 @@ class ClientManager {
         private String mPredictedUrl;
         private long mLastMayLaunchUrlTimestamp;
 
-        public SessionParams(Context context, int uid, DisconnectCallback callback) {
+        public SessionParams(Context context, int uid, DisconnectCallback callback,
+                PostMessageHandler postMessageHandler) {
             this.uid = uid;
             packageName = getPackageName(context, uid);
             disconnectCallback = callback;
+            this.postMessageHandler = postMessageHandler;
         }
 
         private static String getPackageName(Context context, int uid) {
@@ -119,17 +125,24 @@ class ClientManager {
      * @param session Session provided by the client.
      * @param uid Client UID, as returned by Binder.getCallingUid(),
      * @param onDisconnect To be called on the UI thread when a client gets disconnected.
+     * @param postMessageHandler The handler to be used for postMessage related operations.
      * @return true for success.
      */
-    public boolean newSession(
-            CustomTabsSessionToken session, int uid, DisconnectCallback onDisconnect) {
+    public boolean newSession(CustomTabsSessionToken session, int uid,
+            DisconnectCallback onDisconnect, PostMessageHandler postMessageHandler) {
         if (session == null) return false;
-        SessionParams params = new SessionParams(mContext, uid, onDisconnect);
+        SessionParams params = new SessionParams(mContext, uid, onDisconnect, postMessageHandler);
         synchronized (this) {
             if (mSessionParams.containsKey(session)) return false;
             mSessionParams.put(session, params);
         }
         return true;
+    }
+
+    public synchronized int postMessage(CustomTabsSessionToken session, String message) {
+        SessionParams params = mSessionParams.get(session);
+        if (params == null) return CustomTabsService.RESULT_FAILURE_MESSAGING_ERROR;
+        return params.postMessageHandler.postMessage(message);
     }
 
     /**
@@ -210,6 +223,26 @@ class ClientManager {
     }
 
     /**
+     * See {@link PostMessageHandler#setPostMessageOrigin(Uri)}.
+     */
+    public synchronized void setPostMessageOriginForSession(
+            CustomTabsSessionToken session, Uri origin) {
+        SessionParams params = mSessionParams.get(session);
+        if (params == null) return;
+        params.postMessageHandler.setPostMessageOrigin(origin);
+    }
+
+    /**
+     * See {@link PostMessageHandler#reset(WebContents)}.
+     */
+    public synchronized void resetPostMessageHandlerForSession(
+            CustomTabsSessionToken session, WebContents webContents) {
+        SessionParams params = mSessionParams.get(session);
+        if (params == null) return;
+        params.postMessageHandler.reset(webContents);
+    }
+
+    /**
      * @return The referrer that is associated with the client owning given session.
      */
     public synchronized Referrer getReferrerForSession(CustomTabsSessionToken session) {
@@ -260,12 +293,13 @@ class ClientManager {
     }
 
     /**
-     * Sets whether navigation info should be recorded and shared for the session.
+     * Sets whether navigation info should be recorded and shared for the current navigation in this
+     * session.
      */
     public synchronized void setSendNavigationInfoForSession(
-            CustomTabsSessionToken session, boolean save) {
+            CustomTabsSessionToken session, boolean send) {
         SessionParams params = mSessionParams.get(session);
-        if (params != null) params.mShouldSendNavigationInfo = save;
+        if (params != null) params.mShouldSendNavigationInfo = send;
     }
 
     /**

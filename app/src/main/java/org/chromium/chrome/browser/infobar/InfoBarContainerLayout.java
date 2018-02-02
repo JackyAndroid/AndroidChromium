@@ -89,6 +89,12 @@ class InfoBarContainerLayout extends FrameLayout {
          * Returns the accessibility text to announce when this infobar is first shown.
          */
         CharSequence getAccessibilityText();
+
+        /**
+         * Returns whether the infobar is a legal disclosure and thus should be shown in front of
+         * any other infobars already visible.
+         */
+        boolean isLegalDisclosure();
     }
 
     /**
@@ -106,7 +112,11 @@ class InfoBarContainerLayout extends FrameLayout {
      * current animation, if any, finishes.
      */
     void addInfoBar(Item item) {
-        mItems.add(item);
+        if (item.isLegalDisclosure()) {
+            mItems.add(0, item);
+        } else {
+            mItems.add(item);
+        }
         processPendingAnimations();
     }
 
@@ -231,12 +241,12 @@ class InfoBarContainerLayout extends FrameLayout {
      * The animation to show the first infobar. The infobar slides up from the bottom; then its
      * content fades in.
      */
-    private class FrontInfoBarAppearingAnimation extends InfoBarAnimation {
+    private class FirstInfoBarAppearingAnimation extends InfoBarAnimation {
         private Item mFrontItem;
         private InfoBarWrapper mFrontWrapper;
         private View mFrontContents;
 
-        FrontInfoBarAppearingAnimation(Item frontItem) {
+        FirstInfoBarAppearingAnimation(Item frontItem) {
             mFrontItem = frontItem;
         }
 
@@ -264,6 +274,98 @@ class InfoBarContainerLayout extends FrameLayout {
 
         @Override
         void onAnimationEnd() {
+            announceForAccessibility(mFrontItem.getAccessibilityText());
+        }
+
+        @Override
+        int getAnimationType() {
+            return InfoBarAnimationListener.ANIMATION_TYPE_SHOW;
+        }
+    }
+
+    /**
+     * The animation to show the a new front-most infobar in front of existing visible infobars. The
+     * infobar slides up from the bottom; then its content fades in. The previously visible infobars
+     * will be resized simulatenously to the new desired size.
+     */
+    private class FrontInfoBarAppearingAnimation extends InfoBarAnimation {
+        private Item mFrontItem;
+        private InfoBarWrapper mFrontWrapper;
+        private InfoBarWrapper mOldFrontWrapper;
+        private View mFrontContents;
+
+        FrontInfoBarAppearingAnimation(Item frontItem) {
+            mFrontItem = frontItem;
+        }
+
+        @Override
+        void prepareAnimation() {
+            mOldFrontWrapper = mInfoBarWrappers.get(0);
+
+            mFrontContents = mFrontItem.getView();
+            mFrontWrapper = new InfoBarWrapper(getContext(), mFrontItem);
+            mFrontWrapper.addView(mFrontContents);
+            addWrapperToFront(mFrontWrapper);
+        }
+
+        @Override
+        Animator createAnimator() {
+            // After adding the new wrapper, the new front item's view, and the old front item's
+            // view are both in their wrappers, and the height of the stack as determined by
+            // FrameLayout will take both into account. This means the height of the container will
+            // be larger than it needs to be, if the previous old front item is larger than the sum
+            // of the new front item and mBackInfobarHeight.
+            //
+            // First work out how much the container will grow or shrink by.
+            int heightDelta =
+                    mFrontWrapper.getHeight() + mBackInfobarHeight - mOldFrontWrapper.getHeight();
+
+            // Now work out where to animate the new front item to / from.
+            int newFrontStart = mFrontWrapper.getHeight();
+            int newFrontEnd = 0;
+            if (heightDelta < 0) {
+                // If the container is shrinking, this won't be reflected in the layout just yet.
+                // The layout will have extra space in it for the previous front infobar, which the
+                // animation of the new front infobar has to take into account.
+                newFrontStart -= heightDelta;
+                newFrontEnd -= heightDelta;
+            }
+            mFrontWrapper.setTranslationY(newFrontStart);
+            mFrontContents.setAlpha(0f);
+
+            AnimatorSet animator = new AnimatorSet();
+            animator.play(createTranslationYAnimator(mFrontWrapper,
+                    newFrontEnd).setDuration(DURATION_SLIDE_UP_MS));
+
+            // If the container is shrinking, the back infobars need to animate down (from 0 to the
+            // positive delta). Otherwise they have to animate up (from the negative delta to 0).
+            int backStart = Math.max(0, heightDelta);
+            int backEnd = Math.max(-heightDelta, 0);
+            for (int i = 1; i < mInfoBarWrappers.size(); i++) {
+                mInfoBarWrappers.get(i).setTranslationY(backStart);
+                animator.play(createTranslationYAnimator(mInfoBarWrappers.get(i),
+                        backEnd).setDuration(DURATION_SLIDE_UP_MS));
+            }
+
+            animator.play(ObjectAnimator.ofFloat(mFrontContents, View.ALPHA, 1f)
+                                    .setDuration(DURATION_FADE_MS))
+                    .after(DURATION_SLIDE_UP_MS);
+
+            return animator;
+        }
+
+        @Override
+        void onAnimationEnd() {
+            // Remove the old front wrappers view so it won't affect the height of the container any
+            // more.
+            mOldFrontWrapper.removeAllViews();
+
+            // Now set any Y offsets to 0 as there is no need to account for the old front wrapper
+            // making the container higher than it should be.
+            for (int i = 0; i < mInfoBarWrappers.size(); i++) {
+                mInfoBarWrappers.get(i).setTranslationY(0);
+            }
+            updateLayoutParams();
             announceForAccessibility(mFrontItem.getAccessibilityText());
         }
 
@@ -635,12 +737,37 @@ class InfoBarContainerLayout extends FrameLayout {
             }
         }
 
-        // Third, check if we should add any infobars.
+        // Third, check if we should add any infobars in front of visible infobars. This can happen
+        // if an infobar has been inserted into mItems, in front of the currently visible item. To
+        // detect this the items at the beginning of mItems are compared against the first item in
+        // mInfoBarWrappers.
+        if (!mInfoBarWrappers.isEmpty()) {
+            // Find the infobar with the highest index that isn't currently being shown.
+            Item currentVisibleItem = mInfoBarWrappers.get(0).getItem();
+            Item itemToInsert = null;
+            for (int checkIndex = 0; checkIndex < mItems.size(); checkIndex++) {
+                if (mItems.get(checkIndex) == currentVisibleItem) {
+                    // There are no remaining infobars that can possibly override the
+                    // currently displayed one.
+                    break;
+                } else {
+                    // Found an infobar that isn't being displayed yet.  Track it so that
+                    // it can be animated in.
+                    itemToInsert = mItems.get(checkIndex);
+                }
+            }
+            if (itemToInsert != null) {
+                runAnimation(new FrontInfoBarAppearingAnimation(itemToInsert));
+                return;
+            }
+        }
+
+        // Fourth, check if we should add any infobars at the back.
         int desiredChildCount = Math.min(mItems.size(), MAX_STACK_DEPTH);
         if (mInfoBarWrappers.size() < desiredChildCount) {
             Item itemToShow = mItems.get(mInfoBarWrappers.size());
             runAnimation(mInfoBarWrappers.isEmpty()
-                    ? new FrontInfoBarAppearingAnimation(itemToShow)
+                    ? new FirstInfoBarAppearingAnimation(itemToShow)
                     : new BackInfoBarAppearingAnimation(itemToShow));
         }
     }
@@ -658,6 +785,12 @@ class InfoBarContainerLayout extends FrameLayout {
     private void addWrapper(InfoBarWrapper wrapper) {
         addView(wrapper, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         mInfoBarWrappers.add(wrapper);
+        updateLayoutParams();
+    }
+
+    private void addWrapperToFront(InfoBarWrapper wrapper) {
+        addView(wrapper, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        mInfoBarWrappers.add(0, wrapper);
         updateLayoutParams();
     }
 

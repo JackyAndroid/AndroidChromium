@@ -1357,7 +1357,7 @@ public class Stack {
     }
 
     private float getScrollDimensionSize() {
-        return mCurrentMode == Orientation.PORTRAIT ? mLayout.getHeightMinusTopControls()
+        return mCurrentMode == Orientation.PORTRAIT ? mLayout.getHeightMinusBrowserControls()
                                                     : mLayout.getWidth();
     }
 
@@ -1551,7 +1551,7 @@ public class Stack {
         // Resolve bottom stacking
         stackedCount = 0;
         float maxStackedPosition =
-                portrait ? mLayout.getHeightMinusTopControls() : mLayout.getWidth();
+                portrait ? mLayout.getHeightMinusBrowserControls() : mLayout.getWidth();
         for (int i = mStackTabs.length - 1; i >= 0; i--) {
             assert mStackTabs[i] != null;
             StackTab stackTab = mStackTabs[i];
@@ -1949,7 +1949,7 @@ public class Stack {
             if (tab.getId() == tabId) {
                 tab.setDiscardAmount(getDiscardRange());
                 tab.setDying(false);
-                tab.getLayoutTab().setMaxContentHeight(mLayout.getHeightMinusTopControls());
+                tab.getLayoutTab().setMaxContentHeight(mLayout.getHeightMinusBrowserControls());
             }
         }
 
@@ -2073,7 +2073,7 @@ public class Stack {
     private float getStackScale(RectF stackRect) {
         return mCurrentMode == Orientation.PORTRAIT
                 ? stackRect.width() / mLayout.getWidth()
-                : stackRect.height() / mLayout.getHeightMinusTopControls();
+                : stackRect.height() / mLayout.getHeightMinusBrowserControls();
     }
 
     private void setScrollTarget(float offset, boolean immediate) {
@@ -2256,8 +2256,9 @@ public class Stack {
     }
 
     private float getRange(float range) {
-        return range * (mCurrentMode == Orientation.PORTRAIT ? mLayout.getWidth()
-                                                             : mLayout.getHeightMinusTopControls());
+        return range * (mCurrentMode == Orientation.PORTRAIT
+                                       ? mLayout.getWidth()
+                                       : mLayout.getHeightMinusBrowserControls());
     }
 
     /**
@@ -2295,13 +2296,13 @@ public class Stack {
         setWarpState(true, false);
         final float opaqueTopPadding = mBorderTopPadding - mBorderTransparentTop;
         mAnimationFactory = StackAnimation.createAnimationFactory(mLayout.getWidth(),
-                mLayout.getHeight(), mLayout.getHeightMinusTopControls(), mBorderTopPadding,
+                mLayout.getHeight(), mLayout.getHeightMinusBrowserControls(), mBorderTopPadding,
                 opaqueTopPadding, mBorderLeftPadding, mCurrentMode);
         float dpToPx = mLayout.getContext().getResources().getDisplayMetrics().density;
         mViewAnimationFactory = new StackViewAnimation(dpToPx, mLayout.getWidth());
         if (mStackTabs == null) return;
         float width = mLayout.getWidth();
-        float height = mLayout.getHeightMinusTopControls();
+        float height = mLayout.getHeightMinusBrowserControls();
         for (int i = 0; i < mStackTabs.length; i++) {
             LayoutTab tab = mStackTabs[i].getLayoutTab();
             if (tab == null) continue;
@@ -2427,7 +2428,7 @@ public class Stack {
     public void swipeUpdated(long time, float x, float y, float dx, float dy, float tx, float ty) {
         if (!mInSwipe) return;
 
-        final float toolbarSize = mLayout.getHeight() - mLayout.getHeightMinusTopControls();
+        final float toolbarSize = mLayout.getHeight() - mLayout.getHeightMinusBrowserControls();
         if (ty > toolbarSize) mSwipeCanScroll = true;
         if (!mSwipeCanScroll) return;
 

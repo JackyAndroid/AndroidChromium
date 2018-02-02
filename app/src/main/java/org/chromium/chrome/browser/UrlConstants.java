@@ -10,6 +10,7 @@ package org.chromium.chrome.browser;
 public class UrlConstants {
     public static final String CHROME_SCHEME = "chrome://";
     public static final String CHROME_NATIVE_SCHEME = "chrome-native://";
+    public static final String CONTENT_SCHEME = "content://";
     public static final String CUSTOM_TAB_SCHEME = "customtab";
     public static final String DOCUMENT_SCHEME = "document";
     public static final String FILE_SCHEME = "file://";

@@ -24,13 +24,14 @@ import android.view.View;
 import android.webkit.URLUtil;
 import android.widget.TextView;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeApplication;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -59,7 +60,7 @@ import java.util.Map;
  * 6. Once the download is completed, sends a message to the server if installNotifyURI
  *    is present in the download descriptor.
  * 7. Prompts user with a dialog to open the NextURL specified in the download descriptor.
- * If steps 2 - 6 fails, a warning dialog will be prompted to the user to let him
+ * If steps 2 - 6 fails, a warning dialog will be prompted to the user to let them
  * know the error. Steps 6-7 will be executed afterwards.
  * If installNotifyURI is present in the download descriptor, the downloaded content will
  * be saved to the app directory first. If step 6 completes successfully, the content will

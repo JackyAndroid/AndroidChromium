@@ -7,4 +7,5 @@
 <string name="sync_confirmation_chrome_sync_message">"Your bookmarks, history, passwords, and other settings will be synced to your Google Account so you can use them on all your devices"</string>
 <string name="sync_confirmation_personalize_services_title">"Personalize Google services"</string>
 <string name="sync_confirmation_personalize_services_body">"Google may use your browsing history to personalize Search, ads, and other Google services"</string>
+<string name="sync_disabled_confirmation_chrome_sync_title">"Sync is disabled by your administrator"</string>
 </resources>

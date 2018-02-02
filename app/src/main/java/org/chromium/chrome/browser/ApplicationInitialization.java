@@ -12,7 +12,7 @@ import org.chromium.base.CommandLine;
 import org.chromium.chrome.R;
 import org.chromium.content.app.ContentApplication;
 import org.chromium.content.common.ContentSwitches;
-
+import android.util.Log;
 
 /**
  * Utility class for application level initialization calls.
@@ -25,7 +25,7 @@ public final class ApplicationInitialization {
     /**
      * Enable fullscreen related startup flags.
      * @param resources Resources to use while calculating initialization constants.
-     * @param resControlContainerHeight The resource id for the height of the top controls.
+     * @param resControlContainerHeight The resource id for the height of the browser controls.
      */
     public static void enableFullscreenFlags(
             Resources resources, Context context, int resControlContainerHeight) {
@@ -39,7 +39,9 @@ public final class ApplicationInitialization {
         commandLine.appendSwitchWithValue(
                 ContentSwitches.TOP_CONTROLS_SHOW_THRESHOLD, threshold.coerceToString().toString());
         resources.getValue(R.dimen.top_controls_hide_threshold, threshold, true);
+        Log.w("renshuai: ", "hello" + threshold.coerceToString().toString());
         commandLine.appendSwitchWithValue(
                 ContentSwitches.TOP_CONTROLS_HIDE_THRESHOLD, threshold.coerceToString().toString());
+
     }
 }

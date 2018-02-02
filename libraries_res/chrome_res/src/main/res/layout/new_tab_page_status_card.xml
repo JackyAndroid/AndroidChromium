@@ -11,7 +11,7 @@
     android:layout_height="wrap_content"
     android:gravity="end"
     android:orientation="vertical"
-    android:padding="@dimen/snippets_padding_and_peeking_card_height"
+    android:padding="@dimen/snippets_padding"
     android:background="@drawable/ntp_card_single">
 
     <org.chromium.ui.widget.TextViewWithLeading

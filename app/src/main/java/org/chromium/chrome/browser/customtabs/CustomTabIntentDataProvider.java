@@ -28,9 +28,7 @@ import org.chromium.base.Log;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeActivity;
-import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.IntentHandler;
-import org.chromium.chrome.browser.util.FeatureUtilities;
 import org.chromium.chrome.browser.util.IntentUtils;
 import org.chromium.chrome.browser.widget.TintedDrawable;
 
@@ -60,6 +58,10 @@ public class CustomTabIntentDataProvider {
     public static final String EXTRA_IS_MEDIA_VIEWER =
             "org.chromium.chrome.browser.customtabs.IS_MEDIA_VIEWER";
 
+    /** Extra that defines the initial background color (RGB color stored as an integer). */
+    public static final String EXTRA_INITIAL_BACKGROUND_COLOR =
+            "org.chromium.chrome.browser.customtabs.EXTRA_INITIAL_BACKGROUND_COLOR";
+
     //TODO(yusufo): Move this to CustomTabsIntent.
     /** Signals custom tabs to favor sending initial urls to external handler apps if possible. */
     public static final String EXTRA_SEND_TO_EXTERNAL_DEFAULT_HANDLER =
@@ -75,9 +77,11 @@ public class CustomTabIntentDataProvider {
             ANIMATION_BUNDLE_PREFIX + "animExitRes";
 
     private final CustomTabsSessionToken mSession;
+    private final boolean mIsTrustedIntent;
     private final Intent mKeepAliveServiceIntent;
     private final int mTitleVisibilityState;
     private final boolean mIsMediaViewer;
+    private final int mInitialBackgroundColor;
 
     private int mToolbarColor;
     private int mBottomBarColor;
@@ -104,11 +108,13 @@ public class CustomTabIntentDataProvider {
     public CustomTabIntentDataProvider(Intent intent, Context context) {
         if (intent == null) assert false;
         mSession = CustomTabsSessionToken.getSessionTokenFromIntent(intent);
-        parseHerbExtras(intent, context);
+        mIsTrustedIntent = IntentHandler.isIntentChromeOrFirstParty(intent, context);
 
         retrieveCustomButtons(intent, context);
         retrieveToolbarColor(intent, context);
         retrieveBottomBarColor(intent);
+        mInitialBackgroundColor = retrieveInitialBackgroundColor(intent);
+
         mEnableUrlBarHiding = IntentUtils.safeGetBooleanExtra(
                 intent, CustomTabsIntent.EXTRA_ENABLE_URLBAR_HIDING, true);
         mKeepAliveServiceIntent = IntentUtils.safeGetParcelableExtra(intent, EXTRA_KEEP_ALIVE);
@@ -116,6 +122,7 @@ public class CustomTabIntentDataProvider {
         Bitmap bitmap = IntentUtils.safeGetParcelableExtra(intent,
                 CustomTabsIntent.EXTRA_CLOSE_BUTTON_ICON);
         if (bitmap != null && !checkCloseButtonSize(context, bitmap)) {
+            IntentUtils.safeRemoveExtra(intent, CustomTabsIntent.EXTRA_CLOSE_BUTTON_ICON);
             bitmap.recycle();
             bitmap = null;
         }
@@ -140,6 +147,8 @@ public class CustomTabIntentDataProvider {
             }
         }
 
+        mIsOpenedByChrome =
+                IntentUtils.safeGetBooleanExtra(intent, EXTRA_IS_OPENED_BY_CHROME, false);
         mAnimationBundle = IntentUtils.safeGetBundleExtra(
                 intent, CustomTabsIntent.EXTRA_EXIT_ANIMATION_BUNDLE);
         mTitleVisibilityState = IntentUtils.safeGetIntExtra(intent,
@@ -152,7 +161,7 @@ public class CustomTabIntentDataProvider {
                 CustomTabsIntent.EXTRA_REMOTEVIEWS_VIEW_IDS);
         mRemoteViewsPendingIntent = IntentUtils.safeGetParcelableExtra(intent,
                 CustomTabsIntent.EXTRA_REMOTEVIEWS_PENDINGINTENT);
-        mIsMediaViewer = IntentHandler.isIntentChromeOrFirstParty(intent, context)
+        mIsMediaViewer = mIsTrustedIntent
                 && IntentUtils.safeGetBooleanExtra(intent, EXTRA_IS_MEDIA_VIEWER, false);
     }
 
@@ -181,7 +190,7 @@ public class CustomTabIntentDataProvider {
                 R.color.default_primary_color);
         int color = IntentUtils.safeGetIntExtra(intent, CustomTabsIntent.EXTRA_TOOLBAR_COLOR,
                 defaultColor);
-        mToolbarColor = removeTransparencyFromColor(color, defaultColor);
+        mToolbarColor = removeTransparencyFromColor(color);
     }
 
     /**
@@ -191,17 +200,25 @@ public class CustomTabIntentDataProvider {
         int defaultColor = mToolbarColor;
         int color = IntentUtils.safeGetIntExtra(intent,
                 CustomTabsIntent.EXTRA_SECONDARY_TOOLBAR_COLOR, defaultColor);
-        mBottomBarColor = removeTransparencyFromColor(color, defaultColor);
+        mBottomBarColor = removeTransparencyFromColor(color);
     }
 
     /**
-     * Removes the alpha channel of the given color and returns the processed value. If the result
-     * is blank, returns the fallback value.
+     * Returns the color to initialize the background of the Custom Tab with.
+     * If no valid color is set, Color.TRANSPARENT is returned.
      */
-    private int removeTransparencyFromColor(int color, int fallbackColor) {
-        color |= 0xFF000000;
-        if (color == Color.TRANSPARENT) color = fallbackColor;
-        return color;
+    private int retrieveInitialBackgroundColor(Intent intent) {
+        int defaultColor = Color.TRANSPARENT;
+        int color = IntentUtils.safeGetIntExtra(
+                intent, EXTRA_INITIAL_BACKGROUND_COLOR, defaultColor);
+        return color == Color.TRANSPARENT ? color : removeTransparencyFromColor(color);
+    }
+
+    /**
+     * Removes the alpha channel of the given color and returns the processed value.
+     */
+    private int removeTransparencyFromColor(int color) {
+        return color | 0xFF000000;
     }
 
     /**
@@ -433,6 +450,13 @@ public class CustomTabIntentDataProvider {
     }
 
     /**
+     * Checks whether or not the Intent is from Chrome or other trusted first party.
+     */
+    boolean isTrustedIntent() {
+        return mIsTrustedIntent;
+    }
+
+    /**
      * @return See {@link #EXTRA_IS_MEDIA_VIEWER}.
      */
     boolean isMediaViewer() {
@@ -440,19 +464,10 @@ public class CustomTabIntentDataProvider {
     }
 
     /**
-     * Parses out extras specifically added for Herb.
-     *
-     * @param intent Intent fired to open the CustomTabActivity.
-     * @param context Context for the package.
+     * See {@link #EXTRA_INITIAL_BACKGROUND_COLOR}.
+     * @return The color if it was specified in the Intent, Color.TRANSPARENT otherwise.
      */
-    private void parseHerbExtras(Intent intent, Context context) {
-        String herbFlavor = FeatureUtilities.getHerbFlavor();
-        if (TextUtils.isEmpty(herbFlavor)
-                || TextUtils.equals(ChromeSwitches.HERB_FLAVOR_DISABLED, herbFlavor)) {
-            return;
-        }
-
-        mIsOpenedByChrome = IntentUtils.safeGetBooleanExtra(
-                intent, EXTRA_IS_OPENED_BY_CHROME, false);
+    int getInitialBackgroundColor() {
+        return mInitialBackgroundColor;
     }
 }

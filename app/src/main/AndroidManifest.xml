@@ -16,12 +16,12 @@ by a child template that "extends" this file.
           tools:ignore="MissingVersion">
     <!-- android:versionCode and android:versionName is set through gyp. See build/common.gypi -->
 
-    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23"/>
-    <uses-feature android:glEsVersion="0x00020000"/>
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23" />
+    <uses-feature android:glEsVersion="0x00020000" />
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!--
       Enable Bluetooth permission via uses-permission in tip of tree builds
@@ -34,8 +34,8 @@ by a child template that "extends" this file.
     <uses-permission-sdk-m android:name="android.permission.BLUETOOTH"/>
     <uses-permission-sdk-m android:name="android.permission.BLUETOOTH_ADMIN"/>
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
@@ -50,74 +50,76 @@ by a child template that "extends" this file.
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <!-- Required to read the paired viewer's distortion parameters. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!-- Indicates use of Android's VR-mode, available only on Android N+. -->
+    <uses-feature android:name="android.software.vr.mode" android:required="false"/>
+    <!-- Indicates use of VR features that are available only on Daydream-ready devices. -->
+    <uses-feature android:name="android.hardware.vr.high_performance" android:required="false"/>
 
-    <permission android:name="org.chromium.chrome.permission.CHILD_SERVICE"
-                android:protectionLevel="signature"/>
-    <permission android:name="org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS"
-                android:protectionLevel="signatureOrSystem"/>
-    <permission android:name="org.chromium.chrome.TOS_ACKED"
-                android:protectionLevel="signatureOrSystem"/>
+    <permission android:name="org.chromium.chrome.permission.CHILD_SERVICE" android:protectionLevel="signature" />
+    <permission android:name="org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS" android:protectionLevel="signatureOrSystem" />
+    <permission android:name="org.chromium.chrome.TOS_ACKED" android:protectionLevel="signatureOrSystem" />
     <!-- Only chrome can receive the messages and registration result -->
     <permission android:name="org.chromium.chrome.permission.C2D_MESSAGE"
-                android:protectionLevel="signature"/>
+                android:protectionLevel="signature" />
     <permission android:name="org.chromium.chrome.permission.DEBUG"
                 android:label="Debug web pages"
                 android:permissionGroup="android.permission-group.DEVELOPMENT_TOOLS"
-                android:protectionLevel="signature"/>
+                android:protectionLevel="signature" />
 
-    <uses-permission android:name="org.chromium.chrome.permission.C2D_MESSAGE"/>
-    <uses-permission android:name="org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS"/>
-    <uses-permission android:name="org.chromium.chrome.TOS_ACKED"/>
+    <uses-permission android:name="org.chromium.chrome.permission.C2D_MESSAGE" />
+    <uses-permission android:name="org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS" />
+    <uses-permission android:name="org.chromium.chrome.TOS_ACKED" />
 
-    <uses-permission android:name="com.chrome.permission.DEVICE_EXTRAS"/>
+    <uses-permission android:name="com.chrome.permission.DEVICE_EXTRAS" />
     <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS"/>
     <uses-permission android:name="com.android.browser.permission.WRITE_HISTORY_BOOKMARKS"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+
+    <uses-permission android:name="com.google.android.apps.now.CURRENT_ACCOUNT_ACCESS" />
 
 
     <!-- We may use GPS but it's not required -->
-    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <!--
       android.permission.RECORD_AUDIO makes this implied, however we don't
       require a microphone.
     -->
-    <uses-feature android:name="android.hardware.microphone" android:required="false"/>
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <!--
       The app is usable with keyboard/mouse. This feature is implicitly true for
       all applications and needs to be disabled manually.
     -->
-    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
 
     <!-- Set android:largeHeap to "true" to allow more than the default
          Java heap limit (32Mb on Nexus S, 48Mb on Xoom). -->
     <application android:name="org.chromium.chrome.browser.ChromeApplication"
-                 android:allowBackup="false"
-                 android:backupAgent="org.chromium.chrome.browser.ChromeBackupAgent"
-                 android:fullBackupContent="@xml/chromebackupscheme"
-                 android:fullBackupOnly="false"
                  android:icon="@mipmap/app_icon"
                  android:label="@string/app_name"
                  android:largeHeap="false"
                  android:manageSpaceActivity="@string/manage_space_activity"
-                 android:restoreAnyVersion="true"
                  android:supportsRtl="true"
-    >
+                 android:allowBackup="false"
+        >
 
         <!-- Samsung MultiWindow Support -->
         <meta-data android:name="com.samsung.android.sdk.multiwindow.enable"
-                   android:value="true"/>
+                   android:value="true" />
         <meta-data android:name="com.samsung.android.sdk.multiwindow.multiinstance.enable"
-                   android:value="true"/>
+                   android:value="true" />
         <meta-data android:name="com.samsung.android.sdk.multiwindow.multiinstance.launchmode"
-                   android:value="singleTask"/>
+                   android:value="singleTask" />
         <meta-data android:name="com.samsung.android.sdk.multiwindow.penwindow.enable"
                    android:value="true"/>
 
-        <meta-data android:name="com.sec.android.support.multiwindow" android:value="true"/>
+
+        <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
         <meta-data android:name="android.content.APP_RESTRICTIONS"
                    android:resource="@xml/app_restrictions"/>
 
@@ -128,409 +130,432 @@ by a child template that "extends" this file.
              (shown in Android's Settings/Apps list) share the same label, we
              do not specify one here to allow it to inherit from the app. -->
         <activity android:name="org.chromium.chrome.browser.document.ChromeLauncherActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:excludeFromRecents="true"
+                  android:theme="@style/LauncherTheme"
                   android:relinquishTaskIdentity="true"
                   android:taskAffinity=""
-                  android:theme="@style/LauncherTheme">
+                  android:excludeFromRecents="true"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.Main"
-                        android:exported="true"
-                        android:targetActivity="org.chromium.chrome.browser.document.ChromeLauncherActivity">
+                        android:targetActivity="org.chromium.chrome.browser.document.ChromeLauncherActivity"
+                        android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <category android:name="android.intent.category.APP_BROWSER"/>
-                <category android:name="android.intent.category.NOTIFICATION_PREFERENCES"/>
-                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.APP_BROWSER" />
+                <category android:name="android.intent.category.NOTIFICATION_PREFERENCES" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
             <!-- Matches the common case of intents with no MIME type.
                  Make sure to keep in sync with the next filter.  -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="googlechrome"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
-                <data android:scheme="about"/>
-                <data android:scheme="javascript"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="googlechrome" />                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="about" />
+                <data android:scheme="javascript" />
             </intent-filter>
             <!-- Same filter as above but with MIME types.  Intents that
                  do not specify a MIME type won't match. -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="googlechrome"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
-                <data android:scheme="about"/>
-                <data android:scheme="content"/>
-                <data android:scheme="javascript"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="googlechrome" />                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="about" />
+                <data android:scheme="content" />
+                <data android:scheme="javascript" />
                 <data android:mimeType="text/html"/>
                 <data android:mimeType="text/plain"/>
                 <data android:mimeType="application/xhtml+xml"/>
             </intent-filter>
             <!-- MHTML support, used for snapshots -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="file"/>
                 <data android:scheme="content"/>
                 <data android:mimeType="multipart/related"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file"/>
                 <data android:scheme="content"/>
-                <data android:host="*"/>
+                <data android:host="*" />
                 <data android:pathPattern="/.*\\.mhtml"/>
                 <data android:pathPattern="/.*\\.mht"/>
             </intent-filter>
             <!-- Same filter as above but with mimeType="*/*". Used for
                  handling intent send by ShareIt. -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file"/>
                 <data android:scheme="content"/>
-                <data android:host="*"/>
+                <data android:host="*" />
                 <data android:mimeType="*/*"/>
                 <data android:pathPattern="/.*\\.mhtml"/>
                 <data android:pathPattern="/.*\\.mht"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_SEARCH"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.MEDIA_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.speech.action.VOICE_SEARCH_RESULTS"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.speech.action.VOICE_SEARCH_RESULTS" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.SEARCH"/>
+                <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.sec.android.airview.HOVER"/>
+                <action android:name="com.sec.android.airview.HOVER" />
             </intent-filter>
             <meta-data android:name="android.app.searchable"
-                       android:resource="@xml/searchable"/>
+                       android:resource="@xml/searchable" />
 
         </activity-alias>
 
         <activity android:name="org.chromium.chrome.browser.LauncherShortcutActivity"
-                  android:excludeFromRecents="true"
-                  android:exported="false"
+                  android:theme="@android:style/Theme.NoDisplay"
                   android:taskAffinity=""
-                  android:theme="@android:style/Theme.NoDisplay"/>
+                  android:excludeFromRecents="true"
+                  android:exported="false" />
 
         <!-- Upgrade related -->
         <activity android:name="org.chromium.chrome.browser.upgrade.UpgradeActivity"
-                  android:autoRemoveFromRecents="false"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
                   android:excludeFromRecents="true"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/MainTheme"
+                  android:windowSoftInputMode="adjustResize"
+                  android:taskAffinity=""
                   android:launchMode="singleInstance"
                   android:persistableMode="persistNever"
-                  android:taskAffinity=""
-                  android:theme="@style/MainTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:autoRemoveFromRecents="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
         <service android:name="org.chromium.chrome.browser.upgrade.UpgradeIntentService"
                  android:exported="false"/>
-        <receiver
-            android:name="org.chromium.chrome.browser.upgrade.PackageReplacedBroadcastReceiver"
-            android:exported="false">
+        <receiver android:name="org.chromium.chrome.browser.upgrade.PackageReplacedBroadcastReceiver"
+                  android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
         <!-- Document mode Activities. -->
         <activity android:name="org.chromium.chrome.browser.document.DocumentActivity"
+                  android:exported="false"
+                  android:theme="@style/MainTheme"
+                  android:windowSoftInputMode="adjustResize"
+                  android:taskAffinity=""
+                  android:persistableMode="persistAcrossReboots"
                   android:autoRemoveFromRecents="false"
                   android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:hardwareAccelerated="false"
-                  android:persistableMode="persistAcrossReboots"
-                  android:taskAffinity=""
-                  android:theme="@style/MainTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:hardwareAccelerated="false">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.document.DocumentActivity"
-                        android:exported="false"
-                        android:targetActivity="org.chromium.chrome.browser.document.DocumentActivity"/>
+                        android:targetActivity="org.chromium.chrome.browser.document.DocumentActivity"
+                        android:exported="false"/>
         <activity android:name="org.chromium.chrome.browser.document.IncognitoDocumentActivity"
+                  android:icon="@mipmap/incognito_app_icon"
+                  android:exported="false"
+                  android:theme="@style/IncognitoTheme"
+                  android:windowSoftInputMode="adjustResize"
+                  android:taskAffinity=""
+                  android:persistableMode="persistNever"
                   android:autoRemoveFromRecents="false"
                   android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:hardwareAccelerated="false"
-                  android:icon="@mipmap/incognito_app_icon"
-                  android:persistableMode="persistNever"
-                  android:taskAffinity=""
-                  android:theme="@style/IncognitoTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity-alias
-            android:name="com.google.android.apps.chrome.document.IncognitoDocumentActivity"
-            android:exported="false"
-            android:targetActivity="org.chromium.chrome.browser.document.IncognitoDocumentActivity"/>
+        <activity-alias android:name="com.google.android.apps.chrome.document.IncognitoDocumentActivity"
+                        android:targetActivity="org.chromium.chrome.browser.document.IncognitoDocumentActivity"
+                        android:exported="false"/>
 
         <!-- Custom Tabs -->
         <activity android:name="org.chromium.chrome.browser.customtabs.CustomTabActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:hardwareAccelerated="false"
                   android:theme="@style/MainTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:exported="false"
+                  android:windowSoftInputMode="adjustResize"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity"
-            android:autoRemoveFromRecents="false"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity"
+                  android:theme="@style/MainTheme"
+                  android:exported="false"
+                  android:taskAffinity=""
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:autoRemoveFromRecents="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity0"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity0"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity1"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity1"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity2"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity2"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity3"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity3"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity4"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity4"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity5"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity5"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity6"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity6"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity7"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity7"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity8"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity8"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity9"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:icon="@mipmap/app_single_page_icon"
-            android:launchMode="singleTask"
-            android:persistableMode="persistNever"
-            android:taskAffinity=""
-            android:theme="@style/MainTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.customtabs.SeparateTaskCustomTabActivity9"
+                  android:theme="@style/MainTheme"
+                  android:icon="@mipmap/app_single_page_icon"
+                  android:exported="false"
+                  android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:taskAffinity=""
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
 
         <!-- ChromeTabbedActivity related -->
         <activity android:name="org.chromium.chrome.browser.ChromeTabbedActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:hardwareAccelerated="false"
-                  android:launchMode="singleTask"
                   android:theme="@style/TabbedModeTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:exported="false"
+                  android:windowSoftInputMode="adjustResize"
+                  android:launchMode="singleTask"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
+            <!--
+              See the VRChromeTabbedActivity alias below for an explanation of this dummy intent
+              filter. We need to add these filters here as well, or non-presenting webVR pages will
+              trigger a daydream incompatible app message.
+            -->
+            <intent-filter>
+                <action android:name="org.chromium.chrome.browser.dummy.action" />
+                <category android:name="com.google.intent.category.DAYDREAM" />
+                <category android:name="com.google.intent.category.CARDBOARD" />
+            </intent-filter>
         </activity>
+
+        <!--
+            TODO(mthiesse): Temporarily skip ChromeLauncherActivity when returning from Daydream
+            DON flow to avoid polluting metrics.
+        -->
+        <activity-alias android:name="org.chromium.chrome.browser.VRChromeTabbedActivity"
+                        android:targetActivity="org.chromium.chrome.browser.ChromeTabbedActivity"
+                        android:enableVrMode="@string/gvr_vr_mode_component">
+            <!--
+              Daydream api categorizes an activity to three categories: Cardboard only, hybrid
+              or Daydream. It does so by testing if intents can be resolved by the activity
+              that requests it.
+              In Chrome, CTA is the activity that uses Daydream api and we want to be in hybrid
+              category. So add an intent filter that could pass Daydream tests here.
+            -->
+
+            <intent-filter>
+                <action android:name="org.chromium.chrome.browser.dummy.action" />
+                <category android:name="com.google.intent.category.DAYDREAM" />
+                <category android:name="com.google.intent.category.CARDBOARD" />
+            </intent-filter>
+        </activity-alias>
+
+
         <activity android:name="org.chromium.chrome.browser.ChromeTabbedActivity2"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:hardwareAccelerated="false"
-                  android:launchMode="singleTask"
-                  android:taskAffinity="org.chromium.chrome.ChromeTabbedActivity2"
                   android:theme="@style/TabbedModeTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:exported="false"
+                  android:windowSoftInputMode="adjustResize"
+                  android:taskAffinity="org.chromium.chrome.ChromeTabbedActivity2"
+                  android:launchMode="singleTask"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
-        <activity
-            android:name="org.chromium.chrome.browser.multiwindow.MultiInstanceChromeTabbedActivity"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="false"
-            android:theme="@style/TabbedModeTheme"
-            android:windowSoftInputMode="adjustResize">
+        <activity android:name="org.chromium.chrome.browser.multiwindow.MultiInstanceChromeTabbedActivity"
+                  android:theme="@style/TabbedModeTheme"
+                  android:exported="false"
+                  android:windowSoftInputMode="adjustResize"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:hardwareAccelerated="false">
         </activity>
 
         <activity android:name="org.chromium.chrome.browser.sync.ui.PassphraseActivity"
-                  android:autoRemoveFromRecents="true"
-                  android:theme="@style/MainTheme">
+                  android:theme="@style/MainTheme"
+                  android:autoRemoveFromRecents="true">
         </activity>
         <activity android:name="org.chromium.chrome.browser.firstrun.LightweightFirstRunActivity"
-                  android:autoRemoveFromRecents="true"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:launchMode="singleTop"
                   android:theme="@style/SimpleDialog"
-                  android:windowSoftInputMode="stateHidden|adjustPan">
+                  android:launchMode="singleTop"
+                  android:autoRemoveFromRecents="true"
+                  android:windowSoftInputMode="stateHidden|adjustPan"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.firstrun.FirstRunActivity"
-                  android:autoRemoveFromRecents="true"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:theme="@style/DialogWhenLarge"
                   android:label="@string/fre_label"
                   android:launchMode="singleTop"
-                  android:theme="@style/DialogWhenLarge"
-                  android:windowSoftInputMode="stateHidden|adjustPan">
+                  android:autoRemoveFromRecents="true"
+                  android:windowSoftInputMode="stateHidden|adjustPan"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.signin.AccountSigninActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:theme="@style/MainTheme">
+                  android:theme="@style/DialogWhenLarge"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.preferences.Preferences"
+                  android:theme="@style/PreferencesTheme"
                   android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
                   android:label="@string/preferences"
-                  android:theme="@style/PreferencesTheme">
+                  android:exported="false">
         </activity>
         <activity android:name="org.chromium.chrome.browser.preferences.website.ManageSpaceActivity"
+                  android:theme="@style/PreferencesTheme"
                   android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
                   android:label="@string/storage_management_activity_label"
-                  android:theme="@style/PreferencesTheme">
+                  android:exported="false">
         </activity>
         <activity android:name="org.chromium.chrome.browser.EmbedContentViewActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:theme="@style/ThemeWithActionBar"
                   android:hardwareAccelerated="false"
-                  android:theme="@style/ThemeWithActionBar">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.bookmarks.BookmarkActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:theme="@style/DrawerDialog"
-                  android:windowSoftInputMode="stateAlwaysHidden">
+                  android:theme="@style/FullscreenWhiteActivityTheme"
+                  android:exported="false"
+                  android:windowSoftInputMode="stateAlwaysHidden"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.bookmarks.BookmarkAddActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:theme="@style/DrawerDialogWhite"
-                  android:windowSoftInputMode="stateHidden">
+                  android:theme="@style/DialogWhenLarge"
+                  android:windowSoftInputMode="stateHidden"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
             <intent-filter>
-                <action android:name="org.chromium.chrome.ADDBOOKMARK"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="org.chromium.chrome.ADDBOOKMARK" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity android:name="org.chromium.chrome.browser.bookmarks.BookmarkEditActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:theme="@style/DialogWhenLarge"
+                  android:windowSoftInputMode="stateHidden"
+                  android:exported="false"
                   android:label="@string/edit_bookmark"
-                  android:theme="@style/DrawerDialogWhite"
-                  android:windowSoftInputMode="stateHidden">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.bookmarks.BookmarkAddEditFolderActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:theme="@style/DrawerDialogWhite">
+                  android:theme="@style/DialogWhenLarge"
+                  android:exported="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.bookmarks.BookmarkFolderSelectActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:theme="@style/DialogWhenLarge"
+                  android:windowSoftInputMode="stateAlwaysHidden"
                   android:label="@string/bookmark_choose_folder"
-                  android:theme="@style/DrawerDialogWhite"
-                  android:windowSoftInputMode="stateAlwaysHidden">
+                  android:exported="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
 
         <!-- Activities for downloads. -->
         <activity android:name="org.chromium.chrome.browser.download.DownloadActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:theme="@style/DownloadActivityTheme"
-                  android:windowSoftInputMode="stateAlwaysHidden">
+                  android:theme="@style/FullscreenWhiteActivityTheme"
+                  android:windowSoftInputMode="stateAlwaysHidden"
+                  android:exported="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
 
         <!--
@@ -540,425 +565,421 @@ by a child template that "extends" this file.
                                running.
         -->
         <activity android:name="org.chromium.chrome.browser.webapps.WebappLauncherActivity"
-                  android:excludeFromRecents="true"
+                  android:theme="@android:style/Theme.NoDisplay"
                   android:taskAffinity=""
-                  android:theme="@android:style/Theme.NoDisplay">
+                  android:excludeFromRecents="true">
             <intent-filter>
-                <action
-                    android:name="com.google.android.apps.chrome.webapps.WebappManager.ACTION_START_WEBAPP"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="com.google.android.apps.chrome.webapps.WebappManager.ACTION_START_WEBAPP" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappManager"
                         android:targetActivity="org.chromium.chrome.browser.webapps.WebappLauncherActivity">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:documentLaunchMode="intoExisting"
-                  android:hardwareAccelerated="false"
-                  android:label="@string/webapp_activity_title"
-                  android:persistableMode="persistNever"
                   android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:label="@string/webapp_activity_title"
+                  android:documentLaunchMode="intoExisting"
+                  android:windowSoftInputMode="adjustResize"
+                  android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity">
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity"
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity0"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity0"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity0"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity0"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity0">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity1"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity1"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity1"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity1"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity1">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity2"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity2"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity2"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity2"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity2">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity3"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity3"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity3"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity3"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity3">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity4"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity4"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity4"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity4"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity4">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity5"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity5"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity5"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity5"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity5">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity6"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity6"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity6"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity6"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity6">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity7"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity7"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity7"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity7"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity7">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity8"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity8"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity8"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity8"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity8">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <activity android:name="org.chromium.chrome.browser.webapps.WebappActivity9"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebappActivity9"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity-alias android:name="com.google.android.apps.chrome.webapps.WebappActivity9"
+                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity9"
                         android:icon="@mipmap/app_shortcut_icon"
-                        android:label="@string/webapp_activity_title"
-                        android:targetActivity="org.chromium.chrome.browser.webapps.WebappActivity9">
+                        android:label="@string/webapp_activity_title">
         </activity-alias>
         <!-- Activities for WebAPKs. -->
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:documentLaunchMode="intoExisting"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTop"
+                  android:documentLaunchMode="intoExisting"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:hardwareAccelerated="false"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity0"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity0"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity1"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity1"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity2"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity2"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity3"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity3"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity4"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity4"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity5"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity5"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity6"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity6"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity7"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity7"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity8"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity8"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name="org.chromium.chrome.browser.webapps.WebApkActivity9"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:hardwareAccelerated="false"
+                  android:theme="@style/WebappTheme"
                   android:icon="@mipmap/app_shortcut_icon"
                   android:label="@string/webapp_activity_title"
                   android:launchMode="singleTask"
+                  android:windowSoftInputMode="adjustResize"
                   android:persistableMode="persistNever"
+                  android:hardwareAccelerated="false"
                   android:taskAffinity="org.chromium.chrome.webapps.WebApkActivity9"
-                  android:theme="@style/WebappTheme"
-                  android:windowSoftInputMode="adjustResize">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize">
         </activity>
 
         <activity android:name="org.chromium.chrome.browser.media.remote.ExpandedControllerActivity"
-                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:excludeFromRecents="true"
-                  android:hardwareAccelerated="true"
+                  android:theme="@style/MainTheme"
                   android:label="Chrome.ExpandedControllerActivity"
+                  android:hardwareAccelerated="true"
                   android:launchMode="singleTask"
                   android:noHistory="true"
-                  android:theme="@style/MainTheme">
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+                  android:excludeFromRecents="true">
         </activity>
 
         <!-- This activity is used to restart the main Chrome process.  Should never be exported. -->
         <activity android:name="org.chromium.chrome.browser.BrowserRestartActivity"
-                  android:excludeFromRecents="true"
-                  android:exported="false"
                   android:launchMode="singleInstance"
-                  android:process=":browser_restart_process"
-                  android:theme="@android:style/Theme.Translucent.NoTitleBar">
+                  android:exported="false"
+                  android:theme="@android:style/Theme.Translucent.NoTitleBar"
+                  android:excludeFromRecents="true"
+                  android:process=":browser_restart_process">
         </activity>
 
         <!-- This activity is to expose the print option via the generic Android share action. -->
         <activity
             android:name="org.chromium.chrome.browser.printing.PrintShareActivity"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+            android:icon="@drawable/print"
+            android:label="@string/print_share_activity_title"
             android:enabled="false"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:icon="@drawable/print"
-            android:label="@string/print_share_activity_title"
             android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@android:style/Theme.NoDisplay"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize" >
             <intent-filter>
-                <action android:name="android.intent.action.SEND"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="text/plain"/>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
         <!-- Activity for dispatching intents to Instant Apps. -->
         <activity
             android:name="org.chromium.chrome.browser.instantapps.AuthenticatedProxyActivity"
-            android:excludeFromRecents="true"
             android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay"
             android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:excludeFromRecents="true">
         </activity>
 
         <!-- Activity to list Physical Web Urls -->
         <activity android:name="org.chromium.chrome.browser.physicalweb.ListUrlsActivity"
+                  android:label="@string/physical_web_list_urls_activity_title"
+                  android:theme="@style/PhysicalWebNearbyUrlsListStyle"
                   android:autoRemoveFromRecents="true"
                   android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
-                  android:exported="false"
-                  android:label="@string/physical_web_list_urls_activity_title"
-                  android:theme="@style/PhysicalWebNearbyUrlsListStyle">
+                  android:exported="false" >
         </activity>
 
         <!-- Opt-in activity for Physical Web -->
         <activity android:name="org.chromium.chrome.browser.physicalweb.PhysicalWebOptInActivity"
-                  android:exported="false"
                   android:label="@string/physical_web_list_urls_activity_title"
-                  android:theme="@style/PhysicalWebOptInStyle">
+                  android:theme="@style/PhysicalWebOptInStyle"
+                  android:exported="false">
         </activity>
 
         <!-- Broadcast receiver that will clean up Physical web notifications at scheduled
              intervals -->
-        <receiver
-            android:name="org.chromium.chrome.browser.physicalweb.ClearNotificationAlarmReceiver"
-            android:exported="false">
+        <receiver android:name="org.chromium.chrome.browser.physicalweb.ClearNotificationAlarmReceiver"
+                  android:exported="false">
         </receiver>
 
         <!-- Service for handling Nearby Messages -->
         <service android:name="org.chromium.chrome.browser.physicalweb.NearbyMessageIntentService"
-                 android:exported="false"/>
+                 android:exported="false" />
 
         <!-- Providers for chrome data. -->
         <provider android:name="org.chromium.chrome.browser.provider.ChromeBrowserProvider"
                   android:authorities="org.chromium.chrome.ChromeBrowserProvider;org.chromium.chrome.browser;org.chromium.chrome"
                   android:exported="true">
             <path-permission android:path="/bookmarks/search_suggest_query"
-                             android:readPermission="android.permission.GLOBAL_SEARCH"/>
+                             android:readPermission="android.permission.GLOBAL_SEARCH" />
         </provider>
 
         <!-- Provider for FileProvider. -->
         <provider android:name="org.chromium.chrome.browser.util.ChromeFileProvider"
-                  android:authorities="org.chromium.chrome.FileProvider"
+                  android:authorities="org.chromium.chrome.browser.FileProvider"
                   android:exported="false"
                   android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-                       android:resource="@xml/file_paths"/>
+                       android:resource="@xml/file_paths" />
         </provider>
 
-        <provider
-            android:name="org.chromium.chrome.browser.superviseduser.SupervisedUserContentProvider"
-            android:authorities="org.chromium.chrome.SupervisedUserProvider"
-            android:exported="true"
-            android:permission="android.permission.INTERNET">
+        <provider android:name="org.chromium.chrome.browser.superviseduser.SupervisedUserContentProvider"
+                  android:authorities="org.chromium.chrome.SupervisedUserProvider"
+                  android:permission="android.permission.INTERNET"
+                  android:exported="true">
         </provider>
 
         <!-- Sync adapter for browser invalidation. -->
-        <service
-            android:name="org.chromium.chrome.browser.invalidation.ChromeBrowserSyncAdapterService"
-            android:exported="false">
+        <service android:name="org.chromium.chrome.browser.invalidation.ChromeBrowserSyncAdapterService"
+                 android:exported="false">
             <intent-filter>
-                <action android:name="android.content.SyncAdapter"/>
+                <action android:name="android.content.SyncAdapter" />
             </intent-filter>
             <meta-data android:name="android.content.SyncAdapter"
-                       android:resource="@xml/syncadapter"/>
+                       android:resource="@xml/syncadapter" />
         </service>
 
         <!-- Broadcast receiver that will be notified of account changes -->
         <receiver android:name="org.chromium.chrome.browser.services.AccountsChangedReceiver">
             <intent-filter>
-                <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED"/>
+                <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
             </intent-filter>
         </receiver>
 
@@ -968,134 +989,122 @@ by a child template that "extends" this file.
         </service>
 
         <service android:name="org.chromium.components.variations.firstrun.VariationsSeedService"
-                 android:exported="false"/>
+                 android:exported="false" />
 
-        <receiver
-            android:name="org.chromium.components.variations.firstrun.VariationsSeedServiceLauncher"
-            android:permission="org.chromium.chrome.TOS_ACKED">
+        <receiver android:name="org.chromium.components.variations.firstrun.VariationsSeedServiceLauncher"
+                  android:permission="org.chromium.chrome.TOS_ACKED">
             <intent-filter>
-                <action android:name="org.chromium.chrome.TOS_ACKED"/>
+                <action android:name="org.chromium.chrome.TOS_ACKED" />
             </intent-filter>
         </receiver>
 
         <receiver android:name="org.chromium.chrome.browser.firstrun.ToSAckedReceiver"
                   android:permission="org.chromium.chrome.TOS_ACKED">
             <intent-filter>
-                <action android:name="org.chromium.chrome.TOS_ACKED"/>
+                <action android:name="org.chromium.chrome.TOS_ACKED" />
             </intent-filter>
         </receiver>
 
         <!-- Bookmarks widget -->
-        <receiver
-            android:name="com.google.android.apps.chrome.appwidget.bookmarks.BookmarkThumbnailWidgetProvider"
-            android:label="@string/bookmark_widget_title">
+        <receiver android:name="com.google.android.apps.chrome.appwidget.bookmarks.BookmarkThumbnailWidgetProvider"
+                  android:label="@string/bookmark_widget_title">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-                <action android:name=".BOOKMARK_APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name=".BOOKMARK_APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/bookmark_widget_info"/>
+                android:resource="@xml/bookmark_widget_info" />
         </receiver>
         <service android:name="org.chromium.chrome.browser.bookmarkswidget.BookmarkWidgetService"
-                 android:exported="false"
-                 android:permission="android.permission.BIND_REMOTEVIEWS"/>
+                 android:permission="android.permission.BIND_REMOTEVIEWS"
+                 android:exported="false" />
         <receiver android:name="org.chromium.chrome.browser.bookmarkswidget.BookmarkWidgetProxy"
-                  android:exported="false"/>
+                  android:exported="false" />
 
         <!-- Receiver for GCM messages. -->
         <receiver android:name="com.google.android.gms.gcm.GcmReceiver"
                   android:exported="true"
                   android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
                 <category android:name="org.chromium.chrome"/>
             </intent-filter>
         </receiver>
         <!-- GcmTaskService for registration for Invalidations. -->
-        <service
-            android:name="com.google.ipc.invalidation.ticl.android2.channel.GcmRegistrationTaskService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+        <service android:name="com.google.ipc.invalidation.ticl.android2.channel.GcmRegistrationTaskService"
+                 android:exported="true"
+                 android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE" >
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
             </intent-filter>
         </service>
         <!-- InstanceIDListenerService for token refresh events from GCM. -->
-        <service
-            android:name="com.google.ipc.invalidation.ticl.android2.channel.AndroidInstanceIDListenerService"
-            android:exported="false">
+        <service android:name="com.google.ipc.invalidation.ticl.android2.channel.AndroidInstanceIDListenerService"
+                 android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID"/>
             </intent-filter>
         </service>
         <!-- GcmListenerService for messages from GCM. -->
         <service android:name="org.chromium.chrome.browser.services.gcm.ChromeGcmListenerService"
-                 android:exported="false">
+                 android:exported="false" >
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </service>
         <meta-data android:name="ipc.invalidation.ticl.gcm_upstream_service_class"
-                   android:value="org.chromium.chrome.browser.services.gcm.InvalidationGcmUpstreamSender"/>
-        <service
-            android:name="org.chromium.chrome.browser.services.gcm.InvalidationGcmUpstreamSender"
-            android:exported="false"/>
+                   android:value="org.chromium.chrome.browser.services.gcm.InvalidationGcmUpstreamSender" />
+        <service android:name="org.chromium.chrome.browser.services.gcm.InvalidationGcmUpstreamSender"
+                 android:exported="false"/>
 
         <!-- Notification service for sync. -->
         <meta-data android:name="ipc.invalidation.ticl.listener_service_class"
                    android:value="org.chromium.chrome.browser.invalidation.ChromeInvalidationClientService"/>
-        <service
-            android:name="org.chromium.chrome.browser.invalidation.ChromeInvalidationClientService"
-            android:exported="false">
+        <service android:name="org.chromium.chrome.browser.invalidation.ChromeInvalidationClientService"
+                 android:exported="false">
             <intent-filter>
                 <action android:name="com.google.ipc.invalidation.AUTH_TOKEN_REQUEST"/>
             </intent-filter>
         </service>
         <service android:name="com.google.ipc.invalidation.ticl.android2.TiclService"
                  android:exported="false"/>
-        <service
-            android:name="com.google.ipc.invalidation.ticl.android2.channel.AndroidMessageSenderService"
-            android:exported="false"/>
-        <receiver
-            android:name="com.google.ipc.invalidation.ticl.android2.AndroidInternalScheduler$AlarmReceiver"
-            android:exported="false"/>
-        <receiver
-            android:name="com.google.ipc.invalidation.external.client.contrib.AndroidListener$AlarmReceiver"
-            android:exported="false"/>
+        <service android:name="com.google.ipc.invalidation.ticl.android2.channel.AndroidMessageSenderService"
+                 android:exported="false"/>
+        <receiver android:name="com.google.ipc.invalidation.ticl.android2.AndroidInternalScheduler$AlarmReceiver"
+                  android:exported="false"/>
+        <receiver android:name="com.google.ipc.invalidation.external.client.contrib.AndroidListener$AlarmReceiver"
+                  android:exported="false"/>
 
         <!-- Android Notification service listener -->
         <service android:name="org.chromium.chrome.browser.notifications.NotificationService"
                  android:exported="false"/>
-        <receiver
-            android:name="org.chromium.chrome.browser.notifications.NotificationService$Receiver"
-            android:exported="false">
+        <receiver android:name="org.chromium.chrome.browser.notifications.NotificationService$Receiver"
+                  android:exported="false">
             <intent-filter>
-                <action
-                    android:name="org.chromium.chrome.browser.notifications.CLICK_NOTIFICATION"/>
-                <action
-                    android:name="org.chromium.chrome.browser.notifications.CLOSE_NOTIFICATION"/>
+                <action android:name="org.chromium.chrome.browser.notifications.CLICK_NOTIFICATION" />
+                <action android:name="org.chromium.chrome.browser.notifications.CLOSE_NOTIFICATION" />
             </intent-filter>
         </receiver>
 
         <!-- GcmTaskService implementation to wake Chrome on scheduled events -->
         <service android:name="org.chromium.chrome.browser.ChromeBackgroundService"
-                 android:exported="true"
-                 android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+                 android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+                 android:exported="true">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
 
         <service android:name="org.chromium.chrome.browser.prerender.ChromePrerenderService"
                  android:exported="true"
-                 tools:ignore="ExportedService"/>
+                 tools:ignore="ExportedService" />
         <service android:name="org.chromium.chrome.browser.customtabs.CustomTabsConnectionService"
                  android:exported="true"
                  tools:ignore="ExportedService">
             <intent-filter>
-                <action android:name="android.support.customtabs.action.CustomTabsService"/>
+                <action android:name="android.support.customtabs.action.CustomTabsService" />
             </intent-filter>
         </service>
         <service android:name="org.chromium.chrome.browser.crash.LogcatExtractionService"
@@ -1119,152 +1128,152 @@ by a child template that "extends" this file.
         <meta-data android:name="org.chromium.content.browser.NUM_SANDBOXED_SERVICES"
                    android:value="20"/>
         <service android:name="org.chromium.content.app.SandboxedProcessService0"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process0"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService1"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process1"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService2"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process2"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService3"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process3"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService4"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process4"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService5"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process5"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService6"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process6"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService7"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process7"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService8"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process8"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService9"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process9"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService10"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process10"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService11"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process11"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService12"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process12"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService13"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process13"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService14"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process14"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService15"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process15"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService16"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process16"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService17"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process17"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
         <service android:name="org.chromium.content.app.SandboxedProcessService18"
-                 android:exported="False"
-                 android:isolatedProcess="true"
-                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
                  android:process=":sandboxed_process18"
-        />
-        <service android:name="org.chromium.content.app.SandboxedProcessService19"
-                 android:exported="False"
-                 android:isolatedProcess="true"
                  android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
+        <service android:name="org.chromium.content.app.SandboxedProcessService19"
                  android:process=":sandboxed_process19"
-        />
+                 android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
+                 android:isolatedProcess="true"
+                 android:exported="False"
+            />
 
         <meta-data android:name="org.chromium.content.browser.NUM_PRIVILEGED_SERVICES"
                    android:value="3"/>
         <!-- TODO(tedchoc): Omit this for release builds as MultiDex is debug only. -->
         <meta-data android:name="org.chromium.chrome:privileged_process0.ignore_multidex"
-                   android:value="true"/>
+                   android:value="true" />
         <service android:name="org.chromium.content.app.PrivilegedProcessService0"
-                 android:exported="false"
-                 android:isolatedProcess="false"
+                 android:process=":privileged_process0"
                  android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
-                 android:process=":privileged_process0"/>
+                 android:isolatedProcess="false"
+                 android:exported="false" />
         <!-- TODO(tedchoc): Omit this for release builds as MultiDex is debug only. -->
         <meta-data android:name="org.chromium.chrome:privileged_process1.ignore_multidex"
-                   android:value="true"/>
+                   android:value="true" />
         <service android:name="org.chromium.content.app.PrivilegedProcessService1"
-                 android:exported="false"
-                 android:isolatedProcess="false"
+                 android:process=":privileged_process1"
                  android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
-                 android:process=":privileged_process1"/>
+                 android:isolatedProcess="false"
+                 android:exported="false" />
         <!-- TODO(tedchoc): Omit this for release builds as MultiDex is debug only. -->
         <meta-data android:name="org.chromium.chrome:privileged_process2.ignore_multidex"
-                   android:value="true"/>
+                   android:value="true" />
         <service android:name="org.chromium.content.app.PrivilegedProcessService2"
-                 android:exported="false"
-                 android:isolatedProcess="false"
+                 android:process=":privileged_process2"
                  android:permission="org.chromium.chrome.permission.CHILD_SERVICE"
-                 android:process=":privileged_process2"/>
+                 android:isolatedProcess="false"
+                 android:exported="false" />
 
         <receiver android:name="org.chromium.chrome.browser.download.DownloadBroadcastReceiver"
                   android:exported="false">
@@ -1282,54 +1291,49 @@ by a child template that "extends" this file.
 
         <service android:name="org.chromium.chrome.browser.media.MediaCaptureNotificationService"
                  android:exported="false"/>
-        <service
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PlaybackListenerService"
-            android:exported="false">
+        <service android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PlaybackListenerService"
+                 android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
-        <service
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PresentationListenerService"
-            android:exported="false">
+        <service android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PresentationListenerService"
+                 android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
-        <service
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$CastListenerService"
-            android:exported="false">
+        <service android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$CastListenerService"
+                 android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
 
 
-        <receiver
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PlaybackMediaButtonReceiver">
+        <receiver android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PlaybackMediaButtonReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PresentationMediaButtonReceiver">
+        <receiver android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$PresentationMediaButtonReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$CastMediaButtonReceiver">
+        <receiver android:name="org.chromium.chrome.browser.media.ui.MediaNotificationManager$CastMediaButtonReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
 
 
         <meta-data android:name="com.google.android.gms.version"
-                   android:value="@integer/google_play_services_version"/>
+                   android:value="@integer/google_play_services_version" />
 
         <meta-data android:name="org.chromium.content.browser.SMART_CLIP_PROVIDER"
                    android:value="org.chromium.content.browser.SmartClipProvider"/>
+
 
 
         <!-- Media route controllers to use for remote playback (cast).

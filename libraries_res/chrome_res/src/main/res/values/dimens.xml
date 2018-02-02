@@ -101,7 +101,16 @@
     <dimen name="contextual_search_peek_promo_height">48dp</dimen>
     <dimen name="contextual_search_peek_promo_padding">12dp</dimen>
     <dimen name="contextual_search_caption_text_size">14sp</dimen>
-    <dimen name="contextual_search_thumbnail_size">36dp</dimen>
+    <dimen name="contextual_search_static_image_size">36dp</dimen>
+    <!-- The following two dimensions were taking from the UI specs for contextual search, where
+    they were 36dp and 3dp respectively, but have been updated to allow for padding around
+    TextViews that we cannot get rid of. -->
+    <dimen name="contextual_search_text_layer_min_height">38dp</dimen>
+    <dimen name="contextual_search_term_caption_spacing">1.5dp</dimen>
+    <!-- This is the offset of the divider from the end of the bar. -->
+    <dimen name="contextual_search_end_button_width">48dp</dimen>
+    <dimen name="contextual_search_divider_line_width">1dp</dimen>
+    <dimen name="contextual_search_divider_line_height">24dp</dimen>
 
     <!-- Overlay panel dimensions -->
     <dimen name="overlay_panel_bar_height">56dp</dimen>
@@ -112,9 +121,6 @@
     <dimen name="password_generation_text_size">14sp</dimen>
     <dimen name="password_generation_horizontal_margin">10dp</dimen>
     <dimen name="password_generation_text_vertical_margin">12dp</dimen>
-
-    <!-- Preferences dimensions -->
-    <dimen name="pref_autofill_touch_target_padding">15dp</dimen>
 
     <!-- Site Settings dimensions -->
     <dimen name="site_setttings_icon_padding">4.6dp</dimen>
@@ -218,6 +224,7 @@
     <dimen name="toolbar_tab_count_text_size_1_digit">12dp</dimen>
     <dimen name="toolbar_tab_count_text_size_2_digit">10dp</dimen>
     <dimen name="toolbar_height_no_shadow">56dp</dimen>
+    <dimen name="toolbar_shadow_height">8dp</dimen>
     <dimen name="toolbar_progress_bar_height">2dp</dimen>
     <dimen name="toolbar_button_width">48dp</dimen>
 
@@ -263,17 +270,8 @@
     <dimen name="most_visited_icon_size">48dp</dimen>
     <dimen name="most_visited_offline_badge_size">24dp</dimen>
     <dimen name="ntp_logo_height">116dp</dimen>
-    <dimen name="ntp_search_box_height">48dp</dimen>
-    <dimen name="ntp_search_box_material_margin_left">10dp</dimen>
-    <dimen name="ntp_search_box_material_margin_right">10dp</dimen>
-    <dimen name="ntp_search_box_material_margin_top">0dp</dimen>
-    <dimen name="ntp_search_box_material_margin_bottom">1dp</dimen>
-    <dimen name="ntp_search_box_material_height">62dp</dimen>
-    <dimen name="ntp_search_box_material_extra_width">4dp</dimen>
-    <dimen name="ntp_search_box_material_padding_top">3dp</dimen>
-    <dimen name="ntp_search_box_material_padding_bottom">3dp</dimen>
-    <dimen name="ntp_search_box_material_padding_left">2dp</dimen>
-    <dimen name="ntp_search_box_material_padding_right">2dp</dimen>
+    <dimen name="ntp_search_box_height">62dp</dimen>
+    <dimen name="ntp_search_box_shadow_width">4dp</dimen>
     <dimen name="ntp_search_box_transition_length">16dp</dimen>
     <dimen name="ntp_wide_card_lateral_margins">48dp</dimen>
     <dimen name="ntp_list_item_min_height">48dp</dimen>
@@ -282,11 +280,19 @@
     <dimen name="ntp_sign_in_promo_margin_top">20dp</dimen>
     <dimen name="ntp_progress_indicator_diameter">56dp</dimen>
     <dimen name="snippets_thumbnail_size">72dp</dimen>
-    <dimen name="snippets_padding_and_peeking_card_height">16dp</dimen>
+    <!-- The default padding for the peeking card and the amount the card peeks by in the current
+         peeking card animation (the calculations assume this is the same). -->
+    <dimen name="snippets_padding">16dp</dimen>
+    <!-- The amount of the peeking card showing above the fold with the increased visibility UI
+         (https://crbug.com/660837). -->
+    <dimen name="snippets_peeking_card_peek_amount">32dp</dimen>
+    <dimen name="snippets_peeking_card_bounce_distance">10dp</dimen>
     <dimen name="snippets_card_9_patch_adjustment">2dp</dimen>
     <dimen name="snippets_article_header_height">40dp</dimen>
     <dimen name="snippets_publisher_margin_top_with_article_snippet">16dp</dimen>
     <dimen name="snippets_publisher_margin_top_without_article_snippet">8dp</dimen>
+    <!-- This is in sp because we want the icon to scale with the TextView it sits alongside. -->
+    <dimen name="snippets_offline_icon_size">18sp</dimen>
 
     <!-- Recent tabs page -->
     <dimen name="recent_tabs_visible_separator_padding">8dp</dimen>
@@ -365,6 +371,12 @@
     <dimen name="pref_autofill_content_spacing">12dp</dimen>
     <dimen name="pref_autofill_field_horizontal_padding">4dp</dimen>
     <dimen name="pref_autofill_field_top_margin">8dp</dimen>
+    <dimen name="pref_autofill_field_large_top_margin">16dp</dimen>
+    <dimen name="pref_autofill_field_bottom_margin">8dp</dimen>
+    <!-- The dropdown element has no embedded bottom padding like the TextView has so the margin
+         is doubled. -->
+    <dimen name="pref_autofill_dropdown_bottom_margin">16dp</dimen>
+    <dimen name="pref_autofill_touch_target_padding">15dp</dimen>
 
     <!-- Dialog dimensions.
          https://www.google.com/design/spec/components/dialogs.html#dialogs-simple-dialogs -->
@@ -372,4 +384,14 @@
 
     <!-- Downloads dimensions. -->
     <dimen name="downloads_item_icon_size">48dp</dimen>
+
+    <!--  Miscellaneous dimensions -->
+    <dimen name="action_bar_shadow_height">10dp</dimen>
+
+    <!-- add by renshuai -->
+    <dimen name="keyboard_accessory_chip_height">32dp</dimen>
+    <dimen name="keyboard_accessory_half_padding">4dp</dimen>
+    <dimen name="keyboard_accessory_height">48dp</dimen>
+    <dimen name="keyboard_accessory_padding">8dp</dimen>
+    <dimen name="keyboard_accessory_text_size">14sp</dimen>
 </resources>

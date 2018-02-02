@@ -13,7 +13,7 @@
         android:layout_width="256dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#ffffff"
+        android:background="@android:color/white"
         android:orientation="vertical"
         android:paddingTop="@dimen/drawer_margin_large" >
 
@@ -28,6 +28,10 @@
             android:dividerHeight="0dp" />
     </LinearLayout>
 
-    <include layout="@layout/download_content" />
+    <org.chromium.chrome.browser.widget.selection.SelectableListLayout
+        android:id="@+id/selectable_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white" />
 
 </LinearLayout>

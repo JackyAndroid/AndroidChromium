@@ -56,6 +56,6 @@
     <org.chromium.chrome.browser.widget.FadingShadowView
         android:id="@+id/shadow"
         android:layout_width="match_parent"
-        android:layout_height="10dp"
+        android:layout_height="@dimen/action_bar_shadow_height"
         android:layout_below="@id/bookmark_action_bar" />
 </org.chromium.chrome.browser.bookmarks.BookmarkContentView>

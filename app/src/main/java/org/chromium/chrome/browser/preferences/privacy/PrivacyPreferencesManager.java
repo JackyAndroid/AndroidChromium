@@ -16,6 +16,7 @@ import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.device.DeviceClassManager;
 import org.chromium.chrome.browser.physicalweb.PhysicalWeb;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
+import org.chromium.components.minidump_uploader.util.CrashReportingPermissionManager;
 
 /**
  * Reads, writes, and migrates preferences related to network usage and privacy.
@@ -42,7 +43,7 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     private final Context mContext;
     private final SharedPreferences mSharedPreferences;
 
-    private boolean mCrashUploadingCommandLineDisabled;
+    private boolean mCrashUploadingDisabledByCommandLine;
 
     @VisibleForTesting
     PrivacyPreferencesManager(Context context) {
@@ -53,7 +54,7 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
         // to prevent unwanted uploads at startup. If the command line flag to enable uploading is
         // turned on, the other conditions (e.g. user/network preferences) for when to upload apply.
         // This currently applies to only crash reporting and is ignored for metrics reporting.
-        mCrashUploadingCommandLineDisabled = true;
+        mCrashUploadingDisabledByCommandLine = true;
         migrateUsageAndCrashPreferences();
     }
 
@@ -231,15 +232,6 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     }
 
     /**
-     * Check whether usage and crash reporting set to ON.
-     *
-     * @return boolean whether usage and crash reporting set to ON.
-     */
-    public boolean isUsageAndCrashReportingEnabled() {
-        return mSharedPreferences.getBoolean(PREF_METRICS_REPORTING, false);
-    }
-
-    /**
      * Sets the usage and crash reporting preference ON or OFF.
      *
      * @param enabled A boolean corresponding whether usage and crash reports uploads are allowed.
@@ -250,7 +242,18 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     }
 
     /**
-     * Sets whether this client is in-sample. See
+     * Update usage and crash preferences based on Android preferences if possible in case they are
+     * out of sync.
+     */
+    public void syncUsageAndCrashReportingPrefs() {
+        if (PrefServiceBridge.isInitialized()) {
+            PrefServiceBridge.getInstance().setMetricsReportingEnabled(
+                    isUsageAndCrashReportingPermittedByUser());
+        }
+    }
+
+    /**
+     * Sets whether this client is in-sample for usage metrics and crash reporting. See
      * {@link org.chromium.chrome.browser.metrics.UmaUtils#isClientInMetricsSample} for details.
      */
     public void setClientInMetricsSample(boolean inSample) {
@@ -258,11 +261,12 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     }
 
     /**
-     * Checks whether this client is in-sample. See
+     * Checks whether this client is in-sample for usage metrics and crash reporting. See
      * {@link org.chromium.chrome.browser.metrics.UmaUtils#isClientInMetricsSample} for details.
      *
      * @returns boolean Whether client is in-sample.
      */
+    @Override
     public boolean isClientInMetricsSample() {
         // The default value is true to avoid sampling out crashes that occur before native code has
         // been initialized on first run. We'd rather have some extra crashes than none from that
@@ -271,86 +275,73 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     }
 
     /**
-     * Provides a way to remove disabling crash uploading entirely.
-     * Enable crash uploading based on user's preference when an overriding flag
-     * does not exist in commandline.
-     * Used to differentiate from tests that trigger crashers intentionally, so these crashers are
-     * not uploaded.
-     */
-    public void enablePotentialCrashUploading() {
-        mCrashUploadingCommandLineDisabled = false;
-    }
-
-    /**
-     * Check whether to allow uploading crash dump now.
-     * {@link #allowUploadCrashDump()} should return {@code true},
-     * and the network should be connected as well.
+     * Checks whether uploading of crash dumps is permitted for the available network(s).
      *
-     * This function should not result in a native call as it can be called in circumstances where
-     * natives are not guaranteed to be loaded.
-     *
-     * @return whether to allow uploading crash dump now.
+     * @return whether uploading crash dumps is permitted.
      */
     @Override
-    public boolean isUploadPermitted() {
-        return !mCrashUploadingCommandLineDisabled && isNetworkAvailable()
-                && (isUsageAndCrashReportingEnabled() || isUploadEnabledForTests());
+    public boolean isNetworkAvailableForCrashUploads() {
+        return isNetworkAvailable() && isWiFiOrEthernetNetwork();
     }
 
     /**
-     * Check whether to allow UMA uploading.
-     *
-     * TODO(asvitkine): This is temporary split up from isUploadPermitted() above with
-     * the |mCrashUploadingCommandLineDisabled| check removed, in order to diagnose if
-     * that check is responsible for decreased UMA uploads in M49. http://crbug.com/602703
-     *
-     * This function should not result in a native call as it can be called in circumstances where
-     * natives are not guaranteed to be loaded.
-     *
-     * @return whether to allow UMA uploading.
-     */
-    @Override
-    public boolean isUmaUploadPermitted() {
-        return isNetworkAvailable()
-                && (isUsageAndCrashReportingEnabled() || isUploadEnabledForTests());
-    }
-
-    /**
-     * Check whether not to disable uploading crash dump by command line flag.
-     * If command line flag disables crash dump uploading, do not retry, but also do not delete.
+     * Checks whether uploading of crash dumps is permitted, based on the corresponding command line
+     * flag only.
      * TODO(jchinlee): this is not quite a boolean. Depending on other refactoring, change to enum.
      *
-     * @return whether experimental flag doesn't disable uploading crash dump.
+     * @return whether uploading of crash dumps is enabled or disabled by a command line flag.
      */
     @Override
-    public boolean isUploadCommandLineDisabled() {
-        return mCrashUploadingCommandLineDisabled;
+    public boolean isCrashUploadDisabledByCommandLine() {
+        return mCrashUploadingDisabledByCommandLine;
     }
 
     /**
-     * Check whether the user allows uploading.
-     * This doesn't take network condition or experimental state (i.e. disabling upload) into
-     * consideration.
-     * A crash dump may be retried if this check passes.
+     * Checks whether uploading of usage metrics is currently permitted.
      *
-     * @return whether user's preference allows uploading crash dump.
+     * Note that this function intentionally does not check |mCrashUploadingDisabledByCommandLine|.
+     * See http://crbug.com/602703 for more details.
+     *
+     * @return whether uploading usage metrics is currently permitted.
      */
     @Override
-    public boolean isUploadUserPermitted() {
-        return isUsageAndCrashReportingEnabled();
+    public boolean isMetricsUploadPermitted() {
+        return isNetworkAvailable()
+                && (isUsageAndCrashReportingPermittedByUser() || isUploadEnabledForTests());
     }
 
     /**
-     * Check whether uploading crash dump should be in constrained mode based on current connection
-     * type. This function shows whether in general uploads should be limited
-     * for this user and does not determine whether crash uploads are currently possible or not. Use
-     * |isUploadPermitted| function for that before calling |isUploadLimited|.
+     * Checks whether uploading of usage metrics and crash dumps is currently permitted, based on
+     * user consent only. This doesn't take network condition or experimental state (i.e. disabling
+     * upload) into consideration. A crash dump may be retried if this check passes.
      *
-     * @return whether uploading logic should be constrained.
+     * @return whether the user has consented to reporting usage metrics and crash dumps.
      */
     @Override
-    public boolean isUploadLimited() {
-        return !isWiFiOrEthernetNetwork();
+    public boolean isUsageAndCrashReportingPermittedByUser() {
+        return mSharedPreferences.getBoolean(PREF_METRICS_REPORTING, false);
+    }
+
+    /**
+     * Check whether the command line switch is used to force uploading if at all possible. Used by
+     * test devices to avoid UI manipulation.
+     *
+     * @return whether uploading should be enabled if at all possible.
+     */
+    @Override
+    public boolean isUploadEnabledForTests() {
+        return CommandLine.getInstance().hasSwitch(ChromeSwitches.FORCE_CRASH_DUMP_UPLOAD);
+    }
+
+    /**
+     * Provides a way to remove disabling crash uploading entirely.
+     * Enable crash uploading based on user's preference when an overriding flag does not exist in
+     * commandline.
+     * Used to differentiate from tests that trigger crashes intentionally, so these crashes are not
+     * uploaded.
+     */
+    public void enablePotentialCrashUploading() {
+        mCrashUploadingDisabledByCommandLine = false;
     }
 
     /**
@@ -390,27 +381,5 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     public boolean isPhysicalWebEnabled() {
         int state = mSharedPreferences.getInt(PREF_PHYSICAL_WEB, PHYSICAL_WEB_ONBOARDING);
         return (state == PHYSICAL_WEB_ON);
-    }
-
-    /**
-     * Check whether the command line switch is used to force uploading if at all possible. Used by
-     * test devices to avoid UI manipulation.
-     *
-     * @return whether uploading should be enabled if at all possible.
-     */
-    @Override
-    public boolean isUploadEnabledForTests() {
-        return CommandLine.getInstance().hasSwitch(ChromeSwitches.FORCE_CRASH_DUMP_UPLOAD);
-    }
-
-    /**
-     * Update usage and crash preferences based on Android preferences if possible in case they are
-     * out of sync.
-     */
-    public void syncUsageAndCrashReportingPrefs() {
-        if (PrefServiceBridge.isInitialized()) {
-            PrefServiceBridge.getInstance().setMetricsReportingEnabled(
-                    isUsageAndCrashReportingEnabled());
-        }
     }
 }

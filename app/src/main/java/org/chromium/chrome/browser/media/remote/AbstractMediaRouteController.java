@@ -490,6 +490,7 @@ public abstract class AbstractMediaRouteController implements MediaRouteControll
                 } else {
                     seekTo(mMediaStateListener.getLocalPosition());
                 }
+                mMediaStateListener.onCastStarted();
             }
             RecordCastAction.castDefaultPlayerResult(true);
             mIsPrepared = true;

@@ -117,7 +117,7 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
     // Drawing area properties.
     private float mWidth;
     private float mHeight;
-    private float mHeightMinusTopControls;
+    private float mHeightMinusBrowserControls;
 
     /** A {@link Context} instance. */
     private Context mContext;
@@ -167,7 +167,7 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
         // Invalid sizes
         mWidth = -1;
         mHeight = -1;
-        mHeightMinusTopControls = -1;
+        mHeightMinusBrowserControls = -1;
 
         mCurrentOrientation = Orientation.UNSET;
     }
@@ -327,29 +327,29 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
      * Called when the size of the viewport has changed.
      * @param visibleViewport        The visible viewport that represents the area on the screen
      *                               this {@link Layout} gets to draw to (potentially takes into
-     *                               account top controls).
+     *                               account browser controls).
      * @param screenViewport         The viewport of the screen.
-     * @param heightMinusTopControls The height the {@link Layout} gets excluding the height of the
-     *                               top controls.  TODO(dtrainor): Look at getting rid of this.
+     * @param heightMinusBrowserControls The height the {@link Layout} gets excluding the height of
+     * the
+     *                               browser controls.  TODO(dtrainor): Look at getting rid of this.
      * @param orientation            The new orientation.  Valid values are defined by
      *                               {@link Orientation}.
      */
     public final void sizeChanged(RectF visibleViewport, RectF screenViewport,
-            float heightMinusTopControls, int orientation) {
+            float heightMinusBrowserControls, int orientation) {
         // 1. Pull out this Layout's width and height properties based on the viewport.
         float width = screenViewport.width();
         float height = screenViewport.height();
 
         // 2. Check if any Layout-specific properties have changed.
-        boolean layoutPropertiesChanged = mWidth != width
-                || mHeight != height
-                || mHeightMinusTopControls != heightMinusTopControls
+        boolean layoutPropertiesChanged = mWidth != width || mHeight != height
+                || mHeightMinusBrowserControls != heightMinusBrowserControls
                 || mCurrentOrientation != orientation;
 
         // 3. Update the internal sizing properties.
         mWidth = width;
         mHeight = height;
-        mHeightMinusTopControls = heightMinusTopControls;
+        mHeightMinusBrowserControls = heightMinusBrowserControls;
         mCurrentOrientation = orientation;
 
         // 4. Notify the actual Layout if necessary.
@@ -574,10 +574,10 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
     }
 
     /**
-     * @return The height of the drawing area minus the top controls.
+     * @return The height of the drawing area minus the browser controls.
      */
-    public float getHeightMinusTopControls() {
-        return mHeightMinusTopControls;
+    public float getHeightMinusBrowserControls() {
+        return mHeightMinusBrowserControls;
     }
 
     /**
@@ -1139,7 +1139,7 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
         updateSceneLayer(viewport, contentViewport, layerTitleCache, tabContentManager,
                 resourceManager, fullscreenManager);
 
-        float offsetPx = fullscreenManager != null ? fullscreenManager.getControlOffset() : 0.f;
+        float offsetPx = fullscreenManager != null ? fullscreenManager.getTopControlOffset() : 0.f;
         float dpToPx = getContext().getResources().getDisplayMetrics().density;
         float offsetDp = offsetPx / dpToPx;
 
@@ -1159,12 +1159,12 @@ public abstract class Layout implements TabContentManager.ThumbnailChangeListene
     }
 
     /**
-     * @return Whether or not to force the top controls Android view to hide.
+     * @return Whether or not to force the browser controls Android view to hide.
      */
-    public boolean forceHideTopControlsAndroidView() {
+    public boolean forceHideBrowserControlsAndroidView() {
         for (int i = 0; i < mSceneOverlays.size(); i++) {
-            // If any overlay wants to hide tha Android version of the top controls, hide them.
-            if (mSceneOverlays.get(i).shouldHideAndroidTopControls()) return true;
+            // If any overlay wants to hide tha Android version of the browser controls, hide them.
+            if (mSceneOverlays.get(i).shouldHideAndroidBrowserControls()) return true;
         }
         return false;
     }

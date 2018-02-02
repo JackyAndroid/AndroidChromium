@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.annotations.SuppressFBWarnings;
 import org.chromium.chrome.browser.ChromeSwitches;
+import org.chromium.chrome.browser.ChromeVersionInfo;
 import org.chromium.chrome.browser.crash.MinidumpUploadService.ProcessType;
 import org.chromium.chrome.browser.util.FeatureUtilities;
 
@@ -23,10 +24,12 @@ public class ChromePreferenceManager {
     private static final String TAG = "preferences";
 
     private static final String PROMOS_SKIPPED_ON_FIRST_START = "promos_skipped_on_first_start";
-    private static final String SIGNIN_PROMO_LAST_SHOWN = "signin_promo_last_timestamp_key";
+    private static final String SIGNIN_PROMO_LAST_SHOWN = "signin_promo_last_shown_chrome_version";
     private static final String SHOW_SIGNIN_PROMO = "show_signin_promo";
     private static final String ALLOW_LOW_END_DEVICE_UI = "allow_low_end_device_ui";
     private static final String PREF_WEBSITE_SETTINGS_FILTER = "website_settings_filter";
+    private static final String CARDS_IMPRESSION_AFTER_ANIMATION =
+            "cards_impression_after_animation";
     private static final String CONTEXTUAL_SEARCH_PROMO_OPEN_COUNT =
             "contextual_search_promo_open_count";
     private static final String CONTEXTUAL_SEARCH_TAP_TRIGGERED_PROMO_COUNT =
@@ -42,17 +45,17 @@ public class ChromePreferenceManager {
             "contextual_search_current_week_number";
     private static final String HERB_FLAVOR_KEY = "herb_flavor";
     private static final String INSTANT_APPS_KEY = "applink.app_link_enabled";
+    private static final String WEBAPK_COMMAND_LINE_KEY = "webapk.command_line_enabled";
     private static final String WEBAPK_RUNTIME_KEY = "webapk.runtime_enabled";
+    private static final String CHROME_HOME_ENABLED_KEY = "chrome_home_enabled";
 
     private static final String CHROME_DEFAULT_BROWSER = "applink.chrome_default_browser";
 
     private static final String NTP_SIGNIN_PROMO_DISMISSED = "ntp.signin_promo_dismissed";
+    private static final String NTP_ANIMATION_RUN_COUNT = "ntp_recycler_view_animation_run_count";
 
     private static final String SUCCESS_UPLOAD_SUFFIX = "_crash_success_upload";
     private static final String FAILURE_UPLOAD_SUFFIX = "_crash_failure_upload";
-
-    private static final int SIGNIN_PROMO_CYCLE_IN_DAYS = 120;
-    private static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
 
     private static ChromePreferenceManager sPrefs;
 
@@ -138,9 +141,7 @@ public class ChromePreferenceManager {
      * @param displayed Whether the promotion was shown.
      */
     public void setPromosSkippedOnFirstStart(boolean displayed) {
-        SharedPreferences.Editor ed = mSharedPreferences.edit();
-        ed.putBoolean(PROMOS_SKIPPED_ON_FIRST_START, displayed);
-        ed.apply();
+        writeBoolean(PROMOS_SKIPPED_ON_FIRST_START, displayed);
     }
 
     /**
@@ -174,23 +175,28 @@ public class ChromePreferenceManager {
     }
 
     /**
-     * Signin promo could be shown at most once every 12 weeks. This method checks
-     * wheter the signin promo has already been shown in the current cycle.
-     * @return Whether the signin promo has been shown in the current cycle.
+     * Signin promo could be shown at most once every at least 2 Chrome major versions. This method
+     * checks wheter the signin promo has already been shown in the current range.
+     * @return Whether the signin promo has been shown in the current range.
      */
     public boolean getSigninPromoShown() {
-        long signinPromoLastShown = mSharedPreferences.getLong(SIGNIN_PROMO_LAST_SHOWN, 0);
-        long numDaysElapsed =
-                (System.currentTimeMillis() - signinPromoLastShown) / MILLISECONDS_IN_DAY;
-        return numDaysElapsed < SIGNIN_PROMO_CYCLE_IN_DAYS;
+        int lastMajorVersion = mSharedPreferences.getInt(SIGNIN_PROMO_LAST_SHOWN, 0);
+        if (lastMajorVersion == 0) {
+            setSigninPromoShown();
+            return true;
+        }
+
+        return ChromeVersionInfo.getProductMajorVersion() < lastMajorVersion + 2;
     }
 
     /**
-     * Sets the preference for tracking when the signin promo was last shown.
+     * Sets the preference for tracking Chrome major version number when the signin promo was last
+     * shown.
      */
     public void setSigninPromoShown() {
         SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
-        sharedPreferencesEditor.putLong(SIGNIN_PROMO_LAST_SHOWN, System.currentTimeMillis());
+        sharedPreferencesEditor.putInt(
+                SIGNIN_PROMO_LAST_SHOWN, ChromeVersionInfo.getProductMajorVersion());
         sharedPreferencesEditor.apply();
     }
 
@@ -347,9 +353,17 @@ public class ChromePreferenceManager {
 
     /** Writes the cached value for whether app link is enabled. */
     public void setCachedInstantAppsEnabled(boolean isEnabled) {
-        SharedPreferences.Editor ed = mSharedPreferences.edit();
-        ed.putBoolean(INSTANT_APPS_KEY, isEnabled);
-        ed.apply();
+        writeBoolean(INSTANT_APPS_KEY, isEnabled);
+    }
+
+    /** Checks the cached value for the WebAPK command line flag. */
+    public boolean getCachedWebApkCommandLineEnabled() {
+        return mSharedPreferences.getBoolean(WEBAPK_COMMAND_LINE_KEY, false);
+    }
+
+    /** Sets the cached value for the WebAPK command line flag. */
+    public void setCachedWebApkCommandLineEnabled(boolean isEnabled) {
+        writeBoolean(WEBAPK_COMMAND_LINE_KEY, isEnabled);
     }
 
     /** Checks the cached value for the webapk feature. */
@@ -359,9 +373,7 @@ public class ChromePreferenceManager {
 
     /** Writes the cached value for the webapk feature is enabled. */
     public void setCachedWebApkRuntimeEnabled(boolean isEnabled) {
-        SharedPreferences.Editor ed = mSharedPreferences.edit();
-        ed.putBoolean(WEBAPK_RUNTIME_KEY, isEnabled);
-        ed.apply();
+        writeBoolean(WEBAPK_RUNTIME_KEY, isEnabled);
     }
 
     public boolean getCachedChromeDefaultBrowser() {
@@ -369,9 +381,7 @@ public class ChromePreferenceManager {
     }
 
     public void setCachedChromeDefaultBrowser(boolean isDefault) {
-        SharedPreferences.Editor ed = mSharedPreferences.edit();
-        ed.putBoolean(CHROME_DEFAULT_BROWSER, isDefault);
-        ed.apply();
+        writeBoolean(CHROME_DEFAULT_BROWSER, isDefault);
     }
 
     /** Checks if the user dismissed the sign in promo from the new tab page. */
@@ -381,9 +391,43 @@ public class ChromePreferenceManager {
 
     /** Set whether the user dismissed the sign in promo from the new tab page. */
     public void setNewTabPageSigninPromoDismissed(boolean isPromoDismissed) {
-        SharedPreferences.Editor ed = mSharedPreferences.edit();
-        ed.putBoolean(NTP_SIGNIN_PROMO_DISMISSED, isPromoDismissed);
-        ed.apply();
+        writeBoolean(NTP_SIGNIN_PROMO_DISMISSED, isPromoDismissed);
+    }
+
+    /** Gets the number of times the New Tab Page first card animation has been run. */
+    public int getNewTabPageFirstCardAnimationRunCount() {
+        return readInt(NTP_ANIMATION_RUN_COUNT);
+    }
+
+    /** Records the number of times the New Tab Page first card animation has been run. */
+    public void setNewTabPageFirstCardAnimationRunCount(int value) {
+        writeInt(NTP_ANIMATION_RUN_COUNT, value);
+    }
+
+    /** Returns whether the user has triggered a snippet impression after viewing the animation. */
+    public boolean getCardsImpressionAfterAnimation() {
+        return mSharedPreferences.getBoolean(CARDS_IMPRESSION_AFTER_ANIMATION, false);
+    }
+
+    /** Sets whether the user has triggered a snippet impression after viewing the animation. */
+    public void setCardsImpressionAfterAnimation(boolean isScrolled) {
+        writeBoolean(CARDS_IMPRESSION_AFTER_ANIMATION, isScrolled);
+    }
+
+    /**
+     * Set whether or not Chrome Home is enabled.
+     * @param isEnabled If Chrome Home is enabled.
+     */
+    public void setChromeHomeEnabled(boolean isEnabled) {
+        writeBoolean(CHROME_HOME_ENABLED_KEY, isEnabled);
+    }
+
+    /**
+     * Get whether or not Chrome Home is enabled.
+     * @return True if Chrome Home is enabled.
+     */
+    public boolean isChromeHomeEnabled() {
+        return mSharedPreferences.getBoolean(CHROME_HOME_ENABLED_KEY, false);
     }
 
     /**
@@ -415,6 +459,18 @@ public class ChromePreferenceManager {
     private void writeString(String key, String value) {
         SharedPreferences.Editor ed = mSharedPreferences.edit();
         ed.putString(key, value);
+        ed.apply();
+    }
+
+    /**
+     * Writes the given boolean to the named shared preference.
+     *
+     * @param key The name of the preference to modify.
+     * @param value The new value for the preference.
+     */
+    private void writeBoolean(String key, boolean value) {
+        SharedPreferences.Editor ed = mSharedPreferences.edit();
+        ed.putBoolean(key, value);
         ed.apply();
     }
 }

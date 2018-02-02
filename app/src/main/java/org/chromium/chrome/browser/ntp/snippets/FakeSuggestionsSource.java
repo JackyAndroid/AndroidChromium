@@ -28,6 +28,12 @@ public class FakeSuggestionsSource implements SuggestionsSource {
     private final Map<Integer, SuggestionsCategoryInfo> mCategoryInfo = new HashMap<>();
     private final Map<String, Bitmap> mThumbnails = new HashMap<>();
 
+    private final List<Integer> mDismissedCategories = new ArrayList<>();
+    private final Map<Integer, List<SnippetArticle>> mDismissedCategorySuggestions =
+            new HashMap<>();
+    private final Map<Integer, Integer> mDismissedCategoryStatus = new LinkedHashMap<>();
+    private final Map<Integer, SuggestionsCategoryInfo> mDismissedCategoryInfo = new HashMap<>();
+
     /**
      * Sets the status to be returned for a given category.
      */
@@ -60,7 +66,7 @@ public class FakeSuggestionsSource implements SuggestionsSource {
     }
 
     /**
-     * Set's the bitmap to be returned when the Thumbnail is requested for a snippet with that id.
+     * Sets the bitmap to be returned when the thumbnail is requested for a snippet with that id.
      */
     public void setThumbnailForId(String id, Bitmap bitmap) {
         mThumbnails.put(id, bitmap);
@@ -92,12 +98,29 @@ public class FakeSuggestionsSource implements SuggestionsSource {
 
     @Override
     public void dismissSuggestion(SnippetArticle suggestion) {
-        throw new UnsupportedOperationException();
+        for (List<SnippetArticle> suggestions : mSuggestions.values()) {
+            suggestions.remove(suggestion);
+        }
     }
 
     @Override
     public void dismissCategory(@CategoryInt int category) {
-        throw new UnsupportedOperationException();
+        mDismissedCategorySuggestions.put(category, mSuggestions.get(category));
+        mDismissedCategoryStatus.put(category, mCategoryStatus.get(category));
+        mDismissedCategoryInfo.put(category, mCategoryInfo.get(category));
+        mDismissedCategories.add(category);
+        silentlyRemoveCategory(category);
+    }
+
+    @Override
+    public void restoreDismissedCategories() {
+        for (int category : mDismissedCategories) {
+            mSuggestions.put(category, mDismissedCategorySuggestions.remove(category));
+            mCategoryStatus.put(category, mDismissedCategoryStatus.remove(category));
+            mCategoryInfo.put(category, mDismissedCategoryInfo.remove(category));
+            mCategories.add(category);
+        }
+        mDismissedCategories.clear();
     }
 
     @Override
@@ -108,9 +131,8 @@ public class FakeSuggestionsSource implements SuggestionsSource {
     }
 
     @Override
-    public void getSuggestionVisited(
-            SnippetArticle suggestion, Callback<Boolean> callback) {
-        callback.onResult(false);
+    public void fetchSuggestions(@CategoryInt int category, String[] displayedSuggestionIds) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

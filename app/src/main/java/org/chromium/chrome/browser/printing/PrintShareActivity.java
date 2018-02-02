@@ -10,11 +10,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 
 import org.chromium.base.ActivityState;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ApplicationStatus.ActivityStateListener;
+import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeActivity;
@@ -26,15 +28,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A simple activity that allows Chrome to expose print as an option in the share menu.
  */
 public class PrintShareActivity extends AppCompatActivity {
 
+    private static final String TAG = "cr_printing";
+
     private static Set<Activity> sPendingShareActivities =
             Collections.synchronizedSet(new HashSet<Activity>());
     private static ActivityStateListener sStateListener;
+    private static AsyncTask<Void, Void, Void> sStateChangeTask;
 
     /**
      * Enable the print sharing option.
@@ -61,8 +67,10 @@ public class PrintShareActivity extends AppCompatActivity {
         ApplicationStatus.registerStateListenerForAllActivities(sStateListener);
         boolean wasEmpty = sPendingShareActivities.isEmpty();
         sPendingShareActivities.add(activity);
+
+        waitForPendingStateChangeTask();
         if (wasEmpty) {
-            new AsyncTask<Void, Void, Void>() {
+            sStateChangeTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
                     if (sPendingShareActivities.isEmpty()) return null;
@@ -76,6 +84,11 @@ public class PrintShareActivity extends AppCompatActivity {
 
                 @Override
                 protected void onPostExecute(Void result) {
+                    if (sStateChangeTask == this) {
+                        sStateChangeTask = null;
+                    } else {
+                        waitForPendingStateChangeTask();
+                    }
                     callback.run();
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -85,11 +98,14 @@ public class PrintShareActivity extends AppCompatActivity {
     }
 
     private static void unregisterActivity(final Activity activity) {
+        ThreadUtils.assertOnUiThread();
+
         sPendingShareActivities.remove(activity);
         if (!sPendingShareActivities.isEmpty()) return;
         ApplicationStatus.unregisterActivityStateListener(sStateListener);
 
-        new AsyncTask<Void, Void, Void>() {
+        waitForPendingStateChangeTask();
+        sStateChangeTask = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 if (!sPendingShareActivities.isEmpty()) return null;
@@ -100,7 +116,32 @@ public class PrintShareActivity extends AppCompatActivity {
                         PackageManager.DONT_KILL_APP);
                 return null;
             }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                if (sStateChangeTask == this) sStateChangeTask = null;
+            }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    /**
+     * Waits for any pending state change operations to be completed.
+     *
+     * This will avoid timing issues described here: crbug.com/649453.
+     */
+    private static void waitForPendingStateChangeTask() {
+        ThreadUtils.assertOnUiThread();
+
+        if (sStateChangeTask == null) return;
+        StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
+        try {
+            sStateChangeTask.get();
+            sStateChangeTask = null;
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, "Print state change task did not complete as expected");
+        } finally {
+            StrictMode.setThreadPolicy(oldPolicy);
+        }
     }
 
     @Override

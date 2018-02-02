@@ -9,6 +9,6 @@
     android:layout_height="wrap_content"
     android:textColor="@color/snippets_list_header_text_color"
     android:textSize="12sp"
-    android:paddingStart="@dimen/snippets_padding_and_peeking_card_height"
+    android:paddingStart="@dimen/snippets_padding"
     android:paddingTop="10dp"
     android:gravity="start|center_vertical" />

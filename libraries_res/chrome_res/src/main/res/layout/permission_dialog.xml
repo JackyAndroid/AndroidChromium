@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="start"
+    style="@style/AlertDialogContent" >
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/infobar_control_margin_between_items"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:textSize="@dimen/infobar_text_size"
+        android:paddingTop="0dp"
+        android:drawablePadding="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:paddingStart="32dp"
+        android:gravity="bottom">
+
+        <TextView
+            android:id="@+id/permission_dialog_persist_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/infobar_control_margin_between_items"
+            android:gravity="center_vertical"
+            android:textSize="@dimen/infobar_text_size" />
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/permission_dialog_persist_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</LinearLayout>

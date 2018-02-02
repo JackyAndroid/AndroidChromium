@@ -21,9 +21,11 @@
     <color name="google_green_700">#0b8043</color>
     <color name="google_grey_100">#f5f5f5</color>
     <color name="google_grey_300">#e0e0e0</color>
+    <color name="google_grey_500">#9E9E9E</color>
     <color name="google_grey_600">#757575</color>
     <color name="toolbar_shadow_color">#1d000000</color>
     <color name="toolbar_light_tint">#A3000000</color>
+    <color name="light_grey">#ccc</color>
 
     <!-- Infobar colors -->
     <color name="infobar_accent_blue">#4285f4</color>
@@ -94,14 +96,13 @@
     <color name="sad_tab_body_text_color">#646464</color>
 
     <!-- NTP Colors. Used on the bookmarks and recent tabs pages. -->
-    <color name="ntp_bg">#fff</color>
+    <color name="ntp_bg">#f2f2f2</color>
     <color name="ntp_bg_incognito">#222</color>
     <color name="ntp_search_box_hint">#969696</color>
     <color name="ntp_list_item_text">#333</color>
     <color name="ntp_list_header_text">#333</color>
     <color name="ntp_list_header_subtext">#969696</color>
     <color name="ntp_list_header_subtext_active">#7cadff</color>
-    <color name="ntp_material_design_bg">#f2f2f2</color>
     <color name="snippets_thumnail_placeholder_bg">#f2f2f2</color>
     <color name="snippets_thumnail_placeholder_fg">#757575</color>
     <color name="snippets_publisher_name_color">#646464</color>
@@ -177,7 +178,6 @@
     <color name="physical_web_header_color">#333</color>
     <color name="physical_web_url_color">#969696</color>
     <color name="physical_web_url_description_color">#646464</color>
-    <color name="physical_web_logo_gray_tint">#ccc</color>
 
     <!-- Physical Web diagnostics colors -->
     <color name="physical_web_diags_success_color">#00933b</color>
@@ -195,5 +195,8 @@
 
     <!-- Other colors -->
     <color name="selectable_list_item_highlight_color">#804281f4</color>
+    <color name="material_progressbar_bg">#dbdbdb</color>
+    <color name="media_viewer_bg">#000000</color>
+    <color name="image_viewer_bg">#0e0e0e</color>
 
 </resources>

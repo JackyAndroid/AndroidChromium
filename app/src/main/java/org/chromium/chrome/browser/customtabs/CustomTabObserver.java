@@ -95,6 +95,7 @@ class CustomTabObserver extends EmptyTabObserver {
             mPageLoadStartedTimestamp = SystemClock.elapsedRealtime();
         }
         if (mCustomTabsConnection != null) {
+            mCustomTabsConnection.setSendNavigationInfoForSession(mSession, false);
             mCustomTabsConnection.notifyNavigationEvent(
                     mSession, CustomTabsCallback.NAVIGATION_STARTED);
             mScreenshotTakenForCurrentNavigation = false;
@@ -130,10 +131,13 @@ class CustomTabObserver extends EmptyTabObserver {
                     pageLoadFinishedTimestamp - mIntentReceivedTimestamp;
 
             String histogramPrefix = mOpenedByChrome ? "ChromeGeneratedCustomTab" : "CustomTabs";
-            // Same bounds and bucket count as "Startup.FirstCommitNavigationTime"
             RecordHistogram.recordCustomTimesHistogram(
-                    histogramPrefix + ".IntentToFirstCommitNavigationTime", timeToPageLoadStartedMs,
-                    1, TimeUnit.MINUTES.toMillis(1), TimeUnit.MILLISECONDS, 225);
+                    histogramPrefix + ".IntentToFirstCommitNavigationTime2.ZoomedOut",
+                    timeToPageLoadStartedMs,
+                    50, TimeUnit.MINUTES.toMillis(10), TimeUnit.MILLISECONDS, 50);
+            RecordHistogram.recordCustomTimesHistogram(
+                    histogramPrefix + ".IntentToFirstCommitNavigationTime2.ZoomedIn",
+                    timeToPageLoadStartedMs, 200, 1000, TimeUnit.MILLISECONDS, 100);
             // Same bounds and bucket count as PLT histograms.
             RecordHistogram.recordCustomTimesHistogram(histogramPrefix + ".IntentToPageLoadedTime",
                     timeToPageLoadFinishedMs, 10, TimeUnit.MINUTES.toMillis(10),

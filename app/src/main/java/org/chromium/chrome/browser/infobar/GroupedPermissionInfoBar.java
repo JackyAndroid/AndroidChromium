@@ -10,7 +10,6 @@ import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ResourceId;
 import org.chromium.chrome.browser.tab.Tab;
-import org.chromium.ui.base.WindowAndroid;
 
 import java.util.ArrayList;
 
@@ -18,21 +17,17 @@ import java.util.ArrayList;
  * An infobar for showing several permission requests which can be allowed or blocked.
  */
 public class GroupedPermissionInfoBar extends PermissionInfoBar {
-    private final int[] mPermissionIcons;
     private final String[] mPermissionText;
-    private final int[] mContentSettings;
+    private final int[] mPermissionIcons;
     private long mNativeGroupedPermissionInfoBar;
 
-    private WindowAndroid mWindowAndroid;
-
-    GroupedPermissionInfoBar(String message, String buttonOk, String buttonCancel,
-            int[] permissionIcons, String[] permissionText, WindowAndroid windowAndroid,
-            int[] contentSettings, boolean showPersistenceToggle) {
-        super(0, null, message, null, buttonOk, buttonCancel, showPersistenceToggle);
-        mPermissionIcons = permissionIcons;
+    GroupedPermissionInfoBar(Tab tab, int[] contentSettingsTypes, String message, String buttonOk,
+            String buttonCancel, boolean showPersistenceToggle, String[] permissionText,
+            int[] permissionIcons) {
+        super(tab, contentSettingsTypes, 0, null, message, null, buttonOk, buttonCancel,
+                showPersistenceToggle);
         mPermissionText = permissionText;
-        mWindowAndroid = windowAndroid;
-        mContentSettings = contentSettings;
+        mPermissionIcons = permissionIcons;
     }
 
     @Override
@@ -54,11 +49,6 @@ public class GroupedPermissionInfoBar extends PermissionInfoBar {
     }
 
     @Override
-    public void onTabReparented(Tab tab) {
-        mWindowAndroid = tab.getWindowAndroid();
-    }
-
-    @Override
     public void onButtonClicked(final boolean isPrimaryButton) {
         if (isPrimaryButton) {
             boolean[] toggleStatus = new boolean[mPermissionIcons.length];
@@ -71,22 +61,21 @@ public class GroupedPermissionInfoBar extends PermissionInfoBar {
                 }
             }
 
-            // Only call setContentSettings with the permissions which were actually allowed by the
-            // user.
-            ArrayList<Integer> selectedContentSettings = new ArrayList<Integer>();
+            // Only request the permissions which were actually allowed by the user.
+            ArrayList<Integer> selectedContentSettingsTypes = new ArrayList<Integer>();
             for (int i = 0; i < toggleStatus.length; i++) {
                 if (toggleStatus[i]) {
-                    selectedContentSettings.add(Integer.valueOf(mContentSettings[i]));
+                    selectedContentSettingsTypes.add(Integer.valueOf(mContentSettingsTypes[i]));
                 }
             }
-            int[] selectedArray = new int[selectedContentSettings.size()];
-            for (int i = 0; i < selectedContentSettings.size(); i++) {
-                selectedArray[i] = selectedContentSettings.get(i).intValue();
+            int[] selectedArray = new int[selectedContentSettingsTypes.size()];
+            for (int i = 0; i < selectedContentSettingsTypes.size(); i++) {
+                selectedArray[i] = selectedContentSettingsTypes.get(i).intValue();
             }
 
             if (mNativeGroupedPermissionInfoBar != 0) {
                 nativeSetPermissionState(mNativeGroupedPermissionInfoBar, toggleStatus);
-                setContentSettings(mWindowAndroid, selectedArray);
+                mContentSettingsTypes = selectedArray;
             }
         }
         super.onButtonClicked(isPrimaryButton);
@@ -100,24 +89,24 @@ public class GroupedPermissionInfoBar extends PermissionInfoBar {
     /**
      * Create an infobar for a given set of permission requests.
      *
-     * @param message Message to display at the top of the infobar.
-     * @param buttonOk String to display on the 'Allow' button.
-     * @param buttonCancel String to display on the 'Block' button.
-     * @param permissionIcons Enumerated ID (from ResourceMapper) of an icon to display next to each
-     *                        permission.
-     * @param permissionText String to display for each permission request.
-     * @param windowAndroid The window which owns the infobar.
-     * @param contentSettings The list of ContentSettingsTypes requested by the infobar.
+     * @param tab                   The tab which owns the infobar.
+     * @param message               Message to display at the top of the infobar.
+     * @param buttonOk              String to display on the 'Allow' button.
+     * @param buttonCancel          String to display on the 'Block' button.
+     * @param permissionIcons       Enumerated ID (from ResourceMapper) of an icon to display next
+     *                              to each permission.
+     * @param permissionText        String to display for each permission request.
+     * @param contentSettingsTypes  The list of ContentSettingsTypes requested by the infobar.
      * @param showPersistenceToggle Whether or not a toggle to opt-out of persisting a decision
      *                              should be displayed.
      */
     @CalledByNative
-    private static InfoBar create(String message, String buttonOk, String buttonCancel,
-            int[] permissionIcons, String[] permissionText, WindowAndroid windowAndroid,
-            int[] contentSettings, boolean showPersistenceToggle) {
+    private static InfoBar create(Tab tab, int[] contentSettingsTypes, String message,
+            String buttonOk, String buttonCancel, boolean showPersistenceToggle,
+            String[] permissionText, int[] permissionIcons) {
         GroupedPermissionInfoBar infobar =
-                new GroupedPermissionInfoBar(message, buttonOk, buttonCancel, permissionIcons,
-                        permissionText, windowAndroid, contentSettings, showPersistenceToggle);
+                new GroupedPermissionInfoBar(tab, contentSettingsTypes, message, buttonOk,
+                        buttonCancel, showPersistenceToggle, permissionText, permissionIcons);
         return infobar;
     }
 

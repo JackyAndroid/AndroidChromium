@@ -52,6 +52,8 @@ class EditorLabelField {
 
         ((ImageView) mLayout.findViewById(R.id.icon)).setImageResource(
                 fieldModel.getLabelIconResourceId());
+        ((ImageView) mLayout.findViewById(R.id.icon))
+                .setBackgroundResource(R.drawable.payments_ui_logo_bg);
     }
 
     /** @return The View containing everything. */

@@ -34,6 +34,19 @@ public class ViewUtils {
     }
 
     /**
+     * Sets the enabled property of a View and all of its descendants.
+     */
+    public static void setEnabledRecursive(View view, boolean enabled) {
+        view.setEnabled(enabled);
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                setEnabledRecursive(group.getChildAt(i), enabled);
+            }
+        }
+    }
+
+    /**
      * Captures a bitmap of a View and draws it to a Canvas.
      */
     public static void captureBitmap(View view, Canvas canvas) {
