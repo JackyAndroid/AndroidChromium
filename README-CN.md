@@ -1,9 +1,3 @@
-### 欢迎在GitHub上关注我
-
-GitHub: https://github.com/JackyAndroid
-
----
-
 # AndroidChromium
 ![](https://github.com/JackyAndroid/AndroidChromium/blob/master/app/src/main/res/mipmap-xhdpi/app_icon.png)
 
