@@ -1,9 +1,11 @@
 # AndroidChromium
 
-### Advertising
+### Advertising | 广告
 <a href="https://tracking.gitads.io/?repo=AndroidChromium">
-    <img src="https://images.gitads.io/AndroidChromium" alt="GitAds"/>
+    <img src="https://images.gitads.io/AndroidChromium" width=400 alt="GitAds"/>
 </a>
+
+
 
 [中文文档](https://github.com/JackyAndroid/AndroidChromium/blob/master/README-CN.md)
 
